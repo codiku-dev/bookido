@@ -1,10 +1,10 @@
-import { useEffect } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Calendar,
+  NotebookText,
   Users,
   Package,
   UserCircle,
@@ -16,6 +16,7 @@ import BookidoLogo from "#/components/BookidoLogo";
 const navItems = [
   { path: "/admin", labelId: "nav.dashboard", icon: LayoutDashboard },
   { path: "/admin/calendar", labelId: "nav.calendar", icon: Calendar },
+  { path: "/admin/bookings", labelId: "nav.bookings", icon: NotebookText },
   { path: "/admin/users", labelId: "nav.users", icon: Users },
   { path: "/admin/services", labelId: "nav.services", icon: Package },
   { path: "/admin/profile", labelId: "nav.profile", icon: UserCircle },
@@ -26,15 +27,8 @@ export default function AdminLayout(p: { children: ReactNode }) {
   const router = useRouter();
   const t = useTranslations();
 
-  useEffect(() => {
-    const isAuthenticated = localStorage.getItem("admin-authenticated");
-    if (!isAuthenticated) {
-      router.push("/admin/login");
-    }
-  }, [router]);
-
   const handleLogout = () => {
-    localStorage.removeItem("admin-authenticated");
+    document.cookie = "admin-authenticated=; path=/; max-age=0; samesite=lax";
     router.push("/admin/login");
   };
 

@@ -183,11 +183,12 @@ export default function BookingModal({
             </div>
           )}
 
-          <div className="flex gap-3 mt-6">
+          <div className="mt-6 pt-4 border-t border-slate-100">
+            <div className="flex gap-3">
             {step === "client" && (
               <button
                 onClick={() => setStep("service")}
-                className="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-colors font-medium"
+                className="px-6 py-3 bg-white text-slate-700 border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all font-medium"
               >
                 {t("common.previous")}
               </button>
@@ -198,12 +199,13 @@ export default function BookingModal({
                 (step === "service" && !selectedService) ||
                 (step === "client" && !selectedClient)
               }
-              className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium disabled:bg-slate-300 disabled:cursor-not-allowed"
+              className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl shadow-sm hover:bg-blue-700 hover:shadow-md transition-all font-medium disabled:bg-slate-300 disabled:shadow-none disabled:cursor-not-allowed"
             >
               {step === "service"
                 ? t("common.next")
                 : t("calendar.create.booking")}
             </button>
+            </div>
           </div>
         </div>
       </div>

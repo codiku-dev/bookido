@@ -162,8 +162,8 @@
   },
   "common": {
     "confirm": "Confirmer",
-    "back": "Back",
-    "cancel": "Cancel",
+    "back": "Retour",
+    "cancel": "Annuler",
     "delete": "Delete",
     "edit": "Edit",
     "next": "Next",
@@ -254,14 +254,56 @@
   },
   "address": "Address",
   "booking": {
+    "reschedule": {
+      "page": {
+        "title": "Re-planifier un booking",
+        "subtitle": "Choisissez un nouveau créneau depuis le planning complet",
+        "currentSlot": "Booking actuel : {client} - {service} ({day} {date} a {time})",
+        "selectedSlot": "Nouveau créneau : {day} {date} a {time}",
+        "selectPrompt": "Selectionnez un nouveau créneau disponible dans le planning",
+        "confirmPrompt": "Confirmer le déplacement vers {day} {date} a {time} ?"
+      },
+      "modal": {
+        "title": "Re-planifier la réservation",
+        "subtitle": "Sélectionnez un nouveau créneau disponible",
+        "dayLabel": "Choisir un jour",
+        "slotLabel": "Choisir un créneau",
+        "confirm": "Confirmer le nouveau créneau",
+        "occupied": "Occupé",
+        "unavailable": "Indispo",
+        "selectedSlot": "Créneau sélectionné : {day} {date} à {time}"
+      }
+    },
+    "list": {
+      "title": "Réservations",
+      "subtitle": "Suivez et gérez toutes les réservations à venir et passées",
+      "search": "Rechercher une réservation",
+      "view": "Voir le détail",
+      "status": {
+        "pending": "En attente"
+      },
+      "columns": {
+        "client": "Client",
+        "service": "Service",
+        "date": "Date",
+        "time": "Heure",
+        "amount": "Montant",
+        "status": "Statut",
+        "actions": "Actions"
+      }
+    },
     "detail": {
       "actions": "Actions",
       "amount": "Amount",
-      "cancel": "Cancel",
+      "cancel": "Annuler la réservation",
+      "cancelConfirm": {
+        "title": "Confirmer l'annulation",
+        "description": "Voulez-vous vraiment annuler cette réservation ? Cette action est irreversible."
+      },
       "client": {
         "info": "Info"
       },
-      "contact": "Contact",
+      "contact": "Contacter",
       "date": {
         "time": "Time"
       },
@@ -271,29 +313,29 @@
         "info": "Info",
         "method": "Method"
       },
-      "reschedule": "Reschedule",
+      "reschedule": "Re-plannifier",
       "service": "Service",
-      "title": "Title",
+      "title": "Détail de la réservation",
       "clientLabel": "Client"
     }
   },
   "calendar": {
     "availability": {
-      "instruction": "Instruction"
+      "instruction": "Cliquez sur un créneau pour ouvrir ou fermer la disponibilité"
     },
     "create": {
       "booking": "Booking",
       "client": "Client"
     },
     "define": {
-      "availability": "Availability"
+      "availability": "Définir les disponibilités"
     },
     "exit": {
-      "availability": "Availability"
+      "availability": "Quitter le mode disponibilité"
     },
     "hours": {
       "closed": "Closed",
-      "opening": "Opening"
+      "opening": "Horaires d'ouverture"
     },
     "nav": {
       "today": "Today"
@@ -305,43 +347,43 @@
       "client": "Client",
       "service": "Service"
     },
-    "subtitle": "Subtitle",
-    "title": "Title"
+    "subtitle": "Gérez vos rendez-vous et vos disponibilités hebdomadaires",
+    "title": "Calendrier"
   },
   "cancel": "Cancel",
   "dashboard": {
     "growth": {
-      "month": "Month"
+      "month": "ce mois"
     },
     "period": {
       "custom": "Custom",
       "from": "From",
-      "monthly": "Monthly",
+      "monthly": "Mensuel",
       "to": "To",
-      "weekly": "Weekly",
-      "yearly": "Yearly"
+      "weekly": "Hebdomadaire",
+      "yearly": "Annuel"
     },
     "recent": {
-      "bookings": "Bookings"
+      "bookings": "Réservations récentes"
     },
     "revenue": {
-      "month": "Month",
-      "overview": "Overview"
+      "month": "Revenus du mois",
+      "overview": "Évolution des revenus"
     },
     "sales": {
-      "month": "Month"
+      "month": "Ventes du mois"
     },
-    "title": "Title",
+    "title": "Tableau de bord",
     "total": {
       "users": "Users"
     },
     "users": {
-      "month": "Month"
+      "month": "ce mois"
     },
     "weekly": {
-      "sales": "Sales"
+      "sales": "Ventes par période"
     },
-    "welcome": "Welcome"
+    "welcome": "Suivez vos performances et vos réservations en un coup d'oeil"
   },
   "email": "Email",
   "language": {
@@ -349,15 +391,18 @@
     "fr": "Fr"
   },
   "login": {
-    "button": "Button",
+    "button": "Se connecter à l'admin",
     "email": "Email",
-    "password": "Password",
-    "subtitle": "Subtitle"
+    "password": "Mot de passe",
+    "subtitle": "Accédez à votre espace administrateur",
+    "orContinueWith": "Ou continuer avec",
+    "google": "Continuer avec Google"
   },
   "name": "Name",
   "nav": {
     "dashboard": "Tableau de bord",
-    "calendar": "Calendrier",
+    "calendar": "Planning",
+    "bookings": "Réservations",
     "users": "Clients",
     "services": "Services",
     "profile": "Profil",
@@ -400,8 +445,8 @@
       "changes": "Changes"
     },
     "saved": "Saved",
-    "subtitle": "Subtitle",
-    "title": "Title",
+    "subtitle": "Mettez à jour vos informations, préférences et sécurité",
+    "title": "Profil",
     "bioTitle": "Bio / Description",
     "passwordTitle": "Changer le mot de passe",
     "notificationsTitle": "Notifications par email"
@@ -431,8 +476,8 @@
       "validationTitle": "Nécessite validation"
     },
     "save": "Save",
-    "subtitle": "Subtitle",
-    "title": "Title",
+    "subtitle": "Créez et gérez vos prestations, tarifs et disponibilités",
+    "title": "Services",
     "availabilityTitle": "Disponibilité"
   },
   "title": {
@@ -465,7 +510,7 @@
         "confirmed": "Confirmed"
       },
       "time": "Time",
-      "title": "Title",
+      "title": "Détail du client",
       "total": {
         "spent": "Spent"
       },
@@ -484,9 +529,9 @@
       "client": "Client"
     },
     "phone": "Phone",
-    "search": "Search",
-    "subtitle": "Subtitle",
-    "title": "Title",
+    "search": "Rechercher un client",
+    "subtitle": "Consultez et gérez votre base clients",
+    "title": "Clients",
     "view": {
       "details": "Details"
     }

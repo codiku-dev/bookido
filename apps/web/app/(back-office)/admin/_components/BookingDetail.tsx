@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { ArrowLeft, User, Mail, Phone, Clock, Euro, Calendar, MapPin, MessageCircle, CalendarIcon, XCircle, Edit } from "lucide-react";
+import { ArrowLeft, User, Mail, Phone, Clock, Euro, Calendar, MapPin, MessageCircle, CalendarIcon, XCircle } from "lucide-react";
 
 // Mock booking data - in production, fetch based on booking ID
 const bookingData = {
@@ -26,6 +27,7 @@ const bookingData = {
 export default function BookingDetail() {
   const router = useRouter();
   const t = useTranslations();
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8">
@@ -144,27 +146,60 @@ export default function BookingDetail() {
         <div className="bg-white rounded-2xl border border-slate-200 p-6">
           <h3 className="font-bold text-slate-900 mb-4">{t("booking.detail.actions")}</h3>
           <div className="grid md:grid-cols-3 gap-3">
-            <button className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium">
+            <a
+              href={`mailto:${bookingData.client.email}?subject=${encodeURIComponent(`Booking ${bookingData.id} - ${bookingData.service}`)}`}
+              className="group flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl shadow-sm hover:bg-blue-700 hover:shadow-md transition-all font-medium"
+            >
               <MessageCircle className="w-5 h-5" />
               {t("booking.detail.contact")}
-            </button>
-            <button className="flex items-center justify-center gap-2 px-6 py-3 bg-slate-600 text-white rounded-xl hover:bg-slate-700 transition-colors font-medium">
-              <Edit className="w-5 h-5" />
-              {t("booking.detail.edit")}
-            </button>
-            <button className="flex items-center justify-center gap-2 px-6 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-colors font-medium">
+            </a>
+            <button
+              onClick={() => router.push(`/admin/bookings/${bookingData.id}/reschedule`)}
+              className="group flex items-center justify-center gap-2 px-6 py-3 bg-white text-slate-700 border border-slate-200 rounded-xl hover:bg-blue-50 hover:border-blue-200 transition-all font-medium md:col-span-2"
+            >
               <CalendarIcon className="w-5 h-5" />
               {t("booking.detail.reschedule")}
             </button>
           </div>
           <div className="mt-3">
-            <button className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors font-medium">
+            <button
+              onClick={() => setIsCancelModalOpen(true)}
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-white text-red-600 border border-red-200 rounded-xl hover:bg-red-50 transition-all font-medium"
+            >
               <XCircle className="w-5 h-5" />
               {t("booking.detail.cancel")}
             </button>
           </div>
         </div>
       </div>
+
+      {isCancelModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-slate-900 mb-2">{t("booking.detail.cancelConfirm.title")}</h3>
+              <p className="text-slate-600">{t("booking.detail.cancelConfirm.description")}</p>
+            </div>
+            <div className="px-6 pb-6 flex gap-3">
+              <button
+                onClick={() => setIsCancelModalOpen(false)}
+                className="flex-1 px-4 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors font-medium"
+              >
+                {t("common.cancel")}
+              </button>
+              <button
+                onClick={() => {
+                  setIsCancelModalOpen(false);
+                  router.push("/admin/bookings");
+                }}
+                className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-medium"
+              >
+                {t("booking.detail.cancel")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

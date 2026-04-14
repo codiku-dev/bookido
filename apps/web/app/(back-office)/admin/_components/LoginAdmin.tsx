@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
 import { Mail, Lock } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -9,25 +9,32 @@ export default function LoginAdmin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
+  const searchParams = useSearchParams();
   const t = useTranslations();
+  const redirectParam = searchParams.get("redirect");
+  const redirectTo = redirectParam?.startsWith("/admin") ? redirectParam : "/admin";
+
+  const setAdminAuthCookie = () => {
+    document.cookie = "admin-authenticated=true; path=/; max-age=86400; samesite=lax";
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     // Mock login - in production, validate with backend
     if (email && password) {
-      localStorage.setItem("admin-authenticated", "true");
-      router.push("/admin");
+      setAdminAuthCookie();
+      router.push(redirectTo);
     }
   };
 
   const handleGoogleLogin = () => {
     // Mock Google login
-    localStorage.setItem("admin-authenticated", "true");
-    router.push("/admin");
+    setAdminAuthCookie();
+    router.push(redirectTo);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-slate-100 flex items-center justify-center p-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -85,7 +92,7 @@ export default function LoginAdmin() {
             <div className="w-full border-t border-slate-300"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-white text-slate-500">Ou continuer avec</span>
+            <span className="px-4 bg-white text-slate-500">{t("login.orContinueWith")}</span>
           </div>
         </div>
 
@@ -111,7 +118,7 @@ export default function LoginAdmin() {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             />
           </svg>
-          Google
+          {t("login.google")}
         </button>
       </motion.div>
     </div>

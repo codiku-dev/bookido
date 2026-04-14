@@ -1,6 +1,6 @@
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { ArrowLeft, Mail, Phone, Calendar, Euro, Clock, MapPin, Eye } from "lucide-react";
+import { ArrowLeft, Mail, Phone, Calendar, Euro, Clock, MapPin } from "lucide-react";
 
 // Mock user data - in production, fetch based on user ID
 const userData = {
@@ -44,7 +44,7 @@ export default function UserDetail() {
         {/* Profile Card */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 mb-6">
           <div className="flex flex-col md:flex-row gap-6">
-            <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center text-3xl font-bold text-blue-600 flex-shrink-0">
+            <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center text-3xl font-bold text-blue-600 shrink-0">
               {userData.name.charAt(0)}
             </div>
 
@@ -61,14 +61,6 @@ export default function UserDetail() {
                   >
                     {userData.status === "active" ? t("users.active") : t("user.detail.status.cancelled")}
                   </span>
-                </div>
-                <div className="flex gap-3">
-                  <button className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium">
-                    {t("booking.detail.contact")}
-                  </button>
-                  <button className="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-colors font-medium">
-                    {t("common.edit")}
-                  </button>
                 </div>
               </div>
 
@@ -161,12 +153,15 @@ export default function UserDetail() {
                   <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">{t("user.detail.service")}</th>
                   <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">{t("booking.detail.amount")}</th>
                   <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">{t("user.detail.statusLabel")}</th>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">{t("user.detail.actions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {bookingHistory.map((booking) => (
-                  <tr key={booking.id} className="hover:bg-slate-50 transition-colors">
+                  <tr
+                    key={booking.id}
+                    onClick={() => router.push(`/admin/bookings/${booking.id}`)}
+                    className="hover:bg-slate-50 transition-colors cursor-pointer"
+                  >
                     <td className="px-6 py-4 text-slate-900">{booking.date}</td>
                     <td className="px-6 py-4 text-slate-600">{booking.time}</td>
                     <td className="px-6 py-4 text-slate-900">{booking.service}</td>
@@ -175,15 +170,6 @@ export default function UserDetail() {
                       <span className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">
                         {booking.status}
                       </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => router.push(`/admin/bookings/${booking.id}`)}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
-                      >
-                        <Eye className="w-4 h-4" />
-                        {t("user.detail.view.details")}
-                      </button>
                     </td>
                   </tr>
                 ))}

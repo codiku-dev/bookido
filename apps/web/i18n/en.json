@@ -254,14 +254,56 @@
   },
   "address": "Address",
   "booking": {
+    "reschedule": {
+      "page": {
+        "title": "Reschedule booking",
+        "subtitle": "Pick a new slot from the full planning calendar",
+        "currentSlot": "Current booking: {client} - {service} ({day} {date} at {time})",
+        "selectedSlot": "New slot: {day} {date} at {time}",
+        "selectPrompt": "Select a new available slot from the planning grid",
+        "confirmPrompt": "Confirm move to {day} {date} at {time}?"
+      },
+      "modal": {
+        "title": "Reschedule booking",
+        "subtitle": "Select a new available time slot",
+        "dayLabel": "Choose a day",
+        "slotLabel": "Choose a time slot",
+        "confirm": "Confirm new slot",
+        "occupied": "Occupied",
+        "unavailable": "Unavailable",
+        "selectedSlot": "Selected slot: {day} {date} at {time}"
+      }
+    },
+    "list": {
+      "title": "Bookings",
+      "subtitle": "Track and manage all upcoming and past bookings",
+      "search": "Search bookings",
+      "view": "View details",
+      "status": {
+        "pending": "Pending"
+      },
+      "columns": {
+        "client": "Client",
+        "service": "Service",
+        "date": "Date",
+        "time": "Time",
+        "amount": "Amount",
+        "status": "Status",
+        "actions": "Actions"
+      }
+    },
     "detail": {
       "actions": "Actions",
       "amount": "Amount",
-      "cancel": "Cancel",
+      "cancel": "Cancel booking",
+      "cancelConfirm": {
+        "title": "Confirm cancellation",
+        "description": "Do you really want to cancel this booking? This action cannot be undone."
+      },
       "client": {
         "info": "Info"
       },
-      "contact": "Contact",
+      "contact": "Contact client",
       "date": {
         "time": "Time"
       },
@@ -273,27 +315,27 @@
       },
       "reschedule": "Reschedule",
       "service": "Service",
-      "title": "Title",
+      "title": "Booking details",
       "clientLabel": "Client"
     }
   },
   "calendar": {
     "availability": {
-      "instruction": "Instruction"
+      "instruction": "Click a slot to mark it available or unavailable"
     },
     "create": {
       "booking": "Booking",
       "client": "Client"
     },
     "define": {
-      "availability": "Availability"
+      "availability": "Set availability"
     },
     "exit": {
-      "availability": "Availability"
+      "availability": "Exit availability mode"
     },
     "hours": {
       "closed": "Closed",
-      "opening": "Opening"
+      "opening": "Opening hours"
     },
     "nav": {
       "today": "Today"
@@ -305,13 +347,13 @@
       "client": "Client",
       "service": "Service"
     },
-    "subtitle": "Subtitle",
-    "title": "Title"
+    "subtitle": "Manage bookings and weekly availability",
+    "title": "Planning"
   },
   "cancel": "Cancel",
   "dashboard": {
     "growth": {
-      "month": "Month"
+      "month": "this month"
     },
     "period": {
       "custom": "Custom",
@@ -322,26 +364,26 @@
       "yearly": "Yearly"
     },
     "recent": {
-      "bookings": "Bookings"
+      "bookings": "Recent bookings"
     },
     "revenue": {
-      "month": "Month",
-      "overview": "Overview"
+      "month": "Monthly revenue",
+      "overview": "Revenue overview"
     },
     "sales": {
-      "month": "Month"
+      "month": "Sales this month"
     },
-    "title": "Title",
+    "title": "Dashboard",
     "total": {
       "users": "Users"
     },
     "users": {
-      "month": "Month"
+      "month": "this month"
     },
     "weekly": {
-      "sales": "Sales"
+      "sales": "Sales by period"
     },
-    "welcome": "Welcome"
+    "welcome": "Track your performance and bookings at a glance"
   },
   "email": "Email",
   "language": {
@@ -349,16 +391,19 @@
     "fr": "Fr"
   },
   "login": {
-    "button": "Button",
+    "button": "Sign in to admin",
     "email": "Email",
     "password": "Password",
-    "subtitle": "Subtitle"
+    "subtitle": "Access your admin workspace",
+    "orContinueWith": "Or continue with",
+    "google": "Continue with Google"
   },
   "name": "Name",
   "nav": {
     "dashboard": "Dashboard",
-    "calendar": "Calendar",
-    "users": "Clients",
+    "calendar": "Planning",
+    "bookings": "Bookings",
+    "users": "Customers",
     "services": "Services",
     "profile": "Profile",
     "logout": "Logout"
@@ -400,8 +445,8 @@
       "changes": "Changes"
     },
     "saved": "Saved",
-    "subtitle": "Subtitle",
-    "title": "Title",
+    "subtitle": "Update your information, preferences, and security",
+    "title": "Profile",
     "bioTitle": "Bio / Description",
     "passwordTitle": "Change Password",
     "notificationsTitle": "Email Notifications"
@@ -431,8 +476,8 @@
       "validationTitle": "Requires Validation"
     },
     "save": "Save",
-    "subtitle": "Subtitle",
-    "title": "Title",
+    "subtitle": "Create and manage your services, pricing, and availability",
+    "title": "Services",
     "availabilityTitle": "Availability"
   },
   "title": {
@@ -465,7 +510,7 @@
         "confirmed": "Confirmed"
       },
       "time": "Time",
-      "title": "Title",
+      "title": "Client details",
       "total": {
         "spent": "Spent"
       },
@@ -484,9 +529,9 @@
       "client": "Client"
     },
     "phone": "Phone",
-    "search": "Search",
-    "subtitle": "Subtitle",
-    "title": "Title",
+    "search": "Search customers",
+    "subtitle": "Browse and manage your client base",
+    "title": "Customers",
     "view": {
       "details": "Details"
     }

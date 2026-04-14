@@ -113,6 +113,7 @@ interface Booking {
   day: string;
   date: string;
   time: string;
+  durationMinutes: number;
   client: string;
   email: string;
   phone: string;
@@ -126,6 +127,7 @@ const bookings: Booking[] = [
     day: "Lun",
     date: "14 avr",
     time: "09:00",
+    durationMinutes: 60,
     client: "Marie Dupont",
     email: "marie@example.com",
     phone: "+33 6 12 34 56 78",
@@ -137,6 +139,7 @@ const bookings: Booking[] = [
     day: "Lun",
     date: "14 avr",
     time: "14:00",
+    durationMinutes: 60,
     client: "Pierre Martin",
     email: "pierre@example.com",
     phone: "+33 6 98 76 54 32",
@@ -148,6 +151,7 @@ const bookings: Booking[] = [
     day: "Mar",
     date: "15 avr",
     time: "10:00",
+    durationMinutes: 60,
     client: "Sophie Bernard",
     email: "sophie@example.com",
     phone: "+33 6 11 22 33 44",
@@ -159,6 +163,7 @@ const bookings: Booking[] = [
     day: "Mer",
     date: "16 avr",
     time: "15:00",
+    durationMinutes: 60,
     client: "Lucas Petit",
     email: "lucas@example.com",
     phone: "+33 6 55 66 77 88",
@@ -191,6 +196,28 @@ export default function CalendarView() {
   const getBooking = (day: string, time: string): Booking | undefined => {
     return bookings.find((b) => b.day === day && b.time === time);
   };
+
+  const slotMinutes = 30;
+  const timeToMinutes = (timeValue: string) => {
+    const [hours, minutes] = timeValue.split(":").map(Number);
+    return (hours ?? 0) * 60 + (minutes ?? 0);
+  };
+
+  const bookingBySlot = new Map<string, { booking: Booking; isContinuation: boolean }>();
+  bookings.forEach((booking) => {
+    const baseMinutes = timeToMinutes(booking.time);
+    const slotCount = Math.max(1, Math.ceil(booking.durationMinutes / slotMinutes));
+
+    for (let index = 0; index < slotCount; index++) {
+      const currentMinutes = baseMinutes + index * slotMinutes;
+      const hours = Math.floor(currentMinutes / 60)
+        .toString()
+        .padStart(2, "0");
+      const minutes = (currentMinutes % 60).toString().padStart(2, "0");
+      const currentTime = `${hours}:${minutes}`;
+      bookingBySlot.set(`${booking.day}-${currentTime}`, { booking, isContinuation: index > 0 });
+    }
+  });
 
   const isSlotClosed = (day: string, time: string): boolean => {
     return closedSlots.has(`${day}-${time}`);
@@ -388,7 +415,7 @@ export default function CalendarView() {
                           onChange={() => toggleDayHours(day)}
                           className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:inset-s-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                       </label>
                       <span className="font-medium text-slate-900 text-sm">{dayNamesFull[day]}</span>
                     </div>
@@ -460,18 +487,20 @@ export default function CalendarView() {
                 {/* Time Slots */}
                 {allTimeSlots.map((time) => (
                   <Fragment key={time}>
-                    <div className="bg-white p-2 md:p-4 flex items-center justify-end pr-2 md:pr-3">
+                    <div className="bg-white p-2 md:p-4 h-14 md:h-16 flex items-center justify-end pr-2 md:pr-3">
                       <span className="text-xs md:text-sm text-slate-600">{time}</span>
                     </div>
                     {enabledDays.map((day) => {
-                      const booking = getBooking(day.short, time);
+                      const slotBooking = bookingBySlot.get(`${day.short}-${time}`);
+                      const booking = slotBooking?.booking;
+                      const isContinuation = slotBooking?.isContinuation ?? false;
                       const isClosed = isSlotClosed(day.short, time);
 
                       return (
                         <button
                           key={`${day.short}-${time}`}
                           onClick={() => handleSlotClick(day.short, day.date, time, booking, isClosed)}
-                          className={`group p-2 md:p-4 transition-all text-left relative ${
+                          className={`group p-2 md:p-4 h-14 md:h-16 transition-all text-left relative ${
                             isClosed
                               ? "bg-slate-100 cursor-pointer hover:bg-slate-200"
                               : isAvailabilityMode
@@ -500,13 +529,29 @@ export default function CalendarView() {
                               }}
                             />
                           )}
-                          {!isAvailabilityMode && booking && !isClosed && (
+                          {!isAvailabilityMode && booking && !isClosed && !isContinuation && (
                             <div className="text-xs relative z-10">
                               <div className="font-medium text-slate-900 truncate">
                                 {booking.client}
                               </div>
                               <div className="text-slate-600 truncate">{booking.service}</div>
                             </div>
+                          )}
+                          {!isAvailabilityMode && booking && !isClosed && isContinuation && (
+                            <>
+                              <div
+                                className={`absolute -top-px left-0 right-0 h-px ${
+                                  booking.status === "confirmed"
+                                    ? "bg-blue-50"
+                                    : booking.status === "pending"
+                                      ? "bg-yellow-50"
+                                      : "bg-red-50"
+                                }`}
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center text-[10px] text-slate-500 font-medium">
+                                •
+                              </div>
+                            </>
                           )}
                           {!isAvailabilityMode && !booking && !isClosed && (
                             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
