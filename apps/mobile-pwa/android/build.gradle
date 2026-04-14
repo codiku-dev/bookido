@@ -1,0 +1,51 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.7.2'
+        classpath 'com.google.gms:google-services:4.4.2'
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+apply from: "variables.gradle"
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+
+// Java 17 for all Android modules (Capacitor default). Some plugins (e.g. @boengli/capacitor-fullscreen)
+// set android.kotlinOptions.jvmTarget = 21 while our compileOptions force Java 17 — Gradle then fails.
+// :app uses BaseAppModuleExtension (no kotlinOptions); library modules do — use try/catch for :app.
+subprojects { subproject ->
+    subproject.afterEvaluate {
+        def androidExt = subproject.extensions.findByName("android")
+        if (androidExt != null) {
+            androidExt.compileOptions {
+                sourceCompatibility JavaVersion.VERSION_17
+                targetCompatibility JavaVersion.VERSION_17
+            }
+            try {
+                androidExt.kotlinOptions {
+                    jvmTarget = JavaVersion.VERSION_17.toString()
+                }
+            } catch (Throwable ignored) {
+                // e.g. :app (BaseAppModuleExtension) has no kotlinOptions method
+            }
+        }
+    }
+}

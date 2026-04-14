@@ -1,0 +1,12 @@
+{
+  "auth": {
+    "signup_email": {
+      "subject": "Vérifie ton adresse e-mail",
+      "heading": "Confirme ton e-mail",
+      "cta": "Valider mon e-mail"
+    },
+    "reset_password": {
+      "subject": "Réinitialise ton mot de passe"
+    }
+  }
+}

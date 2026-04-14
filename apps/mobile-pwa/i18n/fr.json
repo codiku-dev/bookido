@@ -1,0 +1,168 @@
+{
+  "HomePage": {
+    "title": "Bonjour le monde !"
+  },
+  "Authentication": {
+    "authEvents": {
+      "description": "s'exécute avant inscription/connexion pour personnaliser le flux"
+    }
+  },
+  "Landing": {
+    "header": {
+      "badge": "DX d'abord",
+      "headline": "Le monorepo fullstack tout-en-un",
+      "tagline": "Clean, DX-first, avec types, auth et doc inclus.",
+      "stack": "Turbo · Nest · tRPC · Next · Capacitor · Bun"
+    },
+    "versions": {
+      "playStore": "Play Store",
+      "packageJson": "package.json",
+      "playDetail": "{name} (build {code})"
+    },
+    "selectFeaturePrompt": "Choisis une catégorie ci-dessus pour voir les détails.",
+    "templateSubtitle": "Template (Turbo Nest Trpc Next)",
+    "templateSubtitleWords": "Turbo Nest Trpc Next ",
+    "steps": {
+      "fullstackTypeSafety": "Fullstack type safety",
+      "shareResources": "Partager des ressources",
+      "storybook": "Storybook",
+      "typedEnv": "Env validés, cryptés et typés",
+      "internationalisation": "Internationalisation",
+      "apiProtection": "Protection des API",
+      "autoDoc": "Auto documentation",
+      "authentication": "Authentification",
+      "logging": "Logging back-end",
+      "cleanEmails": "Clean emails",
+      "encryptedSecrets": ".env cryptés (dotenvx)"
+    },
+    "descriptions": {
+      "fullstackTypeSafety": "Créez un endpoint NestJS et appelez-le côté front avec une sécurité de types complète.",
+      "shareResources": "Créez un composant React simple et partagez-le entre vos apps.",
+      "storybook": "Créez vos stories et développez vos composants en isolation.",
+      "typedEnv": "Variables d'environnement validées et typées au démarrage (avec secrets chiffrés via dotenvx).",
+      "internationalisation": "Utilisez next-intl pour traduire votre application facilement.",
+      "apiProtection": "AuthGuardRouter + @Public pour les routes publiques, les routes protégées exigent une session. Testez les deux appels ci-dessous.",
+      "autoDoc": "Nous utilisons trpc-ui pour exposer votre API tRPC. La documentation est générée automatiquement à partir de vos routers et schémas Zod.",
+      "authentication": "Connexion, inscription et gestion de session côté front avec Better Auth.",
+      "logging": "Utilisez AuthGuardRouter avec logs: true pour afficher des logs de requêtes formatés (URL, meta, response) dans le terminal.",
+      "cleanEmails": "Dans ce projet, les templates d'e-mails sont construits avec react-email dans le workspace `packages/emails`. Tu écris juste des composants React pour tes emails : le package exporte ensuite le rendu utilisé par l'API.",
+      "encryptedSecrets": "Les variables dans .env.production sont cryptées avec dotenvx et peuvent être commitées. En CI, ne définir que la clé privée du fichier .env.keys."
+    },
+    "step1": {
+      "title": "Fullstack type safety",
+      "nestjsSide": "NestJS",
+      "nextjsSide": "NextJS",
+      "backendSide": "Back-end",
+      "frontendSide": "Front-end",
+      "result": "Résultat"
+    },
+    "step2": {
+      "title": "Partagez vos ressources",
+      "uiPackageSide": "UI package",
+      "nextjsSide": "NextJS",
+      "result": "NextJS",
+      "resultLabel": "Bouton importé depuis @repo/ui (package partagé) :",
+      "buttonLabel": "Mon bouton"
+    },
+    "step3": {
+      "title": "Storybook",
+      "uiPackageSide": "UI package side",
+      "result": "Résultat"
+    },
+    "step4": {
+      "title": "Variables d'environnement validées, cryptées et typées",
+      "stronglyTypeEnv": "Definissez le schema de vos .env",
+      "typedEnv": "Type safety de process.env",
+      "encryptedEnvTitle": ".env chiffrés",
+      "typedEnvBadge": "Env fortement typé",
+      "zodSchemaBadge": "Schéma Zod",
+      "typedVarLabel": "Variable d'env fortement typée",
+      "validation": "Validation",
+      "validationTitle": "Validation permanente durant le dev et au build",
+      "envFile": ".env file",
+      "result": "Résultat",
+      "typeSafety": "Type safety",
+      "terminal": "Terminal",
+      "missing": "manquant"
+    },
+    "step5": {
+      "title": "Internationalisation",
+      "code": "Code",
+      "result": "Résultat"
+    },
+    "step6": {
+      "title": "Protection des API (Better Auth)",
+      "backendSide": "Back-end",
+      "publicFetch": "Public (hello)",
+      "protectedFetch": "Protégé (protectedHello)",
+      "roleProtectedFetch": "Par rôle (roleProtectedHello)",
+      "fetchPublic": "Appel public",
+      "fetchProtected": "Appel privé",
+      "fetchRole": "Appel admin uniquement",
+      "loading": "Chargement...",
+      "clickToFetch": "Cliquez pour lancer l'appel",
+      "unauthorized": "Non autorisé",
+      "forbidden": "Interdit (rôle admin requis)",
+      "receiveSession": "Vous pouvez recevoir la session"
+    },
+    "step8": {
+      "title": "Authentification avec Better Auth",
+      "signupTitle": "Inscription",
+      "signinTitle": "Connexion",
+      "googleSigninTitle": "Connexion avec Google",
+      "accountTitle": "Compte",
+      "accountNotSignedIn": "Non connecté. Connectez-vous ci-dessus pour voir votre compte.",
+      "authEventsTitle": "Événements d’authentification",
+      "resetPasswordTitle": "Réinitialiser le mot de passe",
+      "demoLabel": "Démo",
+      "responseLabel": "Réponse",
+      "emailLabel": "Email",
+      "resetRequestSubmit": "Demander un e-mail de réinitialisation",
+      "resetRequestLoading": "Demande…",
+      "resetCallbackErrorTitle": "Erreur de réinitialisation",
+      "resetCallbackMissingToken": "Token manquant dans l’URL.",
+      "resetCallbackSuccessTitle": "Votre mot de passe a été reset",
+      "resetCallbackSuccessDescription": "Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.",
+      "resetCallbackFormTitle": "Choisir un nouveau mot de passe",
+      "resetCallbackFormDescription": "Valide un nouveau mot de passe pour terminer la réinitialisation.",
+      "newPasswordLabel": "Nouveau mot de passe",
+      "resetCallbackSubmit": "Réinitialiser le mot de passe",
+      "resetCallbackSubmitting": "Réinitialisation…",
+      "resetCallbackErrorDescription": "Impossible de réinitialiser votre mot de passe. Réessayez."
+    },
+    "step9": {
+      "title": "Logging back-end",
+      "codeLabel": "API",
+      "terminalLabel": "Terminal"
+    },
+    "step7": {
+      "title": "Auto documentation",
+      "intro": "Nous utilisons trpc-ui pour exposer votre API tRPC. La documentation est générée automatiquement à partir de vos routers et schémas Zod.",
+      "screenshotAlt": "Interface de documentation API trpc-ui",
+      "openDocs": "Ouvrir trpc-ui"
+    },
+    "step10": {
+      "title": ".env cryptés avec dotenvx",
+      "intro": "Avec dotenvx, vos fichiers .env.production (et autres) sont cryptés automatiquement. Vous pouvez les pousser sur le repo en toute sécurité—les secrets ne sont jamais stockés en clair.",
+      "exampleTitle": "Exemple : .env.production (safe to commit)",
+      "encryptedBadge": "Crypté",
+      "encryptedComment": "valeurs commitables",
+      "ciTitle": "CI / prod : la seule clé à fournir",
+      "privateBadge": "Privé – ne pas commiter",
+      "keysComment": "Clés de déchiffrement privées – backup avec dotenvx ops backup",
+      "ciHint": "Dans votre CI (GitHub Actions, Vercel, etc.), définissez uniquement cette variable d’env. dotenvx déchiffrera .env.production au runtime.",
+      "ciOnlyKey": "En CI : définir DOTENV_PRIVATE_KEY_PRODUCTION (contenue dans .env.keys) comme seul secret. Inutile de recopier chaque variable."
+    },
+    "step11": {
+      "title": "Clean emails",
+      "reactEmailBadge": "react-email",
+      "screenshotAlt": "Exemple de template email React",
+      "explanation": "Dans `packages/emails`, les templates utilisent `Tailwind` pour le style et le helper `t(...)` pour gérer l'i18n (locale + key + values). Tu écris juste des composants React ; l'API récupère ensuite le rendu.",
+      "tailwindIntlHint": "Support : Tailwind pour le style email + intl/i18n dans les templates via le helper `t(...)`."
+    }
+  },
+  "I18nExample": {
+    "title": "Bonjour le monde !",
+    "description": "Ce texte est traduit en utilisant next-intl."
+  }
+}

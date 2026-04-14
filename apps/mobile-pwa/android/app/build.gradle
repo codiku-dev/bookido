@@ -1,0 +1,113 @@
+apply plugin: 'com.android.application'
+
+// Release signing: create android/keystore.properties (see keystore.properties.example).
+// Play Console requires a signed AAB (upload key); without this file, release uses the debug key (not valid for production uploads).
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withInputStream { keystoreProperties.load(it) }
+}
+
+def versionPropsFile = rootProject.file("version.properties")
+def versionProps = new Properties()
+if (versionPropsFile.exists()) {
+    versionPropsFile.withInputStream { versionProps.load(it) }
+}
+def androidVersionCode = {
+    def fromEnv = System.getenv("ANDROID_VERSION_CODE")
+    if (fromEnv != null && !fromEnv.isBlank()) {
+        return fromEnv.trim().toInteger()
+    }
+    def fromProp = findProperty("ANDROID_VERSION_CODE")?.toString()?.trim()
+    if (fromProp != null && !fromProp.isEmpty()) {
+        return fromProp.toInteger()
+    }
+    return (versionProps.getProperty("VERSION_CODE", "1")).toInteger()
+}()
+def androidVersionName = {
+    def fromEnv = System.getenv("ANDROID_VERSION_NAME")
+    if (fromEnv != null && !fromEnv.isBlank()) return fromEnv.trim()
+    def fromProp = findProperty("ANDROID_VERSION_NAME")?.toString()?.trim()
+    if (fromProp != null && !fromProp.isEmpty()) return fromProp
+    return versionProps.getProperty("VERSION_NAME", "1.0")
+}()
+
+configurations.configureEach {
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+}
+
+android {
+    namespace "com.bangerstack.mobile"
+    compileSdk rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "com.bangerstack.mobile"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode androidVersionCode
+        versionName androidVersionName
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                keyAlias keystoreProperties["keyAlias"]
+                keyPassword keystoreProperties["keyPassword"]
+                storeFile rootProject.file(keystoreProperties["storeFile"])
+                storePassword keystoreProperties["storePassword"]
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (keystorePropertiesFile.exists()) {
+                signingConfig signingConfigs.release
+            } else {
+                signingConfig signingConfigs.debug
+            }
+        }
+    }
+}
+
+if (!keystorePropertiesFile.exists()) {
+    logger.lifecycle(
+        "[android] keystore.properties absent — release builds use the debug signing key. " +
+            "For Play Store uploads, copy keystore.properties.example to keystore.properties and configure your upload keystore."
+    )
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}

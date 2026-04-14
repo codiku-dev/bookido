@@ -1,0 +1,7 @@
+.next/
+out/
+# Copied by build:android / release-android after bundleRelease
+app-release.aab
+node_modules/
+*.log
+.DS_Store

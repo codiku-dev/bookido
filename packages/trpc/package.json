@@ -1,0 +1,12 @@
+{
+  "name": "@repo/trpc",
+  "version": "1.0.0",
+  "private": true,
+  "exports": {
+    "./router": "./src/server.ts"
+  },
+  "peerDependencies": {
+    "zod": "3.25.5",
+    "@trpc/server": "11.8.1"
+  }
+}

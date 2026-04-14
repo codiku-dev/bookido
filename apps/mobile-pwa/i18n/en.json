@@ -1,0 +1,168 @@
+{
+  "HomePage": {
+    "title": "Hello world!"
+  },
+  "Authentication": {
+    "authEvents": {
+      "description": "runs before sign-up/sign-in to customize the flow"
+    }
+  },
+  "Landing": {
+    "header": {
+      "badge": "DX-first",
+      "headline": "Build fullstack quickly and efficiently",
+      "tagline": "Type-safe APIs, shared packages, auth & docs out of the box. Built for developer experience.",
+      "stack": "Turbo · Nest · tRPC · Next · Capacitor · Bun"
+    },
+    "versions": {
+      "playStore": "Play Store",
+      "packageJson": "package.json",
+      "playDetail": "{name} (build {code})"
+    },
+    "selectFeaturePrompt": "Select a feature above to see details.",
+    "templateSubtitle": "Turbo Nest Trpc Next - Boiler plate monorepo (Bun)",
+    "templateSubtitleWords": "Turbo Nest  Next Trpc",
+    "steps": {
+      "fullstackTypeSafety": "Fullstack type safety",
+      "shareResources": "Share resources",
+      "storybook": "Storybook",
+      "typedEnv": "Validated Encrypted typed env",
+      "internationalisation": "Internationalisation",
+      "apiProtection": "API protection",
+      "autoDoc": "Auto documentation",
+      "authentication": "Authentication",
+      "logging": "Backend Network Logging",
+      "cleanEmails": "Clean emails",
+      "encryptedSecrets": "Encrypted .env (dotenvx)"
+    },
+    "descriptions": {
+      "fullstackTypeSafety": "Create a NestJS endpoint and call it from the frontend with complete type safety.",
+      "shareResources": "Create a simple React component and share it between your apps.",
+      "storybook": "Create your stories and develop your components in isolation.",
+      "typedEnv": "Validated and typed environment variables at startup (with dotenvx encrypted secrets).",
+      "internationalisation": "Use next-intl to translate your application easily.",
+      "apiProtection": "AuthGuardRouter + @Public for public routes, protected routes require a session. Try both fetches below.",
+      "autoDoc": "We use trpc-ui to expose your tRPC API. The documentation is generated automatically from your routers and Zod schemas.",
+      "authentication": "Sign in, sign up and session management on the front-end with Better Auth.",
+      "logging": "Use AuthGuardRouter with logs: true to get formatted request logs (URL, meta, response) in the terminal.",
+      "cleanEmails": "In this project, email templates are built with react-email (tailwind + intl support) inside the `packages/emails` workspace. You only create React components for your emails; the package exports the rendered output used by the API.",
+      "encryptedSecrets": "Variables in .env.production are encrypted with dotenvx and can be safely committed. In CI, only set the private key from .env.keys."
+    },
+    "step1": {
+      "title": "Fullstack type safety",
+      "nestjsSide": "NestJS side",
+      "nextjsSide": "NextJS side",
+      "backendSide": "Back-end side",
+      "frontendSide": "Front-end side",
+      "result": "Result"
+    },
+    "step2": {
+      "title": "Share your resources",
+      "uiPackageSide": "UI package",
+      "nextjsSide": "NextJS",
+      "result": "Demo",
+      "resultLabel": "Button imported from @repo/ui (shared package):",
+      "buttonLabel": "My button"
+    },
+    "step3": {
+      "title": "Storybook",
+      "uiPackageSide": "UI package",
+      "result": "Result"
+    },
+    "step4": {
+      "title": "Validated Encrypted typed env",
+      "stronglyTypeEnv": "Strongly type your .env",
+      "typedEnv": "Typed env",
+      "encryptedEnvTitle": "Encrypted env",
+      "typedEnvBadge": "Strongly typed env",
+      "zodSchemaBadge": "Zod schema",
+      "typedVarLabel": "Strongly typed env variable",
+      "validation": "Validation",
+      "validationTitle": "Validation during dev and build",
+      "envFile": ".env file",
+      "result": "Result",
+      "typeSafety": "Type safety",
+      "terminal": "Terminal",
+      "missing": "missing"
+    },
+    "step5": {
+      "title": "Internationalisation",
+      "code": "Code",
+      "result": "Result"
+    },
+    "step6": {
+      "title": "API protection (Better Auth)",
+      "backendSide": "Back-end",
+      "publicFetch": "Public (hello)",
+      "protectedFetch": "Protected (protectedHello)",
+      "roleProtectedFetch": "Role-protected (roleProtectedHello)",
+      "fetchPublic": "Fetch public",
+      "fetchProtected": "Fetch protected",
+      "fetchRole": "Fetch admin only",
+      "loading": "Loading...",
+      "clickToFetch": "Click the button to fetch",
+      "unauthorized": "Unauthorized",
+      "forbidden": "Forbidden (admin role required)",
+      "receiveSession": "You can receive the session"
+    },
+    "step8": {
+      "title": "Authentication with Better Auth",
+      "signupTitle": "Sign up",
+      "signinTitle": "Sign in",
+      "googleSigninTitle": "Sign in with Google",
+      "accountTitle": "Account",
+      "accountNotSignedIn": "Not signed in. Sign in above to view your account.",
+      "authEventsTitle": "Authentication events",
+      "resetPasswordTitle": "Reset password",
+      "demoLabel": "Demo",
+      "responseLabel": "Response",
+      "emailLabel": "Email",
+      "resetRequestSubmit": "Request reset email",
+      "resetRequestLoading": "Requesting…",
+      "resetCallbackErrorTitle": "Reset password error",
+      "resetCallbackMissingToken": "Missing token in URL.",
+      "resetCallbackSuccessTitle": "Your password has been reset",
+      "resetCallbackSuccessDescription": "You can now sign in with your new password.",
+      "resetCallbackFormTitle": "Choose a new password",
+      "resetCallbackFormDescription": "Submit a new password to complete reset.",
+      "newPasswordLabel": "New password",
+      "resetCallbackSubmit": "Reset password",
+      "resetCallbackSubmitting": "Resetting…",
+      "resetCallbackErrorDescription": "Unable to reset your password. Please try again."
+    },
+    "step9": {
+      "title": "Backend Network Logging",
+      "codeLabel": "API",
+      "terminalLabel": "Terminal"
+    },
+    "step7": {
+      "title": "Auto documentation",
+      "intro": "We use trpc-ui to expose your tRPC API. The documentation is generated automatically from your routers and Zod schemas.",
+      "screenshotAlt": "trpc-ui API documentation interface",
+      "openDocs": "Open trpc-ui"
+    },
+    "step10": {
+      "title": "Encrypted .env with dotenvx",
+      "intro": "With dotenvx, your .env.production (and other env files) are automatically encrypted. You can safely push them to the repo—secrets are never stored in plain text.",
+      "exampleTitle": "Example: .env.production (safe to commit)",
+      "encryptedBadge": "Can be committed",
+      "encryptedComment": "values can be committed",
+      "ciTitle": "CI / production: the only secret",
+      "privateBadge": "Private – Never commit",
+      "keysComment": "Private decryption keys – backup with dotenvx ops backup",
+      "ciHint": "In your CI (GitHub Actions, Vercel, etc.), set only this env var. dotenvx will decrypt .env.production at runtime.",
+      "ciOnlyKey": "In CI: set DOTENV_PRIVATE_KEY_PRODUCTION (from .env.keys) as the only secret. No need to copy each variable."
+    },
+    "step11": {
+      "title": "Clean emails",
+      "reactEmailBadge": "react-email",
+      "screenshotAlt": "React email template example",
+      "explanation": "In `packages/emails`, templates use `Tailwind` for styling and the `t(...)` helper to fetch intl/i18n messages (by locale + key + values). You just create React components; the API imports the rendered result.",
+      "tailwindIntlHint": "Support: Tailwind for email styling + intl/i18n inside the templates via the `t(...)` helper."
+    }
+  },
+  "I18nExample": {
+    "title": "Hello world!",
+    "description": "This text is translated using next-intl."
+  }
+}

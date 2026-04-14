@@ -1,0 +1,9 @@
+import { nextJsConfig } from "@repo/eslint-config/next-js";
+
+/** @type {import("eslint").Linter.Config[]} */
+export default [
+  {
+    ignores: [".next/**", "out/**", "android/**", "node_modules/**"],
+  },
+  ...nextJsConfig,
+];

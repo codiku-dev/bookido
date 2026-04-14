@@ -1,0 +1,13 @@
+{
+  "auth": {
+    "signup_email": {
+      "subject": "Verify your email address",
+      "heading": "Confirm your email",
+      "cta": "Verify email"
+    },
+    "reset_password": {
+      "subject": "Reset your password"
+    }
+   
+  }
+}

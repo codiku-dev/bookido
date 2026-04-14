@@ -1,0 +1,494 @@
+{
+  "HomePage": {
+    "title": "Bonjour le monde !"
+  },
+  "Authentication": {
+    "authEvents": {
+      "description": "s'exécute avant inscription/connexion pour personnaliser le flux"
+    }
+  },
+  "Landing": {
+    "header": {
+      "badge": "DX d'abord",
+      "headline": "Le monorepo fullstack tout-en-un",
+      "tagline": "Clean, DX-first, avec types, auth et doc inclus.",
+      "stack": "Turbo · Nest · tRPC · Next · Bun"
+    },
+    "selectFeaturePrompt": "Choisis une catégorie ci-dessus pour voir les détails.",
+    "templateSubtitle": "Template (Turbo Nest Trpc Next)",
+    "templateSubtitleWords": "Turbo Nest Trpc Next ",
+    "steps": {
+      "fullstackTypeSafety": "Fullstack type safety",
+      "shareResources": "Partager des ressources",
+      "storybook": "Storybook",
+      "typedEnv": "Env validés, cryptés et typés",
+      "internationalisation": "Internationalisation",
+      "apiProtection": "Protection des API",
+      "autoDoc": "Auto documentation",
+      "authentication": "Authentification",
+      "logging": "Logging back-end",
+      "cleanEmails": "Clean emails",
+      "encryptedSecrets": ".env cryptés (dotenvx)"
+    },
+    "descriptions": {
+      "fullstackTypeSafety": "Créez un endpoint NestJS et appelez-le côté front avec une sécurité de types complète.",
+      "shareResources": "Créez un composant React simple et partagez-le entre vos apps.",
+      "storybook": "Créez vos stories et développez vos composants en isolation.",
+      "typedEnv": "Variables d'environnement validées et typées au démarrage (avec secrets chiffrés via dotenvx).",
+      "internationalisation": "Utilisez next-intl pour traduire votre application facilement.",
+      "apiProtection": "AuthGuardRouter + @Public pour les routes publiques, les routes protégées exigent une session. Testez les deux appels ci-dessous.",
+      "autoDoc": "Nous utilisons trpc-ui pour exposer votre API tRPC. La documentation est générée automatiquement à partir de vos routers et schémas Zod.",
+      "authentication": "Connexion, inscription et gestion de session côté front avec Better Auth.",
+      "logging": "Utilisez AuthGuardRouter avec logs: true pour afficher des logs de requêtes formatés (URL, meta, response) dans le terminal.",
+      "cleanEmails": "Dans ce projet, les templates d'e-mails sont construits avec react-email dans le workspace `packages/emails`. Tu écris juste des composants React pour tes emails : le package exporte ensuite le rendu utilisé par l'API.",
+      "encryptedSecrets": "Les variables dans .env.production sont cryptées avec dotenvx et peuvent être commitées. En CI, ne définir que la clé privée du fichier .env.keys."
+    },
+    "step1": {
+      "title": "Fullstack type safety",
+      "nestjsSide": "NestJS",
+      "nextjsSide": "NextJS",
+      "backendSide": "Back-end",
+      "frontendSide": "Front-end",
+      "result": "Résultat"
+    },
+    "step2": {
+      "title": "Partagez vos ressources",
+      "uiPackageSide": "UI package",
+      "nextjsSide": "NextJS",
+      "result": "NextJS",
+      "resultLabel": "Bouton importé depuis @repo/ui (package partagé) :",
+      "buttonLabel": "Mon bouton"
+    },
+    "step3": {
+      "title": "Storybook",
+      "uiPackageSide": "UI package side",
+      "result": "Résultat"
+    },
+    "step4": {
+      "title": "Variables d'environnement validées, cryptées et typées",
+      "stronglyTypeEnv": "Definissez le schema de vos .env",
+      "typedEnv": "Type safety de process.env",
+      "encryptedEnvTitle": ".env chiffrés",
+      "typedEnvBadge": "Env fortement typé",
+      "zodSchemaBadge": "Schéma Zod",
+      "typedVarLabel": "Variable d'env fortement typée",
+      "validation": "Validation",
+      "validationTitle": "Validation permanente durant le dev et au build",
+      "envFile": ".env file",
+      "result": "Résultat",
+      "typeSafety": "Type safety",
+      "terminal": "Terminal",
+      "missing": "manquant"
+    },
+    "step5": {
+      "title": "Internationalisation",
+      "code": "Code",
+      "result": "Résultat"
+    },
+    "step6": {
+      "title": "Protection des API (Better Auth)",
+      "backendSide": "Back-end",
+      "publicFetch": "Public (hello)",
+      "protectedFetch": "Protégé (protectedHello)",
+      "roleProtectedFetch": "Par rôle (roleProtectedHello)",
+      "fetchPublic": "Appel public",
+      "fetchProtected": "Appel privé",
+      "fetchRole": "Appel admin uniquement",
+      "loading": "Chargement...",
+      "clickToFetch": "Cliquez pour lancer l'appel",
+      "unauthorized": "Non autorisé",
+      "forbidden": "Interdit (rôle admin requis)",
+      "receiveSession": "Vous pouvez recevoir la session"
+    },
+    "step8": {
+      "title": "Authentification avec Better Auth",
+      "signupTitle": "Inscription",
+      "signinTitle": "Connexion",
+      "googleSigninTitle": "Connexion avec Google",
+      "accountTitle": "Compte",
+      "accountNotSignedIn": "Non connecté. Connectez-vous ci-dessus pour voir votre compte.",
+      "authEventsTitle": "Événements d’authentification",
+      "resetPasswordTitle": "Réinitialiser le mot de passe",
+      "demoLabel": "Démo",
+      "responseLabel": "Réponse",
+      "emailLabel": "Email",
+      "resetRequestSubmit": "Demander un e-mail de réinitialisation",
+      "resetRequestLoading": "Demande…",
+      "resetCallbackErrorTitle": "Erreur de réinitialisation",
+      "resetCallbackMissingToken": "Token manquant dans l’URL.",
+      "resetCallbackSuccessTitle": "Votre mot de passe a été reset",
+      "resetCallbackSuccessDescription": "Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.",
+      "resetCallbackFormTitle": "Choisir un nouveau mot de passe",
+      "resetCallbackFormDescription": "Valide un nouveau mot de passe pour terminer la réinitialisation.",
+      "newPasswordLabel": "Nouveau mot de passe",
+      "resetCallbackSubmit": "Réinitialiser le mot de passe",
+      "resetCallbackSubmitting": "Réinitialisation…",
+      "resetCallbackErrorDescription": "Impossible de réinitialiser votre mot de passe. Réessayez."
+    },
+    "step9": {
+      "title": "Logging back-end",
+      "codeLabel": "API",
+      "terminalLabel": "Terminal"
+    },
+    "step7": {
+      "title": "Auto documentation",
+      "intro": "Nous utilisons trpc-ui pour exposer votre API tRPC. La documentation est générée automatiquement à partir de vos routers et schémas Zod.",
+      "screenshotAlt": "Interface de documentation API trpc-ui",
+      "openDocs": "Ouvrir trpc-ui"
+    },
+    "step10": {
+      "title": ".env cryptés avec dotenvx",
+      "intro": "Avec dotenvx, vos fichiers .env.production (et autres) sont cryptés automatiquement. Vous pouvez les pousser sur le repo en toute sécurité—les secrets ne sont jamais stockés en clair.",
+      "exampleTitle": "Exemple : .env.production (safe to commit)",
+      "encryptedBadge": "Crypté",
+      "encryptedComment": "valeurs commitables",
+      "ciTitle": "CI / prod : la seule clé à fournir",
+      "privateBadge": "Privé – ne pas commiter",
+      "keysComment": "Clés de déchiffrement privées – backup avec dotenvx ops backup",
+      "ciHint": "Dans votre CI (GitHub Actions, Vercel, etc.), définissez uniquement cette variable d’env. dotenvx déchiffrera .env.production au runtime.",
+      "ciOnlyKey": "En CI : définir DOTENV_PRIVATE_KEY_PRODUCTION (contenue dans .env.keys) comme seul secret. Inutile de recopier chaque variable."
+    },
+    "step11": {
+      "title": "Clean emails",
+      "reactEmailBadge": "react-email",
+      "screenshotAlt": "Exemple de template email React",
+      "explanation": "Dans `packages/emails`, les templates utilisent `Tailwind` pour le style et le helper `t(...)` pour gérer l'i18n (locale + key + values). Tu écris juste des composants React ; l'API récupère ensuite le rendu.",
+      "tailwindIntlHint": "Support : Tailwind pour le style email + intl/i18n dans les templates via le helper `t(...)`."
+    }
+  },
+  "I18nExample": {
+    "title": "Bonjour le monde !",
+    "description": "Ce texte est traduit en utilisant next-intl."
+  },
+  "common": {
+    "confirm": "Confirmer",
+    "back": "Back",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "next": "Next",
+    "previous": "Previous",
+    "save": "Save"
+  },
+  "public": {
+    "brand": {
+      "subtitle": "Bookez simplement avec un pro"
+    },
+    "hero": {
+      "badge": "Coach personnel certifié",
+      "description": "Transformez votre parcours fitness avec des programmes d'entraînement personnalisés selon vos objectifs.",
+      "imageAlt": "Sarah Johnson - Coach personnel",
+      "subtitle": "Coach personnel certifié • Disponible 7j/7 • Résultats garantis",
+      "cta": "Réserver maintenant"
+    },
+    "services": {
+      "title": "Choisissez votre service",
+      "items": {
+        "personalTraining": {
+          "name": "Coaching sportif individuel",
+          "duration": "60 min"
+        },
+        "nutritionCoaching": {
+          "name": "Session de coaching nutrition",
+          "duration": "45 min"
+        },
+        "trainingPack": {
+          "name": "Pack entraînement 5 séances",
+          "duration": "60 min chacune"
+        },
+        "monthlyPlan": {
+          "name": "Plan d'entraînement mensuel",
+          "duration": "4 séances"
+        }
+      }
+    },
+    "time": {
+      "title": "Sélectionnez vos créneaux",
+      "subtitle": "Vous pouvez sélectionner plusieurs créneaux",
+      "selected": "{count} créneau sélectionné",
+      "selectedPlural": "{count} créneaux sélectionnés",
+      "available": "Disponible",
+      "unavailable": "Indisponible",
+      "selectedLabel": "Sélectionné",
+      "days": {
+        "mon": { "short": "Lun" },
+        "tue": { "short": "Mar" },
+        "wed": { "short": "Mer" },
+        "thu": { "short": "Jeu" },
+        "fri": { "short": "Ven" }
+      }
+    },
+    "mobile": {
+      "select": {
+        "day": "Sélectionner un jour",
+        "time": "Sélectionner l'heure"
+      }
+    },
+    "payment": {
+      "slots": "Créneaux",
+      "total": "Total"
+    },
+    "confirmation": {
+      "title": "Merci !",
+      "successMessage": "Votre réservation pour {service} a bien été prise en compte.",
+      "successDetails": "Vous avez reçu un email avec les détails de votre réservation.",
+      "new": "Faire une nouvelle réservation"
+    },
+    "footer": {
+      "copyright": "© 2026 Sarah Johnson Coaching. Propulsé par Bookido. Tous droits réservés."
+    }
+  },
+  "ClientForm": {
+    "address": "Address",
+    "cancel": "Cancel",
+    "email": "Email",
+    "name": "Name",
+    "notes": {
+      "label": "Notes",
+      "placeholder": "Informations supplémentaires, préférences..."
+    },
+    "phone": "Phone",
+    "title": {
+      "create": "Créer un nouveau client"
+    }
+  },
+  "address": "Address",
+  "booking": {
+    "detail": {
+      "actions": "Actions",
+      "amount": "Amount",
+      "cancel": "Cancel",
+      "client": {
+        "info": "Info"
+      },
+      "contact": "Contact",
+      "date": {
+        "time": "Time"
+      },
+      "edit": "Edit",
+      "notes": "Notes",
+      "payment": {
+        "info": "Info",
+        "method": "Method"
+      },
+      "reschedule": "Reschedule",
+      "service": "Service",
+      "title": "Title",
+      "clientLabel": "Client"
+    }
+  },
+  "calendar": {
+    "availability": {
+      "instruction": "Instruction"
+    },
+    "create": {
+      "booking": "Booking",
+      "client": "Client"
+    },
+    "define": {
+      "availability": "Availability"
+    },
+    "exit": {
+      "availability": "Availability"
+    },
+    "hours": {
+      "closed": "Closed",
+      "opening": "Opening"
+    },
+    "nav": {
+      "today": "Today"
+    },
+    "search": {
+      "client": "Client"
+    },
+    "select": {
+      "client": "Client",
+      "service": "Service"
+    },
+    "subtitle": "Subtitle",
+    "title": "Title"
+  },
+  "cancel": "Cancel",
+  "dashboard": {
+    "growth": {
+      "month": "Month"
+    },
+    "period": {
+      "custom": "Custom",
+      "from": "From",
+      "monthly": "Monthly",
+      "to": "To",
+      "weekly": "Weekly",
+      "yearly": "Yearly"
+    },
+    "recent": {
+      "bookings": "Bookings"
+    },
+    "revenue": {
+      "month": "Month",
+      "overview": "Overview"
+    },
+    "sales": {
+      "month": "Month"
+    },
+    "title": "Title",
+    "total": {
+      "users": "Users"
+    },
+    "users": {
+      "month": "Month"
+    },
+    "weekly": {
+      "sales": "Sales"
+    },
+    "welcome": "Welcome"
+  },
+  "email": "Email",
+  "language": {
+    "en": "En",
+    "fr": "Fr"
+  },
+  "login": {
+    "button": "Button",
+    "email": "Email",
+    "password": "Password",
+    "subtitle": "Subtitle"
+  },
+  "name": "Name",
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "calendar": "Calendrier",
+    "users": "Clients",
+    "services": "Services",
+    "profile": "Profil",
+    "logout": "Déconnexion"
+  },
+  "notes": {
+    "placeholder": "Placeholder"
+  },
+  "phone": "Phone",
+  "profile": {
+    "bio": {
+      "placeholder": "Placeholder"
+    },
+    "danger": {
+      "warning": "Warning",
+      "zone": "Zone"
+    },
+    "delete": {
+      "account": "Account"
+    },
+    "email": "Email",
+    "full": {
+      "name": "Name"
+    },
+    "information": "Information",
+    "language": "Language",
+    "notifications": {
+      "desc": "Desc"
+    },
+    "password": {
+      "confirm": "Confirm",
+      "current": "Current",
+      "mismatch": "Mismatch",
+      "new": "New",
+      "requirement": "Requirement",
+      "update": "Update"
+    },
+    "preferences": "Preferences",
+    "save": {
+      "changes": "Changes"
+    },
+    "saved": "Saved",
+    "subtitle": "Subtitle",
+    "title": "Title",
+    "bioTitle": "Bio / Description",
+    "passwordTitle": "Changer le mot de passe",
+    "notificationsTitle": "Notifications par email"
+  },
+  "services": {
+    "availability": {
+      "instructions": "Instructions"
+    },
+    "description": "Description",
+    "duration": "Duration",
+    "form": {
+      "title": {
+        "create": "Create",
+        "edit": "Edit"
+      }
+    },
+    "minutes": "Minutes",
+    "name": "Name",
+    "new": {
+      "service": "Service"
+    },
+    "price": "Price",
+    "requires": {
+      "validation": {
+        "desc": "Desc"
+      },
+      "validationTitle": "Nécessite validation"
+    },
+    "save": "Save",
+    "subtitle": "Subtitle",
+    "title": "Title",
+    "availabilityTitle": "Disponibilité"
+  },
+  "title": {
+    "create": "Create"
+  },
+  "user": {
+    "detail": {
+      "actions": "Actions",
+      "address": "Address",
+      "booking": {
+        "history": "History"
+      },
+      "bookings": {
+        "completed": "Completed"
+      },
+      "date": "Date",
+      "information": "Information",
+      "last": {
+        "booking": "Booking"
+      },
+      "member": {
+        "since": "Since"
+      },
+      "notes": "Notes",
+      "overview": "Overview",
+      "service": "Service",
+      "status": {
+        "cancelled": "Cancelled",
+        "completed": "Completed",
+        "confirmed": "Confirmed"
+      },
+      "time": "Time",
+      "title": "Title",
+      "total": {
+        "spent": "Spent"
+      },
+      "view": {
+        "details": "Details"
+      },
+      "statusLabel": "Statut"
+    }
+  },
+  "users": {
+    "active": "Active",
+    "bookings": "Bookings",
+    "email": "Email",
+    "name": "Name",
+    "new": {
+      "client": "Client"
+    },
+    "phone": "Phone",
+    "search": "Search",
+    "subtitle": "Subtitle",
+    "title": "Title",
+    "view": {
+      "details": "Details"
+    }
+  }
+}

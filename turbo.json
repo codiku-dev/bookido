@@ -1,0 +1,133 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "globalDependencies": [
+    "**/.env.*local"
+  ],
+  "tasks": {
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      "env": [
+        "DOTENV_PRIVATE_KEY_PRODUCTION"
+      ]
+    },
+    "dev:web": {
+      "cache": false,
+      "persistent": true,
+      "env": [
+        "DOTENV_PRIVATE_KEY_PRODUCTION"
+      ]
+    },
+    "prod:web": {
+      "cache": false,
+      "persistent": true,
+      "env": [
+        "DOTENV_PRIVATE_KEY_PRODUCTION"
+      ]
+    },
+    "check-env:watch": {
+      "cache": false,
+      "persistent": true,
+      "env": [
+        "DOTENV_PRIVATE_KEY_PRODUCTION"
+      ]
+    },
+    "dev:mobile": {
+      "cache": false,
+      "persistent": true,
+      "env": [
+        "DOTENV_PRIVATE_KEY_PRODUCTION"
+      ]
+    },
+    "dev:android:emulator": {
+      "cache": false,
+      "persistent": true,
+      "env": [
+        "DOTENV_PRIVATE_KEY_PRODUCTION"
+      ]
+    },
+    "start:prod": {
+      "cache": false,
+      "env": [
+        "DOTENV_PRIVATE_KEY_PRODUCTION"
+      ]
+    },
+    "start": {
+      "cache": false
+    },
+    "start:debug": {
+      "cache": false,
+      "persistent": true
+    },
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "dist/**"
+      ]
+    },
+    "lint": {},
+    "test": {},
+    "test:watch": {
+      "cache": false,
+      "persistent": true
+    },
+    "test:debug": {
+      "cache": false,
+      "persistent": true
+    },
+    "test:e2e": {},
+    "db:start": {
+      "cache": false,
+      "env": [
+        "DATABASE_URL"
+      ]
+    },
+    "db:update": {
+      "cache": false,
+      "env": [
+        "DATABASE_URL"
+      ]
+    },
+    "db:studio": {
+      "cache": false,
+      "persistent": true,
+      "env": [
+        "DATABASE_URL"
+      ]
+    },
+    "storybook": {
+      "cache": false,
+      "persistent": true
+    },
+    "build-storybook": {
+      "outputs": [
+        "storybook-static/**"
+      ]
+    },
+    "build:styles": {
+      "outputs": [
+        "dist/globals.css"
+      ]
+    },
+    "build:components": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**"
+      ]
+    },
+    "dev:styles": {
+      "cache": false,
+      "persistent": true
+    },
+    "dev:components": {
+      "cache": false,
+      "persistent": true
+    }
+  }
+}

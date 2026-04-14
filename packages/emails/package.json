@@ -1,0 +1,36 @@
+{
+  "name": "@repo/emails",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "private": true,
+  "scripts": {
+    "email:dev": "email dev",
+    "export": "email export",
+    "build": "tsup index.ts --format esm,cjs --dts --out-dir dist --clean"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@react-email/components": "1.0.9",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-intl": "^10.0.0"
+  },
+  "devDependencies": {
+    "@react-email/preview-server": "5.2.9",
+    "@types/bun": "latest",
+    "@types/react": "19.2.9",
+    "@types/react-dom": "19.2.3",
+    "react-email": "5.2.9",
+    "tsup": "^8.5.0"
+  }
+}

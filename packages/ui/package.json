@@ -1,0 +1,53 @@
+{
+  "name": "@repo/ui",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./globals.css": "./dist/globals.css",
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "import": "./dist/*.js",
+      "require": "./dist/*.js",
+      "default": "./dist/*.js"
+    }
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "build": "bun run build:styles && bun run build:components",
+    "check-types": "tsc --noEmit",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "build:styles": "tailwindcss -i ./src/globals.css -o ./dist/globals.css",
+    "build:components": "tsc",
+    "dev:styles": "tailwindcss -i ./src/globals.css -o ./dist/globals.css --watch=always",
+    "dev:components": "tsc --watch"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*",
+    "@storybook/react": "^10.2.7",
+    "@storybook/react-vite": "^10.2.0",
+    "@tailwindcss/cli": "^4.1.18",
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/node": "22.15.3",
+    "@types/react": "19.2.9",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "5.1.2",
+    "eslint": "9.39.2",
+    "eslint-plugin-storybook": "^10.2.0",
+    "postcss": "^8.5.6",
+    "storybook": "^10.2.0",
+    "tailwindcss": "^4.1.18",
+    "typescript": "5.9.3",
+    "vite": "7.3.1"
+  },
+  "dependencies": {
+    "@radix-ui/react-slot": "^1.2.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "tailwind": "^4.0.0",
+    "tailwind-merge": "^3.4.0"
+  }
+}
