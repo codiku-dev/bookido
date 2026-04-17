@@ -168,7 +168,11 @@
     "edit": "Edit",
     "next": "Next",
     "previous": "Previous",
-    "save": "Save"
+    "save": "Save",
+    "datePicker": {
+      "placeholder": "mm/dd/yyyy",
+      "clear": "Clear"
+    }
   },
   "public": {
     "brand": {
@@ -198,7 +202,7 @@
         },
         "monthlyPlan": {
           "name": "Monthly Training Plan",
-          "duration": "4 sessions"
+          "duration": "4 sessions, 60 min each"
         }
       }
     },
@@ -215,7 +219,9 @@
         "tue": { "short": "Tue" },
         "wed": { "short": "Wed" },
         "thu": { "short": "Thu" },
-        "fri": { "short": "Fri" }
+        "fri": { "short": "Fri" },
+        "sat": { "short": "Sat" },
+        "sun": { "short": "Sun" }
       }
     },
     "mobile": {
@@ -241,6 +247,7 @@
   "ClientForm": {
     "address": "Address",
     "cancel": "Cancel",
+    "create": "Create client",
     "email": "Email",
     "name": "Name",
     "notes": {
@@ -248,6 +255,13 @@
       "placeholder": "Additional information, preferences..."
     },
     "phone": "Phone",
+    "placeholders": {
+      "address": "12 rue de la Paix, 75002 Paris",
+      "email": "jean@example.com",
+      "name": "Jean Dupont",
+      "phone": "+33 6 12 34 56 78"
+    },
+    "save": "Save",
     "title": {
       "create": "Create New Client"
     }
@@ -277,8 +291,14 @@
     "list": {
       "title": "Bookings",
       "subtitle": "Track and manage all upcoming and past bookings",
-      "search": "Search bookings",
+      "search": {
+        "placeholder": "Search by client, service or amount"
+      },
+      "filters": {
+        "all": "All fields"
+      },
       "view": "View details",
+      "validate": "Validate",
       "status": {
         "pending": "Pending"
       },
@@ -288,8 +308,17 @@
         "date": "Date",
         "time": "Time",
         "amount": "Amount",
+        "payment": "Payment",
         "status": "Status",
         "actions": "Actions"
+      },
+      "payment": {
+        "paid": "Paid",
+        "unpaid": "Unpaid"
+      },
+      "filter": {
+        "dateFrom": "From",
+        "dateTo": "To"
       }
     },
     "detail": {
@@ -301,17 +330,19 @@
         "description": "Do you really want to cancel this booking? This action cannot be undone."
       },
       "client": {
-        "info": "Info"
+        "info": "Client information"
       },
       "contact": "Contact client",
+      "createdAt": "Booked on",
       "date": {
         "time": "Time"
       },
       "edit": "Edit",
       "notes": "Notes",
       "payment": {
-        "info": "Info",
-        "method": "Method"
+        "info": "Payment",
+        "method": "Payment method",
+        "status": "Payment status"
       },
       "reschedule": "Reschedule",
       "service": "Service",
@@ -324,8 +355,9 @@
       "instruction": "Click a slot to mark it available or unavailable"
     },
     "create": {
-      "booking": "Booking",
-      "client": "Client"
+      "bookingTitle": "Booking",
+      "newClient": "Create a new client",
+      "submit": "Create booking"
     },
     "define": {
       "availability": "Set availability"
@@ -337,11 +369,38 @@
       "closed": "Closed",
       "opening": "Opening hours"
     },
+    "weekday": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
+    },
+    "mockServices": {
+      "personalTraining": {
+        "name": "1-on-1 Personal Training",
+        "duration": "60 min"
+      },
+      "nutrition": {
+        "name": "Nutrition Coaching Session",
+        "duration": "45 min"
+      },
+      "pack5": {
+        "name": "5-Session Training Pack",
+        "duration": "60 min each"
+      },
+      "monthlyPlan": {
+        "name": "Monthly Training Plan",
+        "duration": "4 sessions, 60 min each"
+      }
+    },
     "nav": {
       "today": "Today"
     },
     "search": {
-      "client": "Client"
+      "client": "Search for a client"
     },
     "select": {
       "client": "Client",
@@ -352,6 +411,57 @@
   },
   "cancel": "Cancel",
   "dashboard": {
+    "chart": {
+      "axis": {
+        "custom": {
+          "s1": "Week 1",
+          "s2": "Week 2",
+          "s3": "Week 3",
+          "s4": "Week 4"
+        },
+        "month": {
+          "apr": "Apr",
+          "aug": "Aug",
+          "dec": "Dec",
+          "feb": "Feb",
+          "jan": "Jan",
+          "jul": "Jul",
+          "jun": "Jun",
+          "mar": "Mar",
+          "may": "May",
+          "nov": "Nov",
+          "oct": "Oct",
+          "sep": "Sep"
+        },
+        "quarter": {
+          "q1": "Q1",
+          "q2": "Q2",
+          "q3": "Q3",
+          "q4": "Q4"
+        },
+        "weekday": {
+          "fri": "Fri",
+          "mon": "Mon",
+          "sat": "Sat",
+          "sun": "Sun",
+          "thu": "Thu",
+          "tue": "Tue",
+          "wed": "Wed"
+        },
+        "year": {
+          "y2020": "2020",
+          "y2021": "2021",
+          "y2022": "2022",
+          "y2023": "2023",
+          "y2024": "2024",
+          "y2025": "2025"
+        }
+      },
+      "series": {
+        "revenue": "Revenue",
+        "sales": "Sales"
+      }
+    },
     "growth": {
       "month": "this month"
     },
@@ -368,7 +478,18 @@
     },
     "revenue": {
       "month": "Monthly revenue",
-      "overview": "Revenue overview"
+      "overview": "Revenue overview",
+      "total": "Total revenue"
+    },
+    "revenueHistory": {
+      "title": "Revenue history",
+      "subtitle": "Track monthly revenue trends over time",
+      "columns": {
+        "month": "Month",
+        "revenue": "Revenue",
+        "growth": "Growth",
+        "bookings": "Bookings"
+      }
     },
     "sales": {
       "month": "Sales this month"
@@ -393,12 +514,32 @@
   "login": {
     "button": "Sign in to admin",
     "email": "Email",
+    "emailPlaceholder": "admin@example.com",
     "password": "Password",
+    "title": "Bookido Admin",
     "subtitle": "Access your admin workspace",
     "orContinueWith": "Or continue with",
     "google": "Continue with Google"
   },
   "name": "Name",
+  "newClient": {
+    "address": "Address",
+    "back": "Back to customers",
+    "cancel": "Cancel",
+    "fullName": "Full name",
+    "notes": "Notes",
+    "phone": "Phone",
+    "placeholders": {
+      "address": "12 Baker Street, London",
+      "email": "john@example.com",
+      "fullName": "John Doe",
+      "notes": "Additional information...",
+      "phone": "+44 7 00 00 00 00"
+    },
+    "submit": "Create client",
+    "success": "Client created successfully.",
+    "title": "New client"
+  },
   "nav": {
     "dashboard": "Dashboard",
     "calendar": "Planning",
@@ -414,37 +555,95 @@
   "phone": "Phone",
   "profile": {
     "bio": {
-      "placeholder": "Placeholder"
+      "placeholder": "Describe your activity, specialties, and coaching approach"
+    },
+    "billing": {
+      "cancel": {
+        "ends": "Ends on current period",
+        "pending": {
+          "description": "Your subscription remains active until {date}. No further payments will be taken after that date.",
+          "title": "Cancellation scheduled"
+        }
+      },
+      "card": {
+        "expires": "Expires 08/2028"
+      },
+      "due": {
+        "on": "Due on"
+      },
+      "history": {
+        "columns": {
+          "amount": "Amount",
+          "date": "Date",
+          "invoice": "Invoice",
+          "status": "Status"
+        },
+        "download": "Download invoice",
+        "status": {
+          "paid": "Paid",
+          "upcoming": "Upcoming"
+        },
+        "title": "Payments"
+      },
+      "manage": {
+        "cancel": "Cancel subscription",
+        "cancelled": "Subscription cancelled",
+        "help": "Need to update your plan or billing details? Manage them here.",
+        "update": "Update billing"
+      },
+      "next": {
+        "payment": "Next payment"
+      },
+      "payment": {
+        "change": "Change payment method",
+        "method": "Payment method"
+      },
+      "plan": {
+        "change": "Change subscription",
+        "description": "Monthly access to premium booking and coach management features.",
+        "label": "Current plan",
+        "name": "Pro Monthly"
+      },
+      "status": {
+        "active": "Active",
+        "cancelled": "Cancelled"
+      },
+      "subtitle": "Track your subscription, next charge, and recent invoices.",
+      "title": "Billing",
+      "upcoming": {
+        "description": "Your next payment of {amount} will be charged on {date}.",
+        "title": "Upcoming charge"
+      }
     },
     "danger": {
-      "warning": "Warning",
-      "zone": "Zone"
+      "warning": "This action is permanent. All your data will be deleted.",
+      "zone": "Danger zone"
     },
     "delete": {
-      "account": "Account"
+      "account": "Delete account"
     },
     "email": "Email",
     "full": {
-      "name": "Name"
+      "name": "Full name"
     },
     "information": "Information",
     "language": "Language",
     "notifications": {
-      "desc": "Desc"
+      "desc": "Receive new bookings and reminders by email"
     },
     "password": {
-      "confirm": "Confirm",
-      "current": "Current",
-      "mismatch": "Mismatch",
-      "new": "New",
-      "requirement": "Requirement",
-      "update": "Update"
+      "confirm": "Confirm password",
+      "current": "Current password",
+      "mismatch": "Passwords do not match",
+      "new": "New password",
+      "requirement": "Use at least 8 characters with one uppercase letter and one number.",
+      "update": "Update password"
     },
     "preferences": "Preferences",
     "save": {
-      "changes": "Changes"
+      "changes": "Save changes"
     },
-    "saved": "Saved",
+    "saved": "Changes saved",
     "subtitle": "Update your information, preferences, and security",
     "title": "Profile",
     "bioTitle": "Bio / Description",
@@ -453,29 +652,56 @@
   },
   "services": {
     "availability": {
-      "instructions": "Instructions"
+      "instructions": "Click or drag over slots to set your availability."
     },
     "description": "Description",
     "duration": "Duration",
+    "free": "Free",
+    "freeService": "Free service",
     "form": {
+      "placeholders": {
+        "description": "Brief description of the service...",
+        "name": "e.g., 1-on-1 Personal Training"
+      },
       "title": {
         "create": "Create",
         "edit": "Edit"
       }
     },
+    "imageUrl": "Image URL",
     "minutes": "Minutes",
+    "mock": {
+      "freeConsultation": {
+        "description": "Complimentary initial consultation",
+        "name": "Free Consultation"
+      },
+      "nutritionCoaching": {
+        "description": "Personalized nutrition plan and guidance",
+        "name": "Nutrition Coaching"
+      },
+      "personalTraining": {
+        "description": "Individual training session tailored to your goals",
+        "name": "1-on-1 Personal Training"
+      },
+      "trainingPack": {
+        "description": "Pack of 5 training sessions at a discounted rate",
+        "name": "5-Session Training Pack"
+      }
+    },
     "name": "Name",
     "new": {
       "service": "Service"
     },
+    "packSize": "Pack Size (sessions)",
     "price": "Price",
     "requires": {
       "validation": {
-        "desc": "Desc"
+        "desc": "The client must be validated before confirmation"
       },
       "validationTitle": "Requires Validation"
     },
     "save": "Save",
+    "sessions": "sessions",
     "subtitle": "Create and manage your services, pricing, and availability",
     "title": "Services",
     "availabilityTitle": "Availability"
@@ -507,7 +733,8 @@
       "status": {
         "cancelled": "Cancelled",
         "completed": "Completed",
-        "confirmed": "Confirmed"
+        "confirmed": "Confirmed",
+        "pending": "Pending"
       },
       "time": "Time",
       "title": "Client details",
@@ -523,13 +750,22 @@
   "users": {
     "active": "Active",
     "bookings": "Bookings",
+    "contact": "Contact",
     "email": "Email",
     "name": "Name",
     "new": {
       "client": "Client"
     },
     "phone": "Phone",
-    "search": "Search customers",
+    "search": {
+      "placeholder": "Search by name, email or phone"
+    },
+    "nextBooking": {
+      "column": "Next booking",
+      "from": "From",
+      "to": "To"
+    },
+    "sessions": "sessions",
     "subtitle": "Browse and manage your client base",
     "title": "Customers",
     "view": {

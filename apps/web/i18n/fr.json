@@ -164,11 +164,15 @@
     "confirm": "Confirmer",
     "back": "Retour",
     "cancel": "Annuler",
-    "delete": "Delete",
-    "edit": "Edit",
-    "next": "Next",
-    "previous": "Previous",
-    "save": "Save"
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "save": "Enregistrer",
+    "datePicker": {
+      "placeholder": "jj/mm/aaaa",
+      "clear": "Effacer"
+    }
   },
   "public": {
     "brand": {
@@ -198,7 +202,7 @@
         },
         "monthlyPlan": {
           "name": "Plan d'entraînement mensuel",
-          "duration": "4 séances"
+          "duration": "4 séances, 60 min par séance"
         }
       }
     },
@@ -215,7 +219,9 @@
         "tue": { "short": "Mar" },
         "wed": { "short": "Mer" },
         "thu": { "short": "Jeu" },
-        "fri": { "short": "Ven" }
+        "fri": { "short": "Ven" },
+        "sat": { "short": "Sam" },
+        "sun": { "short": "Dim" }
       }
     },
     "mobile": {
@@ -239,15 +245,23 @@
     }
   },
   "ClientForm": {
-    "address": "Address",
-    "cancel": "Cancel",
-    "email": "Email",
-    "name": "Name",
+    "address": "Adresse",
+    "cancel": "Annuler",
+    "create": "Créer le client",
+    "email": "E-mail",
+    "name": "Nom",
     "notes": {
       "label": "Notes",
       "placeholder": "Informations supplémentaires, préférences..."
     },
-    "phone": "Phone",
+    "phone": "Téléphone",
+    "placeholders": {
+      "address": "12 rue de la Paix, 75002 Paris",
+      "email": "jean@example.com",
+      "name": "Jean Dupont",
+      "phone": "+33 6 12 34 56 78"
+    },
+    "save": "Enregistrer",
     "title": {
       "create": "Créer un nouveau client"
     }
@@ -277,8 +291,14 @@
     "list": {
       "title": "Réservations",
       "subtitle": "Suivez et gérez toutes les réservations à venir et passées",
-      "search": "Rechercher une réservation",
+      "search": {
+        "placeholder": "Rechercher par client, prestation ou montant"
+      },
+      "filters": {
+        "all": "Tous les champs"
+      },
       "view": "Voir le détail",
+      "validate": "Valider",
       "status": {
         "pending": "En attente"
       },
@@ -288,33 +308,44 @@
         "date": "Date",
         "time": "Heure",
         "amount": "Montant",
+        "payment": "Paiement",
         "status": "Statut",
         "actions": "Actions"
+      },
+      "payment": {
+        "paid": "Payé",
+        "unpaid": "Non payé"
+      },
+      "filter": {
+        "dateFrom": "Du",
+        "dateTo": "Au"
       }
     },
     "detail": {
       "actions": "Actions",
-      "amount": "Amount",
+      "amount": "Montant",
       "cancel": "Annuler la réservation",
       "cancelConfirm": {
         "title": "Confirmer l'annulation",
         "description": "Voulez-vous vraiment annuler cette réservation ? Cette action est irreversible."
       },
       "client": {
-        "info": "Info"
+        "info": "Informations client"
       },
       "contact": "Contacter",
+      "createdAt": "Réservée le",
       "date": {
-        "time": "Time"
+        "time": "Heure"
       },
-      "edit": "Edit",
+      "edit": "Modifier",
       "notes": "Notes",
       "payment": {
-        "info": "Info",
-        "method": "Method"
+        "info": "Paiement",
+        "method": "Moyen de paiement",
+        "status": "Statut du paiement"
       },
       "reschedule": "Re-plannifier",
-      "service": "Service",
+      "service": "Prestation",
       "title": "Détail de la réservation",
       "clientLabel": "Client"
     }
@@ -324,8 +355,9 @@
       "instruction": "Cliquez sur un créneau pour ouvrir ou fermer la disponibilité"
     },
     "create": {
-      "booking": "Booking",
-      "client": "Client"
+      "bookingTitle": "Réservation",
+      "newClient": "Créer un nouveau client",
+      "submit": "Créer la réservation"
     },
     "define": {
       "availability": "Définir les disponibilités"
@@ -334,32 +366,110 @@
       "availability": "Quitter le mode disponibilité"
     },
     "hours": {
-      "closed": "Closed",
+      "closed": "Fermé",
       "opening": "Horaires d'ouverture"
     },
+    "weekday": {
+      "monday": "Lundi",
+      "tuesday": "Mardi",
+      "wednesday": "Mercredi",
+      "thursday": "Jeudi",
+      "friday": "Vendredi",
+      "saturday": "Samedi",
+      "sunday": "Dimanche"
+    },
+    "mockServices": {
+      "personalTraining": {
+        "name": "Coaching personnel en individuel",
+        "duration": "60 min"
+      },
+      "nutrition": {
+        "name": "Séance de coaching nutrition",
+        "duration": "45 min"
+      },
+      "pack5": {
+        "name": "Pack 5 séances",
+        "duration": "60 min par séance"
+      },
+      "monthlyPlan": {
+        "name": "Forfait mensuel",
+        "duration": "4 séances, 60 min par séance"
+      }
+    },
     "nav": {
-      "today": "Today"
+      "today": "Aujourd'hui"
     },
     "search": {
-      "client": "Client"
+      "client": "Rechercher un client"
     },
     "select": {
       "client": "Client",
       "service": "Service"
     },
     "subtitle": "Gérez vos rendez-vous et vos disponibilités hebdomadaires",
-    "title": "Calendrier"
+    "title": "Planning"
   },
   "cancel": "Cancel",
   "dashboard": {
+    "chart": {
+      "axis": {
+        "custom": {
+          "s1": "S1",
+          "s2": "S2",
+          "s3": "S3",
+          "s4": "S4"
+        },
+        "month": {
+          "apr": "Avr",
+          "aug": "Août",
+          "dec": "Déc",
+          "feb": "Fév",
+          "jan": "Jan",
+          "jul": "Juil",
+          "jun": "Juin",
+          "mar": "Mar",
+          "may": "Mai",
+          "nov": "Nov",
+          "oct": "Oct",
+          "sep": "Sep"
+        },
+        "quarter": {
+          "q1": "T1",
+          "q2": "T2",
+          "q3": "T3",
+          "q4": "T4"
+        },
+        "weekday": {
+          "fri": "Ven",
+          "mon": "Lun",
+          "sat": "Sam",
+          "sun": "Dim",
+          "thu": "Jeu",
+          "tue": "Mar",
+          "wed": "Mer"
+        },
+        "year": {
+          "y2020": "2020",
+          "y2021": "2021",
+          "y2022": "2022",
+          "y2023": "2023",
+          "y2024": "2024",
+          "y2025": "2025"
+        }
+      },
+      "series": {
+        "revenue": "Revenu",
+        "sales": "Ventes"
+      }
+    },
     "growth": {
       "month": "ce mois"
     },
     "period": {
-      "custom": "Custom",
-      "from": "From",
+      "custom": "Personnalisé",
+      "from": "Du",
       "monthly": "Mensuel",
-      "to": "To",
+      "to": "Au",
       "weekly": "Hebdomadaire",
       "yearly": "Annuel"
     },
@@ -368,7 +478,18 @@
     },
     "revenue": {
       "month": "Revenus du mois",
-      "overview": "Évolution des revenus"
+      "overview": "Évolution des revenus",
+      "total": "Revenu total"
+    },
+    "revenueHistory": {
+      "title": "Historique des revenus",
+      "subtitle": "Consultez l'évolution des revenus mois par mois",
+      "columns": {
+        "month": "Mois",
+        "revenue": "Revenu",
+        "growth": "Variation",
+        "bookings": "Réservations"
+      }
     },
     "sales": {
       "month": "Ventes du mois"
@@ -393,12 +514,32 @@
   "login": {
     "button": "Se connecter à l'admin",
     "email": "Email",
+    "emailPlaceholder": "admin@exemple.com",
     "password": "Mot de passe",
+    "title": "Bookido Admin",
     "subtitle": "Accédez à votre espace administrateur",
     "orContinueWith": "Ou continuer avec",
     "google": "Continuer avec Google"
   },
   "name": "Name",
+  "newClient": {
+    "address": "Adresse",
+    "back": "Retour aux clients",
+    "cancel": "Annuler",
+    "fullName": "Nom complet",
+    "notes": "Notes",
+    "phone": "Téléphone",
+    "placeholders": {
+      "address": "12 rue de la Paix, 75002 Paris",
+      "email": "jean@exemple.com",
+      "fullName": "Jean Dupont",
+      "notes": "Informations complémentaires...",
+      "phone": "+33 6 12 34 56 78"
+    },
+    "submit": "Créer le client",
+    "success": "Client créé avec succès.",
+    "title": "Nouveau client"
+  },
   "nav": {
     "dashboard": "Tableau de bord",
     "calendar": "Planning",
@@ -414,37 +555,95 @@
   "phone": "Phone",
   "profile": {
     "bio": {
-      "placeholder": "Placeholder"
+      "placeholder": "Décrivez votre activité, vos spécialités et votre approche"
+    },
+    "billing": {
+      "cancel": {
+        "ends": "Fin de l'abonnement en cours",
+        "pending": {
+          "description": "Votre abonnement reste actif jusqu'au {date}. Aucun autre paiement ne sera prélevé après cette date.",
+          "title": "Résiliation programmée"
+        }
+      },
+      "card": {
+        "expires": "Expire en 08/2028"
+      },
+      "due": {
+        "on": "Prévu le"
+      },
+      "history": {
+        "columns": {
+          "amount": "Montant",
+          "date": "Date",
+          "invoice": "Facture",
+          "status": "Statut"
+        },
+        "download": "Télécharger la facture",
+        "status": {
+          "paid": "Payé",
+          "upcoming": "À venir"
+        },
+        "title": "Paiements"
+      },
+      "manage": {
+        "cancel": "Résilier l'abonnement",
+        "cancelled": "Abonnement résilié",
+        "help": "Besoin de modifier votre offre ou vos informations de facturation ? Gérez-les ici.",
+        "update": "Mettre à jour la facturation"
+      },
+      "next": {
+        "payment": "Prochain paiement"
+      },
+      "payment": {
+        "change": "Changer de moyen de paiement",
+        "method": "Moyen de paiement"
+      },
+      "plan": {
+        "change": "Changer d'abonnement",
+        "description": "Accès mensuel aux fonctionnalités premium de réservation et de gestion coach.",
+        "label": "Offre actuelle",
+        "name": "Pro Mensuel"
+      },
+      "status": {
+        "active": "Actif",
+        "cancelled": "Résilié"
+      },
+      "subtitle": "Suivez votre abonnement, le prochain prélèvement et vos dernières factures.",
+      "title": "Facturation",
+      "upcoming": {
+        "description": "Votre prochain paiement de {amount} sera prélevé le {date}.",
+        "title": "Prélèvement à venir"
+      }
     },
     "danger": {
-      "warning": "Warning",
-      "zone": "Zone"
+      "warning": "Cette action est définitive. Toutes vos données seront supprimées.",
+      "zone": "Zone dangereuse"
     },
     "delete": {
-      "account": "Account"
+      "account": "Supprimer le compte"
     },
     "email": "Email",
     "full": {
-      "name": "Name"
+      "name": "Nom complet"
     },
     "information": "Information",
-    "language": "Language",
+    "language": "Langue",
     "notifications": {
-      "desc": "Desc"
+      "desc": "Recevoir les nouvelles réservations et rappels par email"
     },
     "password": {
-      "confirm": "Confirm",
-      "current": "Current",
-      "mismatch": "Mismatch",
-      "new": "New",
-      "requirement": "Requirement",
-      "update": "Update"
+      "confirm": "Confirmer le mot de passe",
+      "current": "Mot de passe actuel",
+      "mismatch": "Les mots de passe ne correspondent pas",
+      "new": "Nouveau mot de passe",
+      "requirement": "Utilisez au moins 8 caractères avec une majuscule et un chiffre.",
+      "update": "Mettre à jour le mot de passe"
     },
-    "preferences": "Preferences",
+    "preferences": "Préférences",
     "save": {
-      "changes": "Changes"
+      "changes": "Enregistrer les modifications"
     },
-    "saved": "Saved",
+    "saved": "Modifications enregistrées",
     "subtitle": "Mettez à jour vos informations, préférences et sécurité",
     "title": "Profil",
     "bioTitle": "Bio / Description",
@@ -453,29 +652,56 @@
   },
   "services": {
     "availability": {
-      "instructions": "Instructions"
+      "instructions": "Cliquez ou glissez sur les créneaux pour définir vos disponibilités."
     },
     "description": "Description",
-    "duration": "Duration",
+    "duration": "Durée",
+    "free": "Gratuit",
+    "freeService": "Service gratuit",
     "form": {
+      "placeholders": {
+        "description": "Brève description de la prestation...",
+        "name": "ex. Coaching individuel 1-to-1"
+      },
       "title": {
-        "create": "Create",
-        "edit": "Edit"
+        "create": "Créer",
+        "edit": "Modifier"
       }
     },
+    "imageUrl": "URL de l'image",
     "minutes": "Minutes",
-    "name": "Name",
+    "mock": {
+      "freeConsultation": {
+        "description": "Entretien initial offert pour faire le point sur vos besoins",
+        "name": "Consultation offerte"
+      },
+      "nutritionCoaching": {
+        "description": "Plan nutritionnel personnalisé et suivi",
+        "name": "Coaching nutrition"
+      },
+      "personalTraining": {
+        "description": "Séance individuelle adaptée à vos objectifs",
+        "name": "Coaching individuel 1-to-1"
+      },
+      "trainingPack": {
+        "description": "Pack de 5 séances à tarif préférentiel",
+        "name": "Pack entraînement 5 séances"
+      }
+    },
+    "name": "Nom",
     "new": {
       "service": "Service"
     },
-    "price": "Price",
+    "packSize": "Taille du pack (séances)",
+    "price": "Prix",
     "requires": {
       "validation": {
-        "desc": "Desc"
+        "desc": "La demande du client doit être validée manuellement avant confirmation"
       },
       "validationTitle": "Nécessite validation"
     },
-    "save": "Save",
+    "save": "Enregistrer",
+    "sessions": "séances",
     "subtitle": "Créez et gérez vos prestations, tarifs et disponibilités",
     "title": "Services",
     "availabilityTitle": "Disponibilité"
@@ -486,54 +712,64 @@
   "user": {
     "detail": {
       "actions": "Actions",
-      "address": "Address",
+      "address": "Adresse",
       "booking": {
-        "history": "History"
+        "history": "Historique"
       },
       "bookings": {
-        "completed": "Completed"
+        "completed": "Terminées"
       },
       "date": "Date",
-      "information": "Information",
+      "information": "Informations",
       "last": {
-        "booking": "Booking"
+        "booking": "Dernière réservation"
       },
       "member": {
-        "since": "Since"
+        "since": "Membre depuis"
       },
       "notes": "Notes",
-      "overview": "Overview",
+      "overview": "Vue d'ensemble",
       "service": "Service",
       "status": {
-        "cancelled": "Cancelled",
-        "completed": "Completed",
-        "confirmed": "Confirmed"
+        "cancelled": "Annulée",
+        "completed": "Terminée",
+        "confirmed": "Confirmée",
+        "pending": "En attente"
       },
-      "time": "Time",
+      "time": "Heure",
       "title": "Détail du client",
       "total": {
-        "spent": "Spent"
+        "spent": "Montant dépensé"
       },
       "view": {
-        "details": "Details"
+        "details": "Détails"
       },
       "statusLabel": "Statut"
     }
   },
   "users": {
-    "active": "Active",
-    "bookings": "Bookings",
+    "active": "Actif",
+    "bookings": "Réservations",
+    "contact": "Contact",
     "email": "Email",
-    "name": "Name",
+    "name": "Nom",
     "new": {
       "client": "Client"
     },
-    "phone": "Phone",
-    "search": "Rechercher un client",
+    "phone": "Téléphone",
+    "search": {
+      "placeholder": "Rechercher par nom, e-mail ou téléphone"
+    },
+    "nextBooking": {
+      "column": "Prochaine réservation",
+      "from": "Du",
+      "to": "Au"
+    },
+    "sessions": "séances",
     "subtitle": "Consultez et gérez votre base clients",
     "title": "Clients",
     "view": {
-      "details": "Details"
+      "details": "Détails"
     }
   }
 }

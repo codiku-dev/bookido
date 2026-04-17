@@ -1,9 +1,10 @@
 // @ts-nocheck
-import { useState, Fragment, useRef } from "react";
+import { useState, Fragment } from "react";
 import { useTranslations } from "next-intl";
 import { Plus, Pencil, Trash2, Clock, Euro, Package, Image as ImageIcon, Calendar } from "lucide-react";
+import { Button } from "#/components/ui/button";
 
-interface Service {
+type Service = {
   id: number;
   name: string;
   duration: number;
@@ -14,17 +15,7 @@ interface Service {
   description: string;
   availableSlots: Set<string>;
   requiresValidation: boolean;
-}
-
-const daysOfWeek = [
-  { short: "Lun", full: "Lundi" },
-  { short: "Mar", full: "Mardi" },
-  { short: "Mer", full: "Mercredi" },
-  { short: "Jeu", full: "Jeudi" },
-  { short: "Ven", full: "Vendredi" },
-  { short: "Sam", full: "Samedi" },
-  { short: "Dim", full: "Dimanche" },
-];
+};
 
 const timeSlots = [
   "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
@@ -32,59 +23,71 @@ const timeSlots = [
   "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30"
 ];
 
-const initialServices: Service[] = [
-  {
-    id: 1,
-    name: "1-on-1 Personal Training",
-    duration: 60,
-    price: 50,
-    isFree: false,
-    packSize: 1,
-    imageUrl: "",
-    description: "Individual training session tailored to your goals",
-    availableSlots: new Set(),
-    requiresValidation: false,
-  },
-  {
-    id: 2,
-    name: "Nutrition Coaching",
-    duration: 45,
-    price: 40,
-    isFree: false,
-    packSize: 1,
-    imageUrl: "",
-    description: "Personalized nutrition plan and guidance",
-    availableSlots: new Set(),
-    requiresValidation: false,
-  },
-  {
-    id: 3,
-    name: "5-Session Training Pack",
-    duration: 60,
-    price: 200,
-    isFree: false,
-    packSize: 5,
-    imageUrl: "",
-    description: "Pack of 5 training sessions at a discounted rate",
-    availableSlots: new Set(),
-    requiresValidation: true,
-  },
-  {
-    id: 4,
-    name: "Free Consultation",
-    duration: 30,
-    price: 0,
-    isFree: true,
-    packSize: 1,
-    imageUrl: "",
-    description: "Complimentary initial consultation",
-    availableSlots: new Set(),
-    requiresValidation: false,
-  },
-];
-
 export default function ServicesManagement() {
   const t = useTranslations();
+  const getNumberInputValue = (value: number | undefined) =>
+    typeof value === "number" && Number.isFinite(value) ? value : "";
+  const daysOfWeek = [
+    { key: "mon", short: t("public.time.days.mon.short") },
+    { key: "tue", short: t("public.time.days.tue.short") },
+    { key: "wed", short: t("public.time.days.wed.short") },
+    { key: "thu", short: t("public.time.days.thu.short") },
+    { key: "fri", short: t("public.time.days.fri.short") },
+    { key: "sat", short: t("public.time.days.sat.short") },
+    { key: "sun", short: t("public.time.days.sun.short") },
+  ];
+
+  const initialServices: Service[] = [
+    {
+      id: 1,
+      name: t("services.mock.personalTraining.name"),
+      duration: 60,
+      price: 50,
+      isFree: false,
+      packSize: 1,
+      imageUrl: "",
+      description: t("services.mock.personalTraining.description"),
+      availableSlots: new Set(),
+      requiresValidation: false,
+    },
+    {
+      id: 2,
+      name: t("services.mock.nutritionCoaching.name"),
+      duration: 45,
+      price: 40,
+      isFree: false,
+      packSize: 1,
+      imageUrl: "",
+      description: t("services.mock.nutritionCoaching.description"),
+      availableSlots: new Set(),
+      requiresValidation: false,
+    },
+    {
+      id: 3,
+      name: t("services.mock.trainingPack.name"),
+      duration: 60,
+      price: 200,
+      isFree: false,
+      packSize: 5,
+      imageUrl: "",
+      description: t("services.mock.trainingPack.description"),
+      availableSlots: new Set(),
+      requiresValidation: true,
+    },
+    {
+      id: 4,
+      name: t("services.mock.freeConsultation.name"),
+      duration: 30,
+      price: 0,
+      isFree: true,
+      packSize: 1,
+      imageUrl: "",
+      description: t("services.mock.freeConsultation.description"),
+      availableSlots: new Set(),
+      requiresValidation: false,
+    },
+  ];
+
   const [services, setServices] = useState<Service[]>(initialServices);
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -100,7 +103,8 @@ export default function ServicesManagement() {
     requiresValidation: false,
   });
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState<{ day: string; time: string } | null>(null);
+  const [dragMode, setDragMode] = useState<"close" | "open" | null>(null);
+  const [draggedSlotKeys, setDraggedSlotKeys] = useState<Set<string>>(new Set());
 
   const handleAdd = () => {
     if (formData.name && formData.duration) {
@@ -173,38 +177,52 @@ export default function ServicesManagement() {
     setEditingId(null);
   };
 
-  const handleSlotMouseDown = (day: string, time: string) => {
-    setIsDragging(true);
-    setDragStart({ day, time });
-    toggleSlot(day, time);
+  const getSlotKey = (dayKey: string, time: string) => `${dayKey}-${time}`;
+
+  const setSlotClosed = (dayKey: string, time: string, shouldBeClosed: boolean) => {
+    const slotKey = getSlotKey(dayKey, time);
+    setFormData((previous) => {
+      const nextSlots = new Set(previous.availableSlots || new Set());
+      if (shouldBeClosed) {
+        nextSlots.add(slotKey);
+      } else {
+        nextSlots.delete(slotKey);
+      }
+      return { ...previous, availableSlots: nextSlots };
+    });
   };
 
-  const handleSlotMouseEnter = (day: string, time: string) => {
-    if (isDragging && dragStart) {
-      toggleSlot(day, time);
+  const handleSlotMouseDown = (dayKey: string, time: string) => {
+    const slotKey = getSlotKey(dayKey, time);
+    const currentlyClosed = formData.availableSlots?.has(slotKey) || false;
+    const nextMode: "close" | "open" = currentlyClosed ? "open" : "close";
+    setIsDragging(true);
+    setDragMode(nextMode);
+    setDraggedSlotKeys(new Set([slotKey]));
+    setSlotClosed(dayKey, time, nextMode === "close");
+  };
+
+  const handleSlotMouseEnter = (dayKey: string, time: string) => {
+    if (isDragging && dragMode) {
+      const slotKey = getSlotKey(dayKey, time);
+      if (draggedSlotKeys.has(slotKey)) return;
+      setDraggedSlotKeys((previous) => {
+        const next = new Set(previous);
+        next.add(slotKey);
+        return next;
+      });
+      setSlotClosed(dayKey, time, dragMode === "close");
     }
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
-    setDragStart(null);
+    setDragMode(null);
+    setDraggedSlotKeys(new Set());
   };
 
-  const toggleSlot = (day: string, time: string) => {
-    const slotKey = `${day}-${time}`;
-    const newSlots = new Set(formData.availableSlots || new Set());
-
-    if (newSlots.has(slotKey)) {
-      newSlots.delete(slotKey);
-    } else {
-      newSlots.add(slotKey);
-    }
-
-    setFormData({ ...formData, availableSlots: newSlots });
-  };
-
-  const isSlotSelected = (day: string, time: string) => {
-    return formData.availableSlots?.has(`${day}-${time}`) || false;
+  const isSlotClosed = (dayKey: string, time: string) => {
+    return formData.availableSlots?.has(getSlotKey(dayKey, time)) || false;
   };
 
   return (
@@ -214,13 +232,13 @@ export default function ServicesManagement() {
           <h1 className="text-3xl font-bold text-slate-900 mb-2">{t("services.title")}</h1>
           <p className="text-slate-600">{t("services.subtitle")}</p>
         </div>
-        <button
+        <Button
           onClick={() => setIsAdding(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+          className="h-11 px-6 rounded-xl"
         >
           <Plus className="w-5 h-5" />
           {t("services.new.service")}
-        </button>
+        </Button>
       </div>
 
       {/* Add/Edit Form */}
@@ -236,7 +254,7 @@ export default function ServicesManagement() {
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="e.g., 1-on-1 Personal Training"
+                placeholder={t("services.form.placeholders.name")}
                 className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
               />
             </div>
@@ -246,7 +264,7 @@ export default function ServicesManagement() {
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Brief description of the service..."
+                placeholder={t("services.form.placeholders.description")}
                 rows={3}
                 className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
               />
@@ -256,34 +274,28 @@ export default function ServicesManagement() {
               <label className="block text-slate-700 mb-2">{t("services.duration")} ({t("services.minutes")})</label>
               <input
                 type="number"
-                value={formData.duration}
-                onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) })}
+                value={getNumberInputValue(formData.duration)}
+                onChange={(e) => {
+                  const nextDuration = Number.parseInt(e.target.value, 10);
+                  setFormData({ ...formData, duration: Number.isNaN(nextDuration) ? undefined : nextDuration });
+                }}
                 placeholder="60"
                 className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
               />
             </div>
 
             <div>
-              <label className="block text-slate-700 mb-2">Pack Size (sessions)</label>
+              <label className="block text-slate-700 mb-2">{t("services.packSize")}</label>
               <input
                 type="number"
-                value={formData.packSize}
-                onChange={(e) => setFormData({ ...formData, packSize: parseInt(e.target.value) })}
+                value={getNumberInputValue(formData.packSize)}
+                onChange={(e) => {
+                  const nextPackSize = Number.parseInt(e.target.value, 10);
+                  setFormData({ ...formData, packSize: Number.isNaN(nextPackSize) ? undefined : nextPackSize });
+                }}
                 placeholder="1"
                 className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
               />
-            </div>
-
-            <div>
-              <label className="flex items-center gap-2 mb-4">
-                <input
-                  type="checkbox"
-                  checked={formData.isFree}
-                  onChange={(e) => setFormData({ ...formData, isFree: e.target.checked })}
-                  className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-600"
-                />
-                <span className="text-slate-700">Free Service</span>
-              </label>
             </div>
 
             <div>
@@ -301,21 +313,40 @@ export default function ServicesManagement() {
               </label>
             </div>
 
-            {!formData.isFree && (
-              <div>
+            <div className="flex flex-col gap-4">
+              <div className="min-w-0">
                 <label className="block text-slate-700 mb-2">{t("services.price")} (€)</label>
                 <input
                   type="number"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+                  value={getNumberInputValue(formData.price)}
+                  onChange={(e) => {
+                    const nextPrice = Number.parseFloat(e.target.value);
+                    setFormData({ ...formData, price: Number.isNaN(nextPrice) ? undefined : nextPrice });
+                  }}
                   placeholder="50"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  disabled={formData.isFree}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                 />
               </div>
-            )}
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={formData.isFree}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      isFree: e.target.checked,
+                      price: e.target.checked ? 0 : formData.price,
+                    })
+                  }
+                  className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-600"
+                />
+                <span className="text-slate-700 whitespace-nowrap">{t("services.freeService")}</span>
+              </label>
+            </div>
 
             <div className="md:col-span-2">
-              <label className="block text-slate-700 mb-2">Image URL</label>
+              <label className="block text-slate-700 mb-2">{t("services.imageUrl")}</label>
               <input
                 type="text"
                 value={formData.imageUrl}
@@ -353,7 +384,7 @@ export default function ServicesManagement() {
                   {/* Header */}
                   <div className="bg-slate-100"></div>
                   {daysOfWeek.map((day) => (
-                    <div key={day.short} className="bg-slate-100 p-2 text-center">
+                    <div key={day.key} className="bg-slate-100 p-2 text-center">
                       <div className="text-sm font-medium text-slate-900">{day.short}</div>
                     </div>
                   ))}
@@ -365,20 +396,34 @@ export default function ServicesManagement() {
                         <span className="text-xs text-slate-600">{time}</span>
                       </div>
                       {daysOfWeek.map((day) => {
-                        const isSelected = isSlotSelected(day.short, time);
+                        const isClosed = isSlotClosed(day.key, time);
 
                         return (
                           <div
-                            key={`${day.short}-${time}`}
-                            onMouseDown={() => handleSlotMouseDown(day.short, time)}
-                            onMouseEnter={() => handleSlotMouseEnter(day.short, time)}
-                            className={`p-2 cursor-pointer transition-all select-none ${
-                              isSelected
-                                ? "bg-blue-600"
-                                : "bg-white hover:bg-blue-100"
+                            key={`${day.key}-${time}`}
+                            onMouseDown={() => handleSlotMouseDown(day.key, time)}
+                            onMouseEnter={() => handleSlotMouseEnter(day.key, time)}
+                            className={`p-2 cursor-pointer transition-all select-none relative ${
+                              isClosed ? "bg-slate-100 hover:bg-slate-200" : "bg-white hover:bg-slate-50"
                             }`}
                             style={{ userSelect: "none" }}
-                          />
+                          >
+                            {isClosed && (
+                              <div
+                                className="absolute inset-0"
+                                style={{
+                                  backgroundImage: `repeating-linear-gradient(
+                                    45deg,
+                                    transparent,
+                                    transparent 10px,
+                                    #cbd5e1 10px,
+                                    #cbd5e1 11px
+                                  )`,
+                                  backgroundColor: "#f1f5f9",
+                                }}
+                              />
+                            )}
+                          </div>
                         );
                       })}
                     </Fragment>
@@ -389,32 +434,43 @@ export default function ServicesManagement() {
 
             <div className="mt-4 flex items-center gap-4 text-sm">
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-blue-600 rounded"></div>
-                <span className="text-slate-600">{t("services.availabilityTitle")}</span>
+                <div className="w-4 h-4 bg-white border border-slate-300 rounded"></div>
+                <span className="text-slate-600">{t("public.time.available")}</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-white border border-slate-300 rounded"></div>
+                <div
+                  className="w-4 h-4 border border-slate-300 rounded"
+                  style={{
+                    backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 3px, #cbd5e1 3px, #cbd5e1 4px)",
+                    backgroundColor: "#f1f5f9",
+                  }}
+                />
                 <span className="text-slate-600">{t("calendar.hours.closed")}</span>
               </div>
               <div className="ml-auto text-slate-600">
-                {formData.availableSlots?.size || 0} {t("public.time.selected", { count: formData.availableSlots?.size || 0 })}
+                {t(
+                  (formData.availableSlots?.size || 0) > 1 ? "public.time.selectedPlural" : "public.time.selected",
+                  { count: formData.availableSlots?.size || 0 },
+                )}
               </div>
             </div>
           </div>
 
           <div className="flex gap-3 mt-6">
-            <button
+            <Button
               onClick={isAdding ? handleAdd : handleUpdate}
-              className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+              className="h-11 px-6 rounded-xl"
             >
               {isAdding ? t("services.save") : t("common.save")}
-            </button>
-            <button
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
               onClick={resetForm}
-              className="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-colors"
+              className="h-11 px-6 rounded-xl"
             >
               {t("common.cancel")}
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -441,18 +497,24 @@ export default function ServicesManagement() {
             <div className="flex items-start justify-between mb-3">
               <h3 className="text-lg font-bold text-slate-900">{service.name}</h3>
               <div className="flex gap-2">
-                <button
+                <Button
+                  type="button"
+                  size="icon-sm"
+                  variant="ghost"
                   onClick={() => handleEdit(service)}
-                  className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="text-slate-600 hover:bg-slate-100"
                 >
                   <Pencil className="w-4 h-4" />
-                </button>
-                <button
+                </Button>
+                <Button
+                  type="button"
+                  size="icon-sm"
+                  variant="ghost"
                   onClick={() => handleDelete(service.id)}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  className="text-red-600 hover:bg-red-50"
                 >
                   <Trash2 className="w-4 h-4" />
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -468,14 +530,14 @@ export default function ServicesManagement() {
               {service.packSize > 1 && (
                 <div className="flex items-center gap-1">
                   <Package className="w-4 h-4" />
-                  <span>{service.packSize} sessions</span>
+                  <span>{service.packSize} {t("services.sessions")}</span>
                 </div>
               )}
             </div>
 
             <div className="pt-4 border-t border-slate-200">
               {service.isFree ? (
-                <div className="text-lg font-bold text-green-600">Free</div>
+                <div className="text-lg font-bold text-green-600">{t("services.free")}</div>
               ) : (
                 <div className="flex items-center gap-1">
                   <Euro className="w-5 h-5 text-slate-600" />

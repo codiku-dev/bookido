@@ -44,7 +44,7 @@ export default function LoginAdmin() {
           <div className="flex justify-center mb-4">
             <BookidoLogo className="w-20 h-20" />
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Bookido Admin</h1>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">{t("login.title")}</h1>
           <p className="text-slate-600">{t("login.subtitle")}</p>
         </div>
 
@@ -60,7 +60,7 @@ export default function LoginAdmin() {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              placeholder="admin@example.com"
+              placeholder={t("login.emailPlaceholder")}
             />
           </div>
 

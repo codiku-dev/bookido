@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, User, Mail, Phone, MapPin, Save } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function NewClient() {
   const router = useRouter();
+  const t = useTranslations("newClient");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -30,23 +32,23 @@ export default function NewClient() {
           className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-6"
         >
           <ArrowLeft className="w-5 h-5" />
-          Retour aux clients
+          {t("back")}
         </button>
 
         {saved && (
           <div className="bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-xl mb-6">
-            ✓ Client créé avec succès !
+            {t("success")}
           </div>
         )}
 
         <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-8">Nouveau client</h1>
+          <h1 className="text-3xl font-bold text-slate-900 mb-8">{t("title")}</h1>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="flex items-center gap-2 text-slate-700 mb-2">
                 <User className="w-4 h-4" />
-                Nom complet
+                {t("fullName")}
               </label>
               <input
                 type="text"
@@ -54,7 +56,7 @@ export default function NewClient() {
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
                 className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
-                placeholder="Jean Dupont"
+                placeholder={t("placeholders.fullName")}
               />
             </div>
 
@@ -69,14 +71,14 @@ export default function NewClient() {
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
                 className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
-                placeholder="jean@example.com"
+                placeholder={t("placeholders.email")}
               />
             </div>
 
             <div>
               <label className="flex items-center gap-2 text-slate-700 mb-2">
                 <Phone className="w-4 h-4" />
-                Téléphone
+                {t("phone")}
               </label>
               <input
                 type="tel"
@@ -84,32 +86,32 @@ export default function NewClient() {
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 required
                 className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
-                placeholder="+33 6 12 34 56 78"
+                placeholder={t("placeholders.phone")}
               />
             </div>
 
             <div>
               <label className="flex items-center gap-2 text-slate-700 mb-2">
                 <MapPin className="w-4 h-4" />
-                Adresse
+                {t("address")}
               </label>
               <input
                 type="text"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
-                placeholder="12 rue de la Paix, 75002 Paris"
+                placeholder={t("placeholders.address")}
               />
             </div>
 
             <div>
-              <label className="block text-slate-700 mb-2">Notes</label>
+              <label className="block text-slate-700 mb-2">{t("notes")}</label>
               <textarea
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 rows={4}
                 className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
-                placeholder="Informations complémentaires..."
+                placeholder={t("placeholders.notes")}
               />
             </div>
 
@@ -119,14 +121,14 @@ export default function NewClient() {
                 className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium"
               >
                 <Save className="w-5 h-5" />
-                Créer le client
+                {t("submit")}
               </button>
               <button
                 type="button"
                 onClick={() => router.push("/admin/users")}
                 className="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-colors font-medium"
               >
-                Annuler
+                {t("cancel")}
               </button>
             </div>
           </form>

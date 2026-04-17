@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { ArrowLeft, User, Mail, Phone, Clock, Euro, Calendar, MapPin, MessageCircle, CalendarIcon, XCircle } from "lucide-react";
+import { ArrowLeft, User, Mail, Phone, Clock, Calendar, MapPin, MessageCircle, CalendarIcon, XCircle } from "lucide-react";
 
 // Mock booking data - in production, fetch based on booking ID
 const bookingData = {
@@ -22,6 +22,7 @@ const bookingData = {
   notes: "Cliente préfère les exercices de cardio. Objectif : perte de poids.",
   createdAt: "1 avril 2026",
   paymentMethod: "Carte bancaire",
+  paymentStatus: "paid" as "paid" | "unpaid",
 };
 
 export default function BookingDetail() {
@@ -41,25 +42,10 @@ export default function BookingDetail() {
           {t("common.back")}
         </button>
 
-        {/* Status Badge */}
-        <div className="mb-6">
-          <span
-            className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${
-              bookingData.status === "confirmé"
-                ? "bg-green-50 text-green-700"
-                : bookingData.status === "en attente"
-                ? "bg-yellow-50 text-yellow-700"
-                : "bg-red-50 text-red-700"
-            }`}
-          >
-            {bookingData.status.charAt(0).toUpperCase() + bookingData.status.slice(1)}
-          </span>
-        </div>
-
         {/* Main Info */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 mb-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-            <div>
+          <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div className="min-w-0">
               <h1 className="text-3xl font-bold text-slate-900 mb-2">{bookingData.service}</h1>
               <div className="flex flex-wrap items-center gap-4 text-slate-600">
                 <div className="flex items-center gap-2">
@@ -72,7 +58,17 @@ export default function BookingDetail() {
                 </div>
               </div>
             </div>
-            <div className="text-3xl font-bold text-blue-600">€{bookingData.price}</div>
+            <span
+              className={`inline-flex shrink-0 px-4 py-2 rounded-full text-sm font-medium self-start ${
+                bookingData.status === "confirmé"
+                  ? "bg-green-50 text-green-700"
+                  : bookingData.status === "en attente"
+                    ? "bg-yellow-50 text-yellow-700"
+                    : "bg-red-50 text-red-700"
+              }`}
+            >
+              {bookingData.status.charAt(0).toUpperCase() + bookingData.status.slice(1)}
+            </span>
           </div>
 
           {/* Client Info */}
@@ -126,11 +122,21 @@ export default function BookingDetail() {
                 <span className="font-medium text-slate-900">{bookingData.paymentMethod}</span>
               </div>
               <div className="flex justify-between">
+                <span className="text-slate-600">{t("booking.detail.payment.status")}</span>
+                <span
+                  className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    bookingData.paymentStatus === "paid" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"
+                  }`}
+                >
+                  {bookingData.paymentStatus === "paid" ? t("booking.list.payment.paid") : t("booking.list.payment.unpaid")}
+                </span>
+              </div>
+              <div className="flex justify-between">
                 <span className="text-slate-600">{t("booking.detail.amount")}</span>
                 <span className="font-bold text-blue-600">€{bookingData.price}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-600">{t("user.detail.last.booking")}</span>
+                <span className="text-slate-600">{t("booking.detail.createdAt")}</span>
                 <span className="text-slate-900">{bookingData.createdAt}</span>
               </div>
             </div>

@@ -2,13 +2,13 @@ import { useState } from "react";
 import { X, User, Mail, Phone, MapPin, Save } from "lucide-react";
 import { useTranslations } from "next-intl";
 
-interface ClientFormModalProps {
+type ClientFormModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onSave: (client: ClientFormData) => void;
   initialData?: ClientFormData;
   title?: string;
-}
+};
 
 export interface ClientFormData {
   name: string;
@@ -62,7 +62,7 @@ export default function ClientFormModal({ isOpen, onClose, onSave, initialData, 
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               required
               className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              placeholder="Jean Dupont"
+              placeholder={t("placeholders.name")}
             />
           </div>
 
@@ -77,7 +77,7 @@ export default function ClientFormModal({ isOpen, onClose, onSave, initialData, 
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
               className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              placeholder="jean@example.com"
+              placeholder={t("placeholders.email")}
             />
           </div>
 
@@ -92,7 +92,7 @@ export default function ClientFormModal({ isOpen, onClose, onSave, initialData, 
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               required
               className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              placeholder="+33 6 12 34 56 78"
+              placeholder={t("placeholders.phone")}
             />
           </div>
 
@@ -106,7 +106,7 @@ export default function ClientFormModal({ isOpen, onClose, onSave, initialData, 
               value={formData.address}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              placeholder="12 rue de la Paix, 75002 Paris"
+              placeholder={t("placeholders.address")}
             />
           </div>
 

@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { X, Mail, Phone, Clock, Euro, ChevronLeft, ChevronRight, Calendar as CalendarIcon, XCircle, MessageCircle } from "lucide-react";
 import ClientFormModal, { ClientFormData } from "#/components/ClientFormModal";
 import BookingModal from "#/components/BookingModal";
+import { Button } from "#/components/ui/button";
 
 const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const dayNamesShort: Record<string, string> = {
@@ -14,16 +15,6 @@ const dayNamesShort: Record<string, string> = {
   Friday: "Ven",
   Saturday: "Sam",
   Sunday: "Dim",
-};
-
-const dayNamesFull: Record<string, string> = {
-  Monday: "Lundi",
-  Tuesday: "Mardi",
-  Wednesday: "Mercredi",
-  Thursday: "Jeudi",
-  Friday: "Vendredi",
-  Saturday: "Samedi",
-  Sunday: "Dimanche",
 };
 
 const monthNames = [
@@ -49,6 +40,10 @@ function formatDate(date: Date) {
   const day = date.getDate();
   const monthShort = monthNames[date.getMonth()].substring(0, 3).toLowerCase();
   return `${day} ${monthShort}`;
+}
+
+function isSameDay(a: Date, b: Date) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
 const allTimeSlots = [
@@ -95,10 +90,30 @@ const initialWeekHours: WeekHours = {
 };
 
 const services = [
-  { id: 1, name: "1-on-1 Personal Training", duration: "60 min", price: 50 },
-  { id: 2, name: "Nutrition Coaching Session", duration: "45 min", price: 40 },
-  { id: 3, name: "5-Session Training Pack", duration: "60 min each", price: 200 },
-  { id: 4, name: "Monthly Training Plan", duration: "4 sessions", price: 180 },
+  {
+    id: 1,
+    slug: "personalTraining" as const,
+    price: 50,
+    imageUrl: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=240&q=80",
+  },
+  {
+    id: 2,
+    slug: "nutrition" as const,
+    price: 40,
+    imageUrl: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=240&q=80",
+  },
+  {
+    id: 3,
+    slug: "pack5" as const,
+    price: 200,
+    imageUrl: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=240&q=80",
+  },
+  {
+    id: 4,
+    slug: "monthlyPlan" as const,
+    price: 180,
+    imageUrl: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=240&q=80",
+  },
 ];
 
 const existingClients = [
@@ -175,6 +190,7 @@ const bookings: Booking[] = [
 
 export default function CalendarView() {
   const t = useTranslations();
+  const today = new Date();
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [closedSlots, setClosedSlots] = useState<Set<string>>(initialClosedSlots);
   const [isAvailabilityMode, setIsAvailabilityMode] = useState(false);
@@ -198,13 +214,14 @@ export default function CalendarView() {
   };
 
   const slotMinutes = 30;
+  const confirmedBookings = bookings.filter((booking) => booking.status === "confirmed");
   const timeToMinutes = (timeValue: string) => {
     const [hours, minutes] = timeValue.split(":").map(Number);
     return (hours ?? 0) * 60 + (minutes ?? 0);
   };
 
   const bookingBySlot = new Map<string, { booking: Booking; isContinuation: boolean }>();
-  bookings.forEach((booking) => {
+  confirmedBookings.forEach((booking) => {
     const baseMinutes = timeToMinutes(booking.time);
     const slotCount = Math.max(1, Math.ceil(booking.durationMinutes / slotMinutes));
 
@@ -305,6 +322,8 @@ export default function CalendarView() {
     setCurrentDate(newDate);
   };
 
+  const weekdayI18nKey = (dayName: string) => `calendar.weekday.${dayName.toLowerCase()}`;
+
   // Get enabled days from weekHours and map to actual dates
   const enabledDays = weekDates
     .filter((date) => {
@@ -315,7 +334,7 @@ export default function CalendarView() {
       const dayName = dayNames[date.getDay()];
       return {
         short: dayNamesShort[dayName],
-        full: dayNamesFull[dayName],
+        full: t(weekdayI18nKey(dayName)),
         date: formatDate(date),
         fullDate: date,
       };
@@ -331,9 +350,10 @@ export default function CalendarView() {
             <p className="text-slate-600">{t("calendar.subtitle")}</p>
           </div>
           <div className="flex gap-3">
-            <button
+            <Button
+              type="button"
               onClick={() => setIsAvailabilityMode(!isAvailabilityMode)}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-colors ${
+              className={`h-11 px-6 rounded-xl ${
                 isAvailabilityMode
                   ? "bg-green-600 text-white hover:bg-green-700"
                   : "bg-blue-600 text-white hover:bg-blue-700"
@@ -343,7 +363,7 @@ export default function CalendarView() {
               {isAvailabilityMode
                 ? t("calendar.exit.availability")
                 : t("calendar.define.availability")}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -352,19 +372,25 @@ export default function CalendarView() {
           <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-4 rounded-xl">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
-                <button
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
                   onClick={() => navigateWeek("prev")}
-                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="hover:bg-slate-100"
                 >
                   <ChevronLeft className="w-5 h-5" />
-                </button>
+                </Button>
                 <div className="font-medium text-slate-900 min-w-[200px] text-center">{currentWeekDisplay}</div>
-                <button
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
                   onClick={() => navigateWeek("next")}
-                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="hover:bg-slate-100"
                 >
                   <ChevronRight className="w-5 h-5" />
-                </button>
+                </Button>
               </div>
 
               <select
@@ -388,12 +414,15 @@ export default function CalendarView() {
               </select>
             </div>
 
-            <button
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
               onClick={goToToday}
-              className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors font-medium text-sm"
+              className="text-blue-700 border-blue-200 bg-blue-50 hover:bg-blue-100"
             >
               {t("calendar.nav.today")}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -417,7 +446,7 @@ export default function CalendarView() {
                         />
                         <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:inset-s-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                       </label>
-                      <span className="font-medium text-slate-900 text-sm">{dayNamesFull[day]}</span>
+                      <span className="font-medium text-slate-900 text-sm">{t(weekdayI18nKey(day))}</span>
                     </div>
 
                     {weekHours[day].enabled ? (
@@ -461,25 +490,33 @@ export default function CalendarView() {
           </div>
         )}
 
-        <div className="bg-white rounded-2xl shadow-lg p-4 md:p-6 border border-slate-200">
+        <div className="bg-white rounded-2xl shadow-lg p-2 md:p-3 border border-slate-200">
           <div className="overflow-x-auto">
-            <div style={{ minWidth: `${enabledDays.length * 120 + 80}px` }}>
+            <div style={{ minWidth: `${enabledDays.length * 72 + 48}px` }}>
               <div style={{
                 display: "grid",
-                gridTemplateColumns: `80px repeat(${enabledDays.length}, 1fr)`,
+                gridTemplateColumns: `48px repeat(${enabledDays.length}, 1fr)`,
                 gap: "1px",
                 backgroundColor: "#e2e8f0",
                 border: "1px solid #e2e8f0",
-                borderRadius: "12px",
+                borderRadius: "8px",
                 overflow: "hidden"
               }}>
                 {/* Header */}
                 <div className="bg-slate-50"></div>
                 {enabledDays.map((day) => (
-                  <div key={day.short} className="bg-slate-50 p-3 text-center">
-                    <div className="font-medium text-slate-900 text-sm md:text-base">{day.short}</div>
+                  <div key={day.short} className="bg-slate-50 p-1.5 text-center">
+                    <div className="font-medium text-slate-900 text-xs md:text-sm">{day.short}</div>
                     {!isAvailabilityMode && (
-                      <div className="text-xs md:text-sm text-slate-500">{day.date}</div>
+                      <div className="mt-0.5">
+                        {isSameDay(day.fullDate, today) ? (
+                          <span className="inline-flex px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] md:text-xs font-medium">
+                            {day.date}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] md:text-xs text-slate-500">{day.date}</span>
+                        )}
+                      </div>
                     )}
                   </div>
                 ))}
@@ -487,8 +524,8 @@ export default function CalendarView() {
                 {/* Time Slots */}
                 {allTimeSlots.map((time) => (
                   <Fragment key={time}>
-                    <div className="bg-white p-2 md:p-4 h-14 md:h-16 flex items-center justify-end pr-2 md:pr-3">
-                      <span className="text-xs md:text-sm text-slate-600">{time}</span>
+                    <div className="bg-white px-1.5 h-8 md:h-8 flex items-center justify-end">
+                      <span className="text-[10px] md:text-xs text-slate-600">{time}</span>
                     </div>
                     {enabledDays.map((day) => {
                       const slotBooking = bookingBySlot.get(`${day.short}-${time}`);
@@ -500,17 +537,17 @@ export default function CalendarView() {
                         <button
                           key={`${day.short}-${time}`}
                           onClick={() => handleSlotClick(day.short, day.date, time, booking, isClosed)}
-                          className={`group p-2 md:p-4 h-14 md:h-16 transition-all text-left relative ${
+                          className={`group p-1 h-8 md:h-8 transition-all text-left relative ${
                             isClosed
                               ? "bg-slate-100 cursor-pointer hover:bg-slate-200"
                               : isAvailabilityMode
                               ? "bg-white hover:bg-slate-50 cursor-pointer"
                               : booking
                               ? booking.status === "confirmed"
-                                ? "bg-blue-50 hover:bg-blue-100 border-l-4 border-blue-600 cursor-pointer"
+                                ? "bg-blue-50 hover:bg-blue-100 border-l-2 border-blue-600 cursor-pointer"
                                 : booking.status === "pending"
-                                ? "bg-yellow-50 hover:bg-yellow-100 border-l-4 border-yellow-600 cursor-pointer"
-                                : "bg-red-50 hover:bg-red-100 border-l-4 border-red-600 cursor-pointer"
+                                ? "bg-yellow-50 hover:bg-yellow-100 border-l-2 border-yellow-600 cursor-pointer"
+                                : "bg-red-50 hover:bg-red-100 border-l-2 border-red-600 cursor-pointer"
                               : "bg-white hover:bg-slate-50 cursor-pointer"
                           }`}
                         >
@@ -530,11 +567,11 @@ export default function CalendarView() {
                             />
                           )}
                           {!isAvailabilityMode && booking && !isClosed && !isContinuation && (
-                            <div className="text-xs relative z-10">
+                            <div className="text-[10px] relative z-10 leading-tight">
                               <div className="font-medium text-slate-900 truncate">
                                 {booking.client}
                               </div>
-                              <div className="text-slate-600 truncate">{booking.service}</div>
+                              <div className="text-slate-600 truncate text-[9px]">{booking.service}</div>
                             </div>
                           )}
                           {!isAvailabilityMode && booking && !isClosed && isContinuation && (
@@ -555,7 +592,7 @@ export default function CalendarView() {
                           )}
                           {!isAvailabilityMode && !booking && !isClosed && (
                             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                              <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-lg font-bold">
+                              <div className="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">
                                 +
                               </div>
                             </div>
@@ -567,38 +604,6 @@ export default function CalendarView() {
                 ))}
               </div>
 
-              {!isAvailabilityMode && (
-                <div className="mt-6 flex items-center gap-6 justify-center text-sm flex-wrap">
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-blue-600 rounded"></div>
-                    <span className="text-slate-600">{t("user.detail.status.confirmed")}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-yellow-600 rounded"></div>
-                    <span className="text-slate-600">{t("user.detail.status.completed")}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-red-600 rounded"></div>
-                    <span className="text-slate-600">{t("user.detail.status.cancelled")}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-8 h-4 rounded"
-                      style={{
-                        backgroundImage: `repeating-linear-gradient(
-                          45deg,
-                          transparent,
-                          transparent 10px,
-                          #cbd5e1 10px,
-                          #cbd5e1 11px
-                        )`,
-                        backgroundColor: "#f1f5f9",
-                      }}
-                    />
-                    <span className="text-slate-600">{t("calendar.hours.closed")}</span>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -629,7 +634,7 @@ export default function CalendarView() {
                     : "bg-red-50 text-red-700"
                 }`}
               >
-                {selectedBooking.status === "confirmed" ? t("user.detail.status.confirmed") : selectedBooking.status === "pending" ? t("user.detail.status.completed") : t("user.detail.status.cancelled")}
+                {selectedBooking.status === "confirmed" ? t("user.detail.status.confirmed") : selectedBooking.status === "pending" ? t("user.detail.status.pending") : t("user.detail.status.cancelled")}
               </span>
             </div>
 
@@ -683,18 +688,18 @@ export default function CalendarView() {
             </div>
 
             <div className="pt-6 border-t border-slate-200 space-y-3">
-              <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors">
+              <Button className="w-full h-11 rounded-xl">
                 <MessageCircle className="w-5 h-5" />
                 {t("booking.detail.contact")}
-              </button>
-              <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-slate-100 text-slate-700 rounded-xl font-medium hover:bg-slate-200 transition-colors">
+              </Button>
+              <Button variant="outline" className="w-full h-11 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200">
                 <CalendarIcon className="w-5 h-5" />
                 {t("booking.detail.reschedule")}
-              </button>
-              <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-50 text-red-600 rounded-xl font-medium hover:bg-red-100 transition-colors">
+              </Button>
+              <Button variant="destructive" className="w-full h-11 rounded-xl bg-red-50 text-red-600 hover:bg-red-100">
                 <XCircle className="w-5 h-5" />
                 {t("booking.detail.cancel")}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

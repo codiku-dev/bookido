@@ -2,20 +2,22 @@ import { useState } from "react";
 import { X, Check, Plus, User, Package, CalendarPlus } from "lucide-react";
 import { useTranslations } from "next-intl";
 
-interface Service {
-  id: number;
-  name: string;
-  duration: string;
-  price: number;
-}
+type MockServiceSlug = "personalTraining" | "nutrition" | "pack5" | "monthlyPlan";
 
-interface Client {
+type Service = {
+  id: number;
+  slug: MockServiceSlug;
+  price: number;
+  imageUrl?: string;
+};
+
+type Client = {
   id: number;
   name: string;
   email: string;
-}
+};
 
-interface BookingModalProps {
+type BookingModalProps = {
   isOpen: boolean;
   onClose: () => void;
   slot: { day: string; date: string; time: string } | null;
@@ -23,7 +25,7 @@ interface BookingModalProps {
   clients: Client[];
   onCreateClient: () => void;
   onSave: (booking: { serviceId: number; clientId: number | null; newClientName?: string }) => void;
-}
+};
 
 export default function BookingModal({
   isOpen,
@@ -35,12 +37,21 @@ export default function BookingModal({
   onSave,
 }: BookingModalProps) {
   const t = useTranslations();
+  const tCommon = useTranslations("common");
+  const tMockServices = useTranslations("calendar.mockServices");
   const [step, setStep] = useState<"service" | "client">("service");
   const [selectedService, setSelectedService] = useState<number | null>(null);
   const [selectedClient, setSelectedClient] = useState<number | null>(null);
   const [searchClient, setSearchClient] = useState("");
 
   if (!isOpen || !slot) return null;
+
+  const defaultServiceImages: Record<MockServiceSlug, string> = {
+    personalTraining: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=240&q=80",
+    nutrition: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=240&q=80",
+    pack5: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=240&q=80",
+    monthlyPlan: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=240&q=80",
+  };
 
   const filteredClients = clients.filter((client) =>
     client.name.toLowerCase().includes(searchClient.toLowerCase()) ||
@@ -71,7 +82,7 @@ export default function BookingModal({
           <div>
             <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
               <CalendarPlus className="w-6 h-6 text-blue-600" />
-              {t("calendar.create.booking")}
+              {t("calendar.create.bookingTitle")}
             </h2>
             <p className="text-sm text-slate-600 mt-1">
               {slot.day} {slot.date} à {slot.time}
@@ -110,9 +121,18 @@ export default function BookingModal({
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium text-slate-900">{service.name}</div>
-                        <div className="text-sm text-slate-600">{service.duration}</div>
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-16 h-16 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 shrink-0">
+                          <img
+                            src={service.imageUrl ?? defaultServiceImages[service.slug]}
+                            alt={tMockServices(`${service.slug}.name`)}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-medium text-slate-900 truncate">{tMockServices(`${service.slug}.name`)}</div>
+                          <div className="text-sm text-slate-600">{tMockServices(`${service.slug}.duration`)}</div>
+                        </div>
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="text-xl font-bold text-blue-600">€{service.price}</div>
@@ -144,7 +164,7 @@ export default function BookingModal({
                 className="w-full mb-4 p-4 rounded-xl border-2 border-dashed border-blue-300 bg-blue-50 hover:bg-blue-100 transition-colors flex items-center justify-center gap-2 text-blue-700 font-medium"
               >
                 <Plus className="w-5 h-5" />
-                {t("calendar.create.client")}
+                {t("calendar.create.newClient")}
               </button>
 
               <input
@@ -190,7 +210,7 @@ export default function BookingModal({
                 onClick={() => setStep("service")}
                 className="px-6 py-3 bg-white text-slate-700 border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all font-medium"
               >
-                {t("common.previous")}
+                {tCommon("previous")}
               </button>
             )}
             <button
@@ -201,9 +221,7 @@ export default function BookingModal({
               }
               className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl shadow-sm hover:bg-blue-700 hover:shadow-md transition-all font-medium disabled:bg-slate-300 disabled:shadow-none disabled:cursor-not-allowed"
             >
-              {step === "service"
-                ? t("common.next")
-                : t("calendar.create.booking")}
+              {step === "service" ? tCommon("next") : t("calendar.create.submit")}
             </button>
             </div>
           </div>

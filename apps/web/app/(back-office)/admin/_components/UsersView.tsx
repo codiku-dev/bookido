@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Search, X, Mail, Phone, Calendar, Euro, Plus } from "lucide-react";
 import { useLanguage } from "#/components/use-language";
 import { formatShortDate } from "#/utils/dateFormat";
 import ClientFormModal, { ClientFormData } from "#/components/ClientFormModal";
+import { LocaleDatePicker } from "#/components/LocaleDatePicker";
 
-interface User {
+type User = {
   id: number;
   name: string;
   email: string;
@@ -18,7 +19,7 @@ interface User {
   lastBooking: string;
   nextBookingDate: string;
   nextBookingService: string;
-}
+};
 
 const users: User[] = [
   {
@@ -93,6 +94,8 @@ export default function UsersView() {
   const router = useRouter();
   const { locale } = useLanguage();
   const [search, setSearch] = useState("");
+  const [nextBookingFrom, setNextBookingFrom] = useState("");
+  const [nextBookingTo, setNextBookingTo] = useState("");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showNewClientModal, setShowNewClientModal] = useState(false);
 
@@ -101,10 +104,30 @@ export default function UsersView() {
     console.log("New client:", clientData);
   };
 
-  const filteredUsers = users.filter((user) =>
-    user.name.toLowerCase().includes(search.toLowerCase()) ||
-    user.email.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredUsers = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const hasDateFilter = nextBookingFrom.length > 0 || nextBookingTo.length > 0;
+
+    return users.filter((user) => {
+      const matchesSearch =
+        q.length === 0 ||
+        user.name.toLowerCase().includes(q) ||
+        user.email.toLowerCase().includes(q) ||
+        user.phone.toLowerCase().includes(q);
+
+      let matchesNextDate = true;
+      if (hasDateFilter) {
+        if (!user.nextBookingDate) {
+          matchesNextDate = false;
+        } else {
+          if (nextBookingFrom && user.nextBookingDate < nextBookingFrom) matchesNextDate = false;
+          if (nextBookingTo && user.nextBookingDate > nextBookingTo) matchesNextDate = false;
+        }
+      }
+
+      return matchesSearch && matchesNextDate;
+    });
+  }, [search, nextBookingFrom, nextBookingTo]);
 
   return (
     <div className="h-full flex">
@@ -130,17 +153,34 @@ export default function UsersView() {
           onSave={handleSaveNewClient}
         />
 
-        {/* Search */}
         <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-6">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-            <input
-              type="text"
-              placeholder={t("users.search")}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-600"
-            />
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_auto] gap-4 items-end">
+            <div className="relative min-w-0">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <input
+                type="text"
+                placeholder={t("users.search.placeholder")}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              />
+            </div>
+            <div className="flex flex-col gap-1 min-w-[140px]">
+              <label htmlFor="users-next-from" className="text-xs font-medium text-slate-500">
+                {t("users.nextBooking.from")}
+              </label>
+              <LocaleDatePicker
+                id="users-next-from"
+                value={nextBookingFrom}
+                onChange={setNextBookingFrom}
+              />
+            </div>
+            <div className="flex flex-col gap-1 min-w-[140px]">
+              <label htmlFor="users-next-to" className="text-xs font-medium text-slate-500">
+                {t("users.nextBooking.to")}
+              </label>
+              <LocaleDatePicker id="users-next-to" value={nextBookingTo} onChange={setNextBookingTo} />
+            </div>
           </div>
         </div>
 
@@ -150,9 +190,9 @@ export default function UsersView() {
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
                 <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">{t("users.name")}</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Contact</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">{t("users.contact")}</th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">{t("users.bookings")}</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Prochaine réservation</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">{t("users.nextBooking.column")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
@@ -172,7 +212,7 @@ export default function UsersView() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="font-medium text-slate-900">{user.totalBookings}</div>
-                    <div className="text-sm text-slate-500">sessions</div>
+                    <div className="text-sm text-slate-500">{t("users.sessions")}</div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="font-medium text-slate-900">{user.nextBookingDate ? formatShortDate(user.nextBookingDate, locale) : "—"}</div>

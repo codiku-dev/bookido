@@ -16,7 +16,7 @@ import BookidoLogo from "#/components/BookidoLogo";
 const navItems = [
   { path: "/admin", labelId: "nav.dashboard", icon: LayoutDashboard },
   { path: "/admin/calendar", labelId: "nav.calendar", icon: Calendar },
-  { path: "/admin/bookings", labelId: "nav.bookings", icon: NotebookText },
+  { path: "/admin/bookings", labelId: "nav.bookings", icon: NotebookText, badgeCount: 1 },
   { path: "/admin/users", labelId: "nav.users", icon: Users },
   { path: "/admin/services", labelId: "nav.services", icon: Package },
   { path: "/admin/profile", labelId: "nav.profile", icon: UserCircle },
@@ -63,7 +63,12 @@ export default function AdminLayout(p: { children: ReactNode }) {
                   }`}
                 >
                   <Icon className="w-5 h-5" />
-                  {t(item.labelId)}
+                  <span className="flex-1">{t(item.labelId)}</span>
+                  {item.badgeCount && item.badgeCount > 0 && (
+                    <span className="min-w-5 h-5 px-1 rounded-full bg-red-600 text-white text-xs font-semibold flex items-center justify-center">
+                      {item.badgeCount}
+                    </span>
+                  )}
                 </Link>
               );
             })}
