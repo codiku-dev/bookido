@@ -21,4 +21,6 @@ export const useSession: WebAuthClient["useSession"] = authClient.useSession;
 export const signIn: WebAuthClient["signIn"] = authClient.signIn;
 export const signUp: WebAuthClient["signUp"] = authClient.signUp;
 export const signOut: WebAuthClient["signOut"] = authClient.signOut;
+export const requestPasswordReset: WebAuthClient["requestPasswordReset"] = authClient.requestPasswordReset;
+export const resetPassword: WebAuthClient["resetPassword"] = authClient.resetPassword;
 export { authClient };

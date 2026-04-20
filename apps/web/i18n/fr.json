@@ -513,6 +513,7 @@
   },
   "login": {
     "button": "Se connecter à l'admin",
+    "buttonPending": "Connexion…",
     "email": "Email",
     "emailPlaceholder": "admin@exemple.com",
     "password": "Mot de passe",
@@ -521,7 +522,57 @@
     "orContinueWith": "Ou continuer avec",
     "google": "Continuer avec Google",
     "noAccountYet": "Pas encore de compte ?",
-    "signUp": "S'inscrire"
+    "signUp": "S'inscrire",
+    "errors": {
+      "title": "Une erreur s'est produite",
+      "generic": "La connexion a échoué. Veuillez réessayer.",
+      "invalidCredentials": "E-mail ou mot de passe incorrect.",
+      "emailNotVerified": "Veuillez confirmer votre e-mail avant de vous connecter.",
+      "rateLimited": "Trop de tentatives. Patientez un instant puis réessayez.",
+      "accountBlocked": "Ce compte ne peut pas se connecter."
+    },
+    "validation": {
+      "emailInvalid": "Saisissez une adresse e-mail valide",
+      "passwordRequired": "Le mot de passe est obligatoire"
+    },
+    "forgotPasswordLink": "Mot de passe oublié ?",
+    "devFill": "Remplir (dev)"
+  },
+  "forgotPassword": {
+    "title": "Bookido Admin",
+    "subtitle": "Saisissez votre e-mail : nous vous enverrons un lien de réinitialisation.",
+    "email": "Email",
+    "emailPlaceholder": "admin@exemple.com",
+    "submit": "Envoyer le lien",
+    "submitting": "Envoi…",
+    "backToSignIn": "Retour à la connexion",
+    "successTitle": "Vérifiez votre boîte mail",
+    "successDescription": "Si un compte existe pour cette adresse, vous recevrez un e-mail avec un lien pour choisir un nouveau mot de passe.",
+    "errors": {
+      "title": "Une erreur s'est produite",
+      "generic": "L'envoi du message a échoué. Veuillez réessayer."
+    }
+  },
+  "resetPassword": {
+    "title": "Nouveau mot de passe",
+    "subtitle": "Choisissez un nouveau mot de passe pour votre compte admin.",
+    "newPassword": "Nouveau mot de passe",
+    "placeholder": "••••••••",
+    "submit": "Mettre à jour le mot de passe",
+    "submitting": "Mise à jour…",
+    "successTitle": "Mot de passe mis à jour",
+    "successDescription": "Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.",
+    "signInCta": "Se connecter à l'admin",
+    "errorTitle": "Échec de la réinitialisation",
+    "missingTokenTitle": "Lien invalide",
+    "missingTokenDescription": "Ce lien est incomplet ou expiré. Demandez un nouveau lien depuis la page de connexion.",
+    "errors": {
+      "title": "Une erreur s'est produite",
+      "generic": "Impossible de mettre à jour le mot de passe. Le lien a peut-être expiré."
+    },
+    "validation": {
+      "passwordMin": "Le mot de passe doit contenir au moins 8 caractères"
+    }
   },
   "signup": {
     "title": "Bookido Admin",
@@ -541,7 +592,12 @@
     "successDescription": "Nous vous avons envoyé un e-mail de confirmation. Ouvrez le lien pour valider votre compte, puis vous pourrez vous connecter.",
     "errors": {
       "title": "Une erreur s'est produite",
-      "generic": "L'inscription a échoué. Veuillez réessayer."
+      "generic": "L'inscription a échoué. Veuillez réessayer.",
+      "userAlreadyExists": "Cette adresse e-mail est déjà utilisée. Connectez-vous ou choisissez une autre adresse.",
+      "invalidEmail": "Cette adresse e-mail n'est pas valide.",
+      "passwordPolicy": "Le mot de passe ne respecte pas les exigences. Choisissez un mot de passe plus solide.",
+      "rateLimited": "Trop de tentatives. Patientez un instant puis réessayez.",
+      "emailRequired": "L'adresse e-mail est obligatoire."
     },
     "validation": {
       "nameMin": "Le nom doit contenir au moins 2 caractères",
@@ -575,7 +631,13 @@
     "users": "Clients",
     "services": "Services",
     "profile": "Profil",
-    "logout": "Déconnexion"
+    "logout": "Déconnexion",
+    "logoutDialog": {
+      "title": "Se déconnecter ?",
+      "description": "Vous devrez vous reconnecter pour accéder à l’administration.",
+      "confirm": "Se déconnecter",
+      "cancel": "Rester connecté"
+    }
   },
   "notes": {
     "placeholder": "Placeholder"

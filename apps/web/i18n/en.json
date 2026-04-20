@@ -513,6 +513,7 @@
   },
   "login": {
     "button": "Sign in to admin",
+    "buttonPending": "Signing in…",
     "email": "Email",
     "emailPlaceholder": "admin@example.com",
     "password": "Password",
@@ -521,7 +522,57 @@
     "orContinueWith": "Or continue with",
     "google": "Continue with Google",
     "noAccountYet": "No account yet?",
-    "signUp": "Sign up"
+    "signUp": "Sign up",
+    "errors": {
+      "title": "Something went wrong",
+      "generic": "Sign-in failed. Please try again.",
+      "invalidCredentials": "Incorrect email or password.",
+      "emailNotVerified": "Please confirm your email before signing in.",
+      "rateLimited": "Too many attempts. Wait a moment and try again.",
+      "accountBlocked": "This account cannot sign in."
+    },
+    "validation": {
+      "emailInvalid": "Enter a valid email address",
+      "passwordRequired": "Password is required"
+    },
+    "forgotPasswordLink": "Forgot password?",
+    "devFill": "Dev fill"
+  },
+  "forgotPassword": {
+    "title": "Bookido Admin",
+    "subtitle": "Enter your email and we will send you a reset link.",
+    "email": "Email",
+    "emailPlaceholder": "admin@example.com",
+    "submit": "Send reset link",
+    "submitting": "Sending…",
+    "backToSignIn": "Back to sign in",
+    "successTitle": "Check your inbox",
+    "successDescription": "If an account exists for this address, you will receive an email with a link to reset your password.",
+    "errors": {
+      "title": "Something went wrong",
+      "generic": "We could not send the email. Please try again."
+    }
+  },
+  "resetPassword": {
+    "title": "New password",
+    "subtitle": "Choose a new password for your admin account.",
+    "newPassword": "New password",
+    "placeholder": "••••••••",
+    "submit": "Update password",
+    "submitting": "Updating…",
+    "successTitle": "Password updated",
+    "successDescription": "You can now sign in with your new password.",
+    "signInCta": "Sign in to admin",
+    "errorTitle": "Reset failed",
+    "missingTokenTitle": "Invalid link",
+    "missingTokenDescription": "This reset link is missing or expired. Request a new one from the sign-in page.",
+    "errors": {
+      "title": "Something went wrong",
+      "generic": "Could not update the password. The link may have expired."
+    },
+    "validation": {
+      "passwordMin": "Password must be at least 8 characters"
+    }
   },
   "signup": {
     "title": "Bookido Admin",
@@ -541,7 +592,12 @@
     "successDescription": "We sent you a confirmation email. Open the link to verify your account, then you can sign in.",
     "errors": {
       "title": "Something went wrong",
-      "generic": "Sign-up failed. Please try again."
+      "generic": "Sign-up failed. Please try again.",
+      "userAlreadyExists": "This email is already registered. Sign in or use another address.",
+      "invalidEmail": "This email address is not valid.",
+      "passwordPolicy": "The password does not meet the requirements. Use a stronger password.",
+      "rateLimited": "Too many attempts. Please wait a moment and try again.",
+      "emailRequired": "Email is required."
     },
     "validation": {
       "nameMin": "Name must be at least 2 characters",
@@ -575,7 +631,13 @@
     "users": "Customers",
     "services": "Services",
     "profile": "Profile",
-    "logout": "Logout"
+    "logout": "Logout",
+    "logoutDialog": {
+      "title": "Sign out?",
+      "description": "You will need to sign in again to access the admin panel.",
+      "confirm": "Sign out",
+      "cancel": "Stay signed in"
+    }
   },
   "notes": {
     "placeholder": "Placeholder"

@@ -6,20 +6,25 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { motion } from "motion/react";
 import { z } from "zod";
-import { Mail, Lock, User, MailCheck } from "lucide-react";
+import { Mail, Lock, User, MailCheck, CircleAlert } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { cn } from "@repo/ui/utils/cn";
 import BookidoLogo from "#/components/BookidoLogo";
 import { Button } from "#/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "#/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "#/components/ui/form";
 import { Input } from "#/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "#/components/ui/alert";
 import { signIn, signUp } from "@web/libs/auth-client";
+import { translateSignupAuthError } from "@web/utils/translate-signup-auth-error";
 
 type SignUpFormValues = {
   name: string;
   email: string;
   password: string;
 };
+
+/** Remettre à `true` pour réafficher le séparateur + le bouton Google. */
+const ADMIN_GOOGLE_AUTH_UI_ENABLED = false;
 
 function getEmailCallbackURL() {
   const fromEnv = process.env["NEXT_PUBLIC_GOOGLE_AUTH_CALLBACK_URL"];
@@ -64,11 +69,7 @@ export default function SignUpAdmin() {
     });
 
     if (res.error) {
-      const msg =
-        typeof res.error === "object" && res.error !== null && "message" in res.error
-          ? String((res.error as { message?: string }).message)
-          : t("signup.errors.generic");
-      form.setError("root", { message: msg || t("signup.errors.generic") });
+      form.setError("root", { message: translateSignupAuthError({ error: res.error, t }) });
       return;
     }
 
@@ -98,8 +99,21 @@ export default function SignUpAdmin() {
     </div>
   );
 
-  const fieldClassName =
-    "w-full px-4 py-3 rounded-xl border border-slate-300 focus-visible:ring-2 focus-visible:ring-blue-600 h-auto md:text-base";
+  const fieldClass = (invalid: boolean) =>
+    cn(
+      "w-full px-4 py-3 rounded-xl border focus-visible:ring-2 h-auto md:text-base",
+      invalid
+        ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500"
+        : "border-slate-300 focus-visible:ring-blue-600",
+    );
+
+  const fieldErrorAlert = (message: string | undefined) =>
+    message ? (
+      <Alert variant="destructive" className="mt-2 py-2.5 shadow-sm" role="alert">
+        <CircleAlert className="size-4 shrink-0" aria-hidden />
+        <AlertDescription className="text-sm font-medium leading-snug">{message}</AlertDescription>
+      </Alert>
+    ) : null;
 
   const successAlert = emailSent ? (
     <Alert className="mb-6 border-emerald-200 bg-emerald-50 text-emerald-950">
@@ -110,9 +124,10 @@ export default function SignUpAdmin() {
   ) : null;
 
   const errorAlert = rootError ? (
-    <Alert variant="destructive" className="mb-6">
+    <Alert variant="destructive" className="mb-6 shadow-sm" role="alert">
+      <CircleAlert className="size-4 shrink-0" aria-hidden />
       <AlertTitle>{t("signup.errors.title")}</AlertTitle>
-      <AlertDescription>{rootError}</AlertDescription>
+      <AlertDescription className="font-medium">{rootError}</AlertDescription>
     </Alert>
   ) : null;
 
@@ -182,16 +197,22 @@ export default function SignUpAdmin() {
             <FormField
               control={form.control}
               name="name"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
                   <FormLabel className="text-slate-700">
                     <User className="w-4 h-4" />
                     {t("signup.name")}
                   </FormLabel>
                   <FormControl>
-                    <Input {...field} autoComplete="name" className={fieldClassName} placeholder={t("signup.namePlaceholder")} />
+                    <Input
+                      {...field}
+                      autoComplete="name"
+                      className={fieldClass(fieldState.invalid)}
+                      placeholder={t("signup.namePlaceholder")}
+                      aria-invalid={fieldState.invalid}
+                    />
                   </FormControl>
-                  <FormMessage />
+                  {fieldErrorAlert(fieldState.error?.message)}
                 </FormItem>
               )}
             />
@@ -199,7 +220,7 @@ export default function SignUpAdmin() {
             <FormField
               control={form.control}
               name="email"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
                   <FormLabel className="text-slate-700">
                     <Mail className="w-4 h-4" />
@@ -210,11 +231,12 @@ export default function SignUpAdmin() {
                       {...field}
                       type="email"
                       autoComplete="email"
-                      className={fieldClassName}
+                      className={fieldClass(fieldState.invalid)}
                       placeholder={t("signup.emailPlaceholder")}
+                      aria-invalid={fieldState.invalid}
                     />
                   </FormControl>
-                  <FormMessage />
+                  {fieldErrorAlert(fieldState.error?.message)}
                 </FormItem>
               )}
             />
@@ -222,7 +244,7 @@ export default function SignUpAdmin() {
             <FormField
               control={form.control}
               name="password"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
                   <FormLabel className="text-slate-700">
                     <Lock className="w-4 h-4" />
@@ -233,11 +255,12 @@ export default function SignUpAdmin() {
                       {...field}
                       type="password"
                       autoComplete="new-password"
-                      className={fieldClassName}
+                      className={fieldClass(fieldState.invalid)}
                       placeholder="••••••••"
+                      aria-invalid={fieldState.invalid}
                     />
                   </FormControl>
-                  <FormMessage />
+                  {fieldErrorAlert(fieldState.error?.message)}
                 </FormItem>
               )}
             />
@@ -252,8 +275,12 @@ export default function SignUpAdmin() {
           </form>
         </Form>
 
-        {dividerBlock}
-        {googleButtonBlock}
+        {ADMIN_GOOGLE_AUTH_UI_ENABLED ? (
+          <>
+            {dividerBlock}
+            {googleButtonBlock}
+          </>
+        ) : null}
         {signInFooter}
       </motion.div>
     </div>

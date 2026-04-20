@@ -17,7 +17,17 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(signInUrl);
   }
 
-  const isAdminPublicAuthPath = pathname === "/admin/signin" || pathname === "/admin/signup";
+  const isAdminPublicAuthPath =
+    pathname === "/admin/signin" ||
+    pathname === "/admin/signup" ||
+    pathname === "/admin/forgot-password" ||
+    pathname === "/admin/reset-password";
+
+  /** Sign-in funnel only: still allow `/admin/reset-password` when a session cookie exists (email link + token). */
+  const isAdminAuthGatePath =
+    pathname === "/admin/signin" ||
+    pathname === "/admin/signup" ||
+    pathname === "/admin/forgot-password";
 
   const isAuthenticated = request.cookies.get(ADMIN_AUTH_COOKIE)?.value === "true";
 
@@ -27,7 +37,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(signInUrl);
   }
 
-  if (isAuthenticated && isAdminPublicAuthPath) {
+  if (isAuthenticated && isAdminAuthGatePath) {
     const adminUrl = new URL("/admin", request.url);
     return NextResponse.redirect(adminUrl);
   }

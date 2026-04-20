@@ -12,6 +12,19 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import BookidoLogo from "#/components/BookidoLogo";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "#/components/ui/alert-dialog";
+import { clearAdminAuthBridgeCookie } from "@web/libs/admin-auth-bridge-cookie";
+import { signOut } from "@web/libs/auth-client";
 
 const navItems = [
   { path: "/admin", labelId: "nav.dashboard", icon: LayoutDashboard },
@@ -27,10 +40,50 @@ export default function AdminLayout(p: { children: ReactNode }) {
   const router = useRouter();
   const t = useTranslations();
 
-  const handleLogout = () => {
-    document.cookie = "admin-authenticated=; path=/; max-age=0; samesite=lax";
-    router.push("/admin/signin");
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch {
+      /* session may already be cleared */
+    } finally {
+      clearAdminAuthBridgeCookie();
+      router.push("/admin/signin");
+      router.refresh();
+    }
   };
+
+  const logoutTriggerButton = (
+    <button
+      type="button"
+      className="flex items-center gap-3 px-4 py-3 w-full text-slate-600 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all"
+    >
+      <LogOut className="w-5 h-5" />
+      {t("nav.logout")}
+    </button>
+  );
+
+  const logoutConfirmDialog = (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>{logoutTriggerButton}</AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{t("nav.logoutDialog.title")}</AlertDialogTitle>
+          <AlertDialogDescription>{t("nav.logoutDialog.description")}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{t("nav.logoutDialog.cancel")}</AlertDialogCancel>
+          <AlertDialogAction
+            className="bg-red-600 text-white hover:bg-red-600/90"
+            onClick={() => {
+              void handleLogout();
+            }}
+          >
+            {t("nav.logoutDialog.confirm")}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
 
   return (
     <div className="flex h-screen bg-slate-50">
@@ -75,15 +128,7 @@ export default function AdminLayout(p: { children: ReactNode }) {
           </div>
         </nav>
 
-        <div className="p-4 border-t border-slate-200">
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-3 w-full text-slate-600 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all"
-          >
-            <LogOut className="w-5 h-5" />
-            {t("nav.logout")}
-          </button>
-        </div>
+        <div className="p-4 border-t border-slate-200">{logoutConfirmDialog}</div>
       </aside>
 
       {/* Main Content */}
