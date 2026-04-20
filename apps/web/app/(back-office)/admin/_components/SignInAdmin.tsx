@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { motion } from "motion/react";
 import { Mail, Lock } from "lucide-react";
 import { useTranslations } from "next-intl";
 import BookidoLogo from "#/components/BookidoLogo";
 
-export default function LoginAdmin() {
+export default function SignInAdmin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
@@ -18,17 +19,16 @@ export default function LoginAdmin() {
     document.cookie = "admin-authenticated=true; path=/; max-age=86400; samesite=lax";
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleSignIn = (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock login - in production, validate with backend
+    // Mock sign-in — in production, validate with backend
     if (email && password) {
       setAdminAuthCookie();
       router.push(redirectTo);
     }
   };
 
-  const handleGoogleLogin = () => {
-    // Mock Google login
+  const handleGoogleSignIn = () => {
     setAdminAuthCookie();
     router.push(redirectTo);
   };
@@ -48,7 +48,7 @@ export default function LoginAdmin() {
           <p className="text-slate-600">{t("login.subtitle")}</p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-6">
+        <form onSubmit={handleSignIn} className="space-y-6">
           <div>
             <label className="flex items-center gap-2 text-slate-700 mb-2">
               <Mail className="w-4 h-4" />
@@ -97,8 +97,9 @@ export default function LoginAdmin() {
         </div>
 
         <button
-          onClick={handleGoogleLogin}
+          onClick={handleGoogleSignIn}
           className="w-full px-6 py-3 border-2 border-slate-300 text-slate-700 rounded-xl font-medium hover:bg-slate-50 transition-colors flex items-center justify-center gap-3"
+          type="button"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path
@@ -120,6 +121,13 @@ export default function LoginAdmin() {
           </svg>
           {t("login.google")}
         </button>
+
+        <p className="mt-6 text-center text-sm text-slate-600">
+          {t("login.noAccountYet")}{" "}
+          <Link href="/admin/signup" className="font-medium text-blue-600 hover:text-blue-700 hover:underline">
+            {t("login.signUp")}
+          </Link>
+        </p>
       </motion.div>
     </div>
   );

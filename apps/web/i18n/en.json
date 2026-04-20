@@ -519,7 +519,35 @@
     "title": "Bookido Admin",
     "subtitle": "Access your admin workspace",
     "orContinueWith": "Or continue with",
-    "google": "Continue with Google"
+    "google": "Continue with Google",
+    "noAccountYet": "No account yet?",
+    "signUp": "Sign up"
+  },
+  "signup": {
+    "title": "Bookido Admin",
+    "subtitle": "Create your administrator account",
+    "name": "Full name",
+    "namePlaceholder": "Jane Doe",
+    "email": "Email",
+    "emailPlaceholder": "admin@example.com",
+    "password": "Password",
+    "button": "Create admin account",
+    "orContinueWith": "Or continue with",
+    "google": "Continue with Google",
+    "alreadyHaveAccount": "Already have an account?",
+    "signIn": "Sign in",
+    "buttonPending": "Creating account…",
+    "successTitle": "Check your inbox",
+    "successDescription": "We sent you a confirmation email. Open the link to verify your account, then you can sign in.",
+    "errors": {
+      "title": "Something went wrong",
+      "generic": "Sign-up failed. Please try again."
+    },
+    "validation": {
+      "nameMin": "Name must be at least 2 characters",
+      "emailInvalid": "Enter a valid email address",
+      "passwordMin": "Password must be at least 8 characters"
+    }
   },
   "name": "Name",
   "newClient": {

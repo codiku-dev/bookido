@@ -6,9 +6,9 @@ import AdminLayout from "./_components/AdminLayout";
 
 export default function Layout(p: { children: ReactNode }) {
   const pathname = usePathname();
-  const isLoginPage = pathname === "/admin/login";
+  const isAuthShellExcluded = pathname === "/admin/signin" || pathname === "/admin/signup";
 
-  if (isLoginPage) {
+  if (isAuthShellExcluded) {
     return <>{p.children}</>;
   }
 

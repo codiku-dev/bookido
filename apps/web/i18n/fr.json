@@ -519,7 +519,35 @@
     "title": "Bookido Admin",
     "subtitle": "Accédez à votre espace administrateur",
     "orContinueWith": "Ou continuer avec",
-    "google": "Continuer avec Google"
+    "google": "Continuer avec Google",
+    "noAccountYet": "Pas encore de compte ?",
+    "signUp": "S'inscrire"
+  },
+  "signup": {
+    "title": "Bookido Admin",
+    "subtitle": "Créez votre compte administrateur",
+    "name": "Nom complet",
+    "namePlaceholder": "Marie Dupont",
+    "email": "Email",
+    "emailPlaceholder": "admin@exemple.com",
+    "password": "Mot de passe",
+    "button": "Créer le compte admin",
+    "orContinueWith": "Ou continuer avec",
+    "google": "Continuer avec Google",
+    "alreadyHaveAccount": "Vous avez déjà un compte ?",
+    "signIn": "Se connecter",
+    "buttonPending": "Création du compte…",
+    "successTitle": "Vérifiez votre boîte mail",
+    "successDescription": "Nous vous avons envoyé un e-mail de confirmation. Ouvrez le lien pour valider votre compte, puis vous pourrez vous connecter.",
+    "errors": {
+      "title": "Une erreur s'est produite",
+      "generic": "L'inscription a échoué. Veuillez réessayer."
+    },
+    "validation": {
+      "nameMin": "Le nom doit contenir au moins 2 caractères",
+      "emailInvalid": "Saisissez une adresse e-mail valide",
+      "passwordMin": "Le mot de passe doit contenir au moins 8 caractères"
+    }
   },
   "name": "Name",
   "newClient": {

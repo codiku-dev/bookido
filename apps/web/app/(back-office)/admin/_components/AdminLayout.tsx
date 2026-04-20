@@ -29,7 +29,7 @@ export default function AdminLayout(p: { children: ReactNode }) {
 
   const handleLogout = () => {
     document.cookie = "admin-authenticated=; path=/; max-age=0; samesite=lax";
-    router.push("/admin/login");
+    router.push("/admin/signin");
   };
 
   return (

@@ -42,7 +42,7 @@ export async function sendEmail(p: SendEmailParams) {
   const html = await Promise.resolve(render(p.component, { pretty: true }));
   const text = await Promise.resolve(render(p.component, { plainText: true }));
 
-  const from = p.from ?? `Bangerstack <${process.env.EMAIL_SMTP_USER}>`;
+  const from = p.from ?? `${process.env.APP_NAME} <${process.env.EMAIL_SMTP_USER}>`;
 
   const result = await transporter.sendMail({
     from,

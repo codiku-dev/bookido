@@ -23,16 +23,41 @@ function checkEnvVariablesAgaintZodSchema() {
   }
 }
 
+function buildCorsOrigins(): string[] {
+  const fromEnv = [
+    process.env["FRONTEND_URL"],
+    process.env["MOBILE_URL_WEB"],
+    process.env["MOBILE_URL_EMULATOR"],
+    process.env["MOBILE_URL_LAN"],
+  ].filter((u): u is string => typeof u === "string" && u.trim().length > 0);
+
+  const devDefaults =
+    process.env["NODE_ENV"] === "development"
+      ? [
+          "http://localhost:3000",
+          "http://127.0.0.1:3000",
+          "http://localhost:3001",
+          "http://127.0.0.1:3001",
+        ]
+      : [];
+
+  return [...new Set([...fromEnv, ...devDefaults])];
+}
+
 async function bootstrap() {
   checkEnvVariablesAgaintZodSchema();
+
+  const corsOrigins = buildCorsOrigins();
+  if (corsOrigins.length === 0) {
+    console.warn("[CORS] Aucune origine configurée (FRONTEND_URL / MOBILE_*). Fallback localhost:3000.");
+  }
 
   const app = await NestFactory.create(AppModule, {
     bodyParser: false,
     cors: {
-      // origin: ["capacitor://localhost","http://localhost", process.env.FRONTEND_URL as string, process.env.MOBILE_URL_WEB as string, process.env.MOBILE_URL_EMULATOR as string, "192.168.1.224", "http://192.168.1.224:3001"],
-      // credentials: true,
-      origin: "*",
-      // credentials: true,
+      origin: corsOrigins.length > 0 ? corsOrigins : ["http://localhost:3000"],
+      credentials: true,
+      allowedHeaders: ["Content-Type", "Authorization", "Cookie", "X-Bookido-Locale", "Accept-Language"],
     },
   });
   app.useGlobalPipes(new ValidationPipe());

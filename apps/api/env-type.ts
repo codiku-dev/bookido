@@ -28,6 +28,7 @@ export const envSchema = z.object({
   EMAIL_SMTP_HOST: z.string(),
   EMAIL_SMTP_PORT: z.string(),
   EMAIL_SMTP_USER: z.string(),
+  APP_NAME: z.string(),
 });
 
 export type Env = z.infer<typeof envSchema>;

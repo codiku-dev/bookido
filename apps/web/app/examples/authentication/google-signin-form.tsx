@@ -7,7 +7,7 @@ export function GoogleForm() {
       onClick={() =>
         signIn.social({
           provider: 'google',
-          callbackURL: process.env.NEXT_PUBLIC_GOOGLE_AUTH_CALLBACK_URL,
+          callbackURL: process.env["NEXT_PUBLIC_GOOGLE_AUTH_CALLBACK_URL"],
         })
       }
     >

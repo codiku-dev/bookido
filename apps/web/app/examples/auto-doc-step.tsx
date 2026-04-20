@@ -9,7 +9,7 @@ export function AutoDocStep() {
   return (
     <div className="space-y-6">
       <a
-        href={process.env.NEXT_PUBLIC_API_BASE_URL + '/docs'}
+        href={`${process.env["NEXT_PUBLIC_API_BASE_URL"] ?? ""}/docs`}
         target="_blank"
         rel="noopener noreferrer"
         className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
