@@ -17,6 +17,16 @@ model User {
   email         String
   emailVerified Boolean   @default(false)
   image         String?
+  bio           String?
+  /// URL path segment for public booking, e.g. `jonathan-malro-coach` → /jonathan-malro-coach/services
+  publicBookingSlug String? @unique
+  archivedAt    DateTime?
+  /// Weekly opening hours (Mon–Sun) for the admin calendar grid.
+  calendarWeekHours       Json?
+  /// Slot keys `mon-09:00` … marking extra closed slots (e.g. lunch) within the grid.
+  calendarClosedSlotKeys  Json?
+  /// When the host last opened the admin bookings list; used for “new client booking” nav badge.
+  bookingsLastViewedAt    DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   role          String?
@@ -25,9 +35,94 @@ model User {
   banExpires    DateTime?
   sessions      Session[]
   accounts      Account[]
+  services      Service[]
+  clients       Client[]
+  bookings      Booking[]
+  /// Large profile photo (e.g. data URL) kept out of `image` so Better Auth responses stay small.
+  userAvatar      UserAvatar?
 
   @@unique([email])
   @@map("user")
+}
+
+/// Profile photo payload stored separately from `User.image` (Better Auth / sessions).
+model UserAvatar {
+  userId    String   @id @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  imageData String?  @map("image_data") @db.Text
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("user_avatar")
+}
+
+/// CRM client record owned by a professional (User).
+model Client {
+  id        String   @id @default(uuid())
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  name      String
+  email     String
+  phone     String
+  address   String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  bookings  Booking[]
+
+  @@unique([ownerId, email])
+  @@index([ownerId])
+  @@map("client")
+}
+
+model Service {
+  id                 String   @id @default(uuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name               String
+  description        String   @default("")
+  durationMinutes    Int
+  price              Float    @default(0)
+  isFree             Boolean  @default(false)
+  packSize           Int      @default(1)
+  imageUrl           String?
+  availableSlotKeys     Json     @default("[]")
+  requiresValidation    Boolean  @default(false)
+  allowsDirectPayment   Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  bookings Booking[]
+
+  @@index([userId])
+  @@map("service")
+}
+
+model Booking {
+  id                     String   @id @default(uuid())
+  ownerId                String
+  owner                  User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  clientId               String
+  client                 Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  serviceId              String
+  service                Service  @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  startsAt               DateTime
+  durationMinutes        Int
+  price                  Float
+  paidAmount             Float    @default(0)
+  status                 String
+  notes                  String?
+  location               String   @default("")
+  paymentMethod          String   @default("—")
+  requiresHostValidation Boolean  @default(false)
+  hostValidationAccepted Boolean  @default(true)
+  /// True when the booking was created by the end client (public flow), not from the host admin UI.
+  createdByClient        Boolean  @default(false)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@index([ownerId])
+  @@index([ownerId, startsAt])
+  @@map("booking")
 }
 
 model Session {

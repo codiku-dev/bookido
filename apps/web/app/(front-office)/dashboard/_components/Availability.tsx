@@ -19,9 +19,9 @@ const initialAvailability: WeekAvailability = {
   Tuesday: { enabled: true, startTime: "09:00", endTime: "18:00" },
   Wednesday: { enabled: true, startTime: "09:00", endTime: "18:00" },
   Thursday: { enabled: true, startTime: "09:00", endTime: "18:00" },
-  Friday: { enabled: true, startTime: "09:00", endTime: "17:00" },
-  Saturday: { enabled: false, startTime: "09:00", endTime: "13:00" },
-  Sunday: { enabled: false, startTime: "09:00", endTime: "13:00" },
+  Friday: { enabled: true, startTime: "09:00", endTime: "18:00" },
+  Saturday: { enabled: false, startTime: "09:00", endTime: "18:00" },
+  Sunday: { enabled: false, startTime: "09:00", endTime: "18:00" },
 };
 
 export default function Availability() {

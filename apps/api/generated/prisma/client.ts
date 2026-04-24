@@ -45,6 +45,26 @@ export { Prisma }
  */
 export type User = Prisma.UserModel
 /**
+ * Model UserAvatar
+ * Profile photo payload stored separately from `User.image` (Better Auth / sessions).
+ */
+export type UserAvatar = Prisma.UserAvatarModel
+/**
+ * Model Client
+ * CRM client record owned by a professional (User).
+ */
+export type Client = Prisma.ClientModel
+/**
+ * Model Service
+ * 
+ */
+export type Service = Prisma.ServiceModel
+/**
+ * Model Booking
+ * 
+ */
+export type Booking = Prisma.BookingModel
+/**
  * Model Session
  * 
  */

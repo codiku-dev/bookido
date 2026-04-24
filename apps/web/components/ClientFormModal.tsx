@@ -1,144 +1,222 @@
-import { useState } from "react";
-import { X, User, Mail, Phone, MapPin, Save } from "lucide-react";
+"use client";
+
+import { useEffect, useMemo, type ReactNode } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { useTranslations } from "next-intl";
+import { Mail, MapPin, Phone, Save, User, Wand2 } from "lucide-react";
+
+import { Button } from "#/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "#/components/ui/dialog";
+import { Input } from "#/components/ui/input";
+import { Label } from "#/components/ui/label";
+import { Textarea } from "#/components/ui/textarea";
+
+const buildClientFormSchema = (p: { required: string; emailInvalid: string }) =>
+  z.object({
+    name: z.string().min(1, p.required),
+    email: z.string().email(p.emailInvalid),
+    phone: z.string().min(1, p.required),
+    address: z.string().optional(),
+    notes: z.string().optional(),
+});
+
+export type ClientFormData = z.infer<ReturnType<typeof buildClientFormSchema>>;
 
 type ClientFormModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (client: ClientFormData) => void;
+  onSubmit: (client: ClientFormData) => void | Promise<void>;
   initialData?: ClientFormData;
   title?: string;
+  isSubmitting?: boolean;
+  /** Rendered inside the dialog header (e.g. back link on full-page flows). */
+  headerStart?: ReactNode;
 };
 
-export interface ClientFormData {
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  notes: string;
-}
-
-export default function ClientFormModal({ isOpen, onClose, onSave, initialData, title }: ClientFormModalProps) {
+export default function ClientFormModal(p: ClientFormModalProps) {
   const t = useTranslations("ClientForm");
-  const [formData, setFormData] = useState<ClientFormData>(
-    initialData || {
+  const tVal = useTranslations("ClientForm.validation");
+
+  const clientFormSchema = useMemo(
+    () =>
+      buildClientFormSchema({
+        required: tVal("required"),
+        emailInvalid: tVal("emailInvalid"),
+      }),
+    [tVal],
+  );
+
+  const form = useForm<ClientFormData>({
+    resolver: zodResolver(clientFormSchema),
+    defaultValues: {
       name: "",
       email: "",
       phone: "",
       address: "",
       notes: "",
     },
-  );
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave(formData);
-    onClose();
+  const { reset } = form;
+
+  const isDev = process.env.NODE_ENV === "development";
+
+  const handleDevFill = () => {
+    const timestamp = Date.now();
+    form.setValue("name", "Sophie Martin", { shouldDirty: true, shouldValidate: true });
+    form.setValue("email", `sophie.martin+${timestamp}@example.com`, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    form.setValue("phone", "+33 6 22 33 44 55", { shouldDirty: true, shouldValidate: true });
+    form.setValue("address", "18 avenue Victor Hugo, 75016 Paris", { shouldDirty: true, shouldValidate: true });
+    form.setValue("notes", "Pratique le yoga et prefere les creneaux du matin.", {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
   };
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (!p.isOpen) return;
+    reset(
+      p.initialData ?? {
+        name: "",
+        email: "",
+        phone: "",
+        address: "",
+        notes: "",
+      },
+    );
+  }, [p.isOpen, p.initialData, reset]);
 
-  const modalTitle = title || t("title.create");
+  const handleOpenChange = (open: boolean) => {
+    if (!open) p.onClose();
+  };
 
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-auto">
-        <div className="p-6 border-b border-slate-200 flex items-center justify-between sticky top-0 bg-white">
-          <h2 className="text-2xl font-bold text-slate-900">{modalTitle}</h2>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+  const header = (
+    <DialogHeader>
+      {p.headerStart ? <div className="mb-2">{p.headerStart}</div> : null}
+      <DialogTitle>{p.title ?? (p.initialData ? t("title.edit") : t("title.create"))}</DialogTitle>
+    </DialogHeader>
+  );
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <div>
-            <label className="flex items-center gap-2 text-slate-700 mb-2">
-              <User className="w-4 h-4" />
-              {t("name")}
-            </label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
-              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              placeholder={t("placeholders.name")}
-            />
-          </div>
+  const fields = (
+    <div className="space-y-4 py-2">
+      <div className="space-y-2">
+        <Label htmlFor="client-name" className="flex items-center gap-2">
+          <User className="w-4 h-4" />
+          {t("name")}
+        </Label>
+        <Input
+          id="client-name"
+          {...form.register("name")}
+          placeholder={t("placeholders.name")}
+          disabled={p.isSubmitting}
+        />
+        {form.formState.errors.name && (
+          <p className="text-sm text-destructive">{form.formState.errors.name.message}</p>
+        )}
+      </div>
 
-          <div>
-            <label className="flex items-center gap-2 text-slate-700 mb-2">
-              <Mail className="w-4 h-4" />
-              {t("email")}
-            </label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              required
-              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              placeholder={t("placeholders.email")}
-            />
-          </div>
+      <div className="space-y-2">
+        <Label htmlFor="client-email" className="flex items-center gap-2">
+          <Mail className="w-4 h-4" />
+          {t("email")}
+        </Label>
+        <Input
+          id="client-email"
+          type="email"
+          {...form.register("email")}
+          placeholder={t("placeholders.email")}
+          disabled={p.isSubmitting}
+        />
+        {form.formState.errors.email && (
+          <p className="text-sm text-destructive">{form.formState.errors.email.message}</p>
+        )}
+      </div>
 
-          <div>
-            <label className="flex items-center gap-2 text-slate-700 mb-2">
-              <Phone className="w-4 h-4" />
-              {t("phone")}
-            </label>
-            <input
-              type="tel"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              required
-              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              placeholder={t("placeholders.phone")}
-            />
-          </div>
+      <div className="space-y-2">
+        <Label htmlFor="client-phone" className="flex items-center gap-2">
+          <Phone className="w-4 h-4" />
+          {t("phone")}
+        </Label>
+        <Input
+          id="client-phone"
+          type="tel"
+          {...form.register("phone")}
+          placeholder={t("placeholders.phone")}
+          disabled={p.isSubmitting}
+        />
+        {form.formState.errors.phone && (
+          <p className="text-sm text-destructive">{form.formState.errors.phone.message}</p>
+        )}
+      </div>
 
-          <div>
-            <label className="flex items-center gap-2 text-slate-700 mb-2">
-              <MapPin className="w-4 h-4" />
-              {t("address")}
-            </label>
-            <input
-              type="text"
-              value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              placeholder={t("placeholders.address")}
-            />
-          </div>
+      <div className="space-y-2">
+        <Label htmlFor="client-address" className="flex items-center gap-2">
+          <MapPin className="w-4 h-4" />
+          {t("address")}
+        </Label>
+        <Input
+          id="client-address"
+          {...form.register("address")}
+          placeholder={t("placeholders.address")}
+          disabled={p.isSubmitting}
+        />
+      </div>
 
-          <div>
-            <label className="block text-slate-700 mb-2">{t("notes.label")}</label>
-            <textarea
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              rows={4}
-              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              placeholder={t("notes.placeholder")}
-            />
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <button
-              type="submit"
-              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium"
-            >
-              <Save className="w-5 h-5" />
-              {t(initialData ? "save" : "create")}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-colors font-medium"
-            >
-              {t("cancel")}
-            </button>
-          </div>
-        </form>
+      <div className="space-y-2">
+        <Label htmlFor="client-notes">{t("notes.label")}</Label>
+        <Textarea
+          id="client-notes"
+          rows={4}
+          {...form.register("notes")}
+          placeholder={t("notes.placeholder")}
+          disabled={p.isSubmitting}
+        />
       </div>
     </div>
+  );
+
+  const footer = (
+    <DialogFooter className="gap-2 sm:gap-0">
+      {isDev ? (
+        <Button type="button" variant="outline" onClick={handleDevFill} disabled={p.isSubmitting}>
+          <Wand2 className="w-4 h-4" />
+          {t("devFill")}
+        </Button>
+      ) : null}
+      <Button type="button" variant="secondary" onClick={p.onClose} disabled={p.isSubmitting}>
+        {t("cancel")}
+      </Button>
+      <Button type="submit" disabled={p.isSubmitting}>
+        <Save className="w-4 h-4" />
+        {p.initialData ? t("save") : t("create")}
+      </Button>
+    </DialogFooter>
+  );
+
+  return (
+    <Dialog open={p.isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <form
+          onSubmit={form.handleSubmit(async (data) => {
+            await p.onSubmit(data);
+          })}
+        >
+          {header}
+          {fields}
+          {footer}
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

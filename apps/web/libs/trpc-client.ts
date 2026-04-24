@@ -23,6 +23,12 @@ export const trpcClient = trpc.createClient({
     }),
     httpBatchLink({
       url: process.env["NEXT_PUBLIC_API_BASE_URL"] + '/trpc',
+      fetch(url, options) {
+        return fetch(url, {
+          ...options,
+          credentials: "include",
+        });
+      },
     }),
   ],
 });

@@ -159,10 +159,11 @@ export default function ForgotPasswordAdmin() {
 
               <Button
                 type="submit"
-                disabled={form.formState.isSubmitting}
+                pending={form.formState.isSubmitting}
+                pendingChildren={t("forgotPassword.submitting")}
                 className="w-full h-auto min-h-12 px-6 py-3 rounded-xl bg-blue-600 text-base text-white font-medium hover:bg-blue-700"
               >
-                {form.formState.isSubmitting ? t("forgotPassword.submitting") : t("forgotPassword.submit")}
+                {t("forgotPassword.submit")}
               </Button>
             </form>
           </Form>

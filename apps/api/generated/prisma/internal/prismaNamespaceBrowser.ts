@@ -52,6 +52,10 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
+  UserAvatar: 'UserAvatar',
+  Client: 'Client',
+  Service: 'Service',
+  Booking: 'Booking',
   Session: 'Session',
   Account: 'Account',
   Verification: 'Verification'
@@ -79,6 +83,12 @@ export const UserScalarFieldEnum = {
   email: 'email',
   emailVerified: 'emailVerified',
   image: 'image',
+  bio: 'bio',
+  publicBookingSlug: 'publicBookingSlug',
+  archivedAt: 'archivedAt',
+  calendarWeekHours: 'calendarWeekHours',
+  calendarClosedSlotKeys: 'calendarClosedSlotKeys',
+  bookingsLastViewedAt: 'bookingsLastViewedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   role: 'role',
@@ -88,6 +98,73 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const UserAvatarScalarFieldEnum = {
+  userId: 'userId',
+  imageData: 'imageData',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserAvatarScalarFieldEnum = (typeof UserAvatarScalarFieldEnum)[keyof typeof UserAvatarScalarFieldEnum]
+
+
+export const ClientScalarFieldEnum = {
+  id: 'id',
+  ownerId: 'ownerId',
+  name: 'name',
+  email: 'email',
+  phone: 'phone',
+  address: 'address',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ClientScalarFieldEnum = (typeof ClientScalarFieldEnum)[keyof typeof ClientScalarFieldEnum]
+
+
+export const ServiceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  description: 'description',
+  durationMinutes: 'durationMinutes',
+  price: 'price',
+  isFree: 'isFree',
+  packSize: 'packSize',
+  imageUrl: 'imageUrl',
+  availableSlotKeys: 'availableSlotKeys',
+  requiresValidation: 'requiresValidation',
+  allowsDirectPayment: 'allowsDirectPayment',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ServiceScalarFieldEnum = (typeof ServiceScalarFieldEnum)[keyof typeof ServiceScalarFieldEnum]
+
+
+export const BookingScalarFieldEnum = {
+  id: 'id',
+  ownerId: 'ownerId',
+  clientId: 'clientId',
+  serviceId: 'serviceId',
+  startsAt: 'startsAt',
+  durationMinutes: 'durationMinutes',
+  price: 'price',
+  paidAmount: 'paidAmount',
+  status: 'status',
+  notes: 'notes',
+  location: 'location',
+  paymentMethod: 'paymentMethod',
+  requiresHostValidation: 'requiresHostValidation',
+  hostValidationAccepted: 'hostValidationAccepted',
+  createdByClient: 'createdByClient',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BookingScalarFieldEnum = (typeof BookingScalarFieldEnum)[keyof typeof BookingScalarFieldEnum]
 
 
 export const SessionScalarFieldEnum = {
@@ -144,12 +221,36 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
 export const QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
 } as const
 
 export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
 export const NullsOrder = {

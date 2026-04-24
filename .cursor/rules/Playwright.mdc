@@ -1,0 +1,6 @@
+---
+description: 
+alwaysApply: true
+---
+
+Après une modification sur l'auth lance un test e2e de signin pour t'assure que tout est toujours OK quand tu as fini de modifier. Si c'est OK alors tu peux écrire "Signin test ☑"

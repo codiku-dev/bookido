@@ -30,6 +30,10 @@ export type UserMinAggregateOutputType = {
   email: string | null
   emailVerified: boolean | null
   image: string | null
+  bio: string | null
+  publicBookingSlug: string | null
+  archivedAt: Date | null
+  bookingsLastViewedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
   role: string | null
@@ -44,6 +48,10 @@ export type UserMaxAggregateOutputType = {
   email: string | null
   emailVerified: boolean | null
   image: string | null
+  bio: string | null
+  publicBookingSlug: string | null
+  archivedAt: Date | null
+  bookingsLastViewedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
   role: string | null
@@ -58,6 +66,12 @@ export type UserCountAggregateOutputType = {
   email: number
   emailVerified: number
   image: number
+  bio: number
+  publicBookingSlug: number
+  archivedAt: number
+  calendarWeekHours: number
+  calendarClosedSlotKeys: number
+  bookingsLastViewedAt: number
   createdAt: number
   updatedAt: number
   role: number
@@ -74,6 +88,10 @@ export type UserMinAggregateInputType = {
   email?: true
   emailVerified?: true
   image?: true
+  bio?: true
+  publicBookingSlug?: true
+  archivedAt?: true
+  bookingsLastViewedAt?: true
   createdAt?: true
   updatedAt?: true
   role?: true
@@ -88,6 +106,10 @@ export type UserMaxAggregateInputType = {
   email?: true
   emailVerified?: true
   image?: true
+  bio?: true
+  publicBookingSlug?: true
+  archivedAt?: true
+  bookingsLastViewedAt?: true
   createdAt?: true
   updatedAt?: true
   role?: true
@@ -102,6 +124,12 @@ export type UserCountAggregateInputType = {
   email?: true
   emailVerified?: true
   image?: true
+  bio?: true
+  publicBookingSlug?: true
+  archivedAt?: true
+  calendarWeekHours?: true
+  calendarClosedSlotKeys?: true
+  bookingsLastViewedAt?: true
   createdAt?: true
   updatedAt?: true
   role?: true
@@ -189,6 +217,12 @@ export type UserGroupByOutputType = {
   email: string
   emailVerified: boolean
   image: string | null
+  bio: string | null
+  publicBookingSlug: string | null
+  archivedAt: Date | null
+  calendarWeekHours: runtime.JsonValue | null
+  calendarClosedSlotKeys: runtime.JsonValue | null
+  bookingsLastViewedAt: Date | null
   createdAt: Date
   updatedAt: Date
   role: string | null
@@ -224,6 +258,12 @@ export type UserWhereInput = {
   email?: Prisma.StringFilter<"User"> | string
   emailVerified?: Prisma.BoolFilter<"User"> | boolean
   image?: Prisma.StringNullableFilter<"User"> | string | null
+  bio?: Prisma.StringNullableFilter<"User"> | string | null
+  publicBookingSlug?: Prisma.StringNullableFilter<"User"> | string | null
+  archivedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  calendarWeekHours?: Prisma.JsonNullableFilter<"User">
+  calendarClosedSlotKeys?: Prisma.JsonNullableFilter<"User">
+  bookingsLastViewedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   role?: Prisma.StringNullableFilter<"User"> | string | null
@@ -232,6 +272,10 @@ export type UserWhereInput = {
   banExpires?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   sessions?: Prisma.SessionListRelationFilter
   accounts?: Prisma.AccountListRelationFilter
+  services?: Prisma.ServiceListRelationFilter
+  clients?: Prisma.ClientListRelationFilter
+  bookings?: Prisma.BookingListRelationFilter
+  userAvatar?: Prisma.XOR<Prisma.UserAvatarNullableScalarRelationFilter, Prisma.UserAvatarWhereInput> | null
 }
 
 export type UserOrderByWithRelationInput = {
@@ -240,6 +284,12 @@ export type UserOrderByWithRelationInput = {
   email?: Prisma.SortOrder
   emailVerified?: Prisma.SortOrder
   image?: Prisma.SortOrderInput | Prisma.SortOrder
+  bio?: Prisma.SortOrderInput | Prisma.SortOrder
+  publicBookingSlug?: Prisma.SortOrderInput | Prisma.SortOrder
+  archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  calendarWeekHours?: Prisma.SortOrderInput | Prisma.SortOrder
+  calendarClosedSlotKeys?: Prisma.SortOrderInput | Prisma.SortOrder
+  bookingsLastViewedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   role?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -248,17 +298,27 @@ export type UserOrderByWithRelationInput = {
   banExpires?: Prisma.SortOrderInput | Prisma.SortOrder
   sessions?: Prisma.SessionOrderByRelationAggregateInput
   accounts?: Prisma.AccountOrderByRelationAggregateInput
+  services?: Prisma.ServiceOrderByRelationAggregateInput
+  clients?: Prisma.ClientOrderByRelationAggregateInput
+  bookings?: Prisma.BookingOrderByRelationAggregateInput
+  userAvatar?: Prisma.UserAvatarOrderByWithRelationInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   email?: string
+  publicBookingSlug?: string
   AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   name?: Prisma.StringFilter<"User"> | string
   emailVerified?: Prisma.BoolFilter<"User"> | boolean
   image?: Prisma.StringNullableFilter<"User"> | string | null
+  bio?: Prisma.StringNullableFilter<"User"> | string | null
+  archivedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  calendarWeekHours?: Prisma.JsonNullableFilter<"User">
+  calendarClosedSlotKeys?: Prisma.JsonNullableFilter<"User">
+  bookingsLastViewedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   role?: Prisma.StringNullableFilter<"User"> | string | null
@@ -267,7 +327,11 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   banExpires?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   sessions?: Prisma.SessionListRelationFilter
   accounts?: Prisma.AccountListRelationFilter
-}, "id" | "email">
+  services?: Prisma.ServiceListRelationFilter
+  clients?: Prisma.ClientListRelationFilter
+  bookings?: Prisma.BookingListRelationFilter
+  userAvatar?: Prisma.XOR<Prisma.UserAvatarNullableScalarRelationFilter, Prisma.UserAvatarWhereInput> | null
+}, "id" | "publicBookingSlug" | "email">
 
 export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -275,6 +339,12 @@ export type UserOrderByWithAggregationInput = {
   email?: Prisma.SortOrder
   emailVerified?: Prisma.SortOrder
   image?: Prisma.SortOrderInput | Prisma.SortOrder
+  bio?: Prisma.SortOrderInput | Prisma.SortOrder
+  publicBookingSlug?: Prisma.SortOrderInput | Prisma.SortOrder
+  archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  calendarWeekHours?: Prisma.SortOrderInput | Prisma.SortOrder
+  calendarClosedSlotKeys?: Prisma.SortOrderInput | Prisma.SortOrder
+  bookingsLastViewedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   role?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -295,6 +365,12 @@ export type UserScalarWhereWithAggregatesInput = {
   email?: Prisma.StringWithAggregatesFilter<"User"> | string
   emailVerified?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   image?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  bio?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  publicBookingSlug?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  archivedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+  calendarWeekHours?: Prisma.JsonNullableWithAggregatesFilter<"User">
+  calendarClosedSlotKeys?: Prisma.JsonNullableWithAggregatesFilter<"User">
+  bookingsLastViewedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   role?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
@@ -309,6 +385,12 @@ export type UserCreateInput = {
   email: string
   emailVerified?: boolean
   image?: string | null
+  bio?: string | null
+  publicBookingSlug?: string | null
+  archivedAt?: Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   role?: string | null
@@ -317,6 +399,10 @@ export type UserCreateInput = {
   banExpires?: Date | string | null
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  services?: Prisma.ServiceCreateNestedManyWithoutUserInput
+  clients?: Prisma.ClientCreateNestedManyWithoutOwnerInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutOwnerInput
+  userAvatar?: Prisma.UserAvatarCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -325,6 +411,12 @@ export type UserUncheckedCreateInput = {
   email: string
   emailVerified?: boolean
   image?: string | null
+  bio?: string | null
+  publicBookingSlug?: string | null
+  archivedAt?: Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   role?: string | null
@@ -333,6 +425,10 @@ export type UserUncheckedCreateInput = {
   banExpires?: Date | string | null
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  services?: Prisma.ServiceUncheckedCreateNestedManyWithoutUserInput
+  clients?: Prisma.ClientUncheckedCreateNestedManyWithoutOwnerInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutOwnerInput
+  userAvatar?: Prisma.UserAvatarUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -341,6 +437,12 @@ export type UserUpdateInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -349,6 +451,10 @@ export type UserUpdateInput = {
   banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  services?: Prisma.ServiceUpdateManyWithoutUserNestedInput
+  clients?: Prisma.ClientUpdateManyWithoutOwnerNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutOwnerNestedInput
+  userAvatar?: Prisma.UserAvatarUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -357,6 +463,12 @@ export type UserUncheckedUpdateInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -365,6 +477,10 @@ export type UserUncheckedUpdateInput = {
   banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  services?: Prisma.ServiceUncheckedUpdateManyWithoutUserNestedInput
+  clients?: Prisma.ClientUncheckedUpdateManyWithoutOwnerNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutOwnerNestedInput
+  userAvatar?: Prisma.UserAvatarUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -373,6 +489,12 @@ export type UserCreateManyInput = {
   email: string
   emailVerified?: boolean
   image?: string | null
+  bio?: string | null
+  publicBookingSlug?: string | null
+  archivedAt?: Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   role?: string | null
@@ -387,6 +509,12 @@ export type UserUpdateManyMutationInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -401,6 +529,12 @@ export type UserUncheckedUpdateManyInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -415,6 +549,12 @@ export type UserCountOrderByAggregateInput = {
   email?: Prisma.SortOrder
   emailVerified?: Prisma.SortOrder
   image?: Prisma.SortOrder
+  bio?: Prisma.SortOrder
+  publicBookingSlug?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrder
+  calendarWeekHours?: Prisma.SortOrder
+  calendarClosedSlotKeys?: Prisma.SortOrder
+  bookingsLastViewedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   role?: Prisma.SortOrder
@@ -429,6 +569,10 @@ export type UserMaxOrderByAggregateInput = {
   email?: Prisma.SortOrder
   emailVerified?: Prisma.SortOrder
   image?: Prisma.SortOrder
+  bio?: Prisma.SortOrder
+  publicBookingSlug?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrder
+  bookingsLastViewedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   role?: Prisma.SortOrder
@@ -443,6 +587,10 @@ export type UserMinOrderByAggregateInput = {
   email?: Prisma.SortOrder
   emailVerified?: Prisma.SortOrder
   image?: Prisma.SortOrder
+  bio?: Prisma.SortOrder
+  publicBookingSlug?: Prisma.SortOrder
+  archivedAt?: Prisma.SortOrder
+  bookingsLastViewedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   role?: Prisma.SortOrder
@@ -468,6 +616,10 @@ export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
 }
 
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
+}
+
 export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
 }
@@ -476,8 +628,60 @@ export type NullableBoolFieldUpdateOperationsInput = {
   set?: boolean | null
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
+export type UserCreateNestedOneWithoutUserAvatarInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutUserAvatarInput, Prisma.UserUncheckedCreateWithoutUserAvatarInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutUserAvatarInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutUserAvatarNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutUserAvatarInput, Prisma.UserUncheckedCreateWithoutUserAvatarInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutUserAvatarInput
+  upsert?: Prisma.UserUpsertWithoutUserAvatarInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutUserAvatarInput, Prisma.UserUpdateWithoutUserAvatarInput>, Prisma.UserUncheckedUpdateWithoutUserAvatarInput>
+}
+
+export type UserCreateNestedOneWithoutClientsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutClientsInput, Prisma.UserUncheckedCreateWithoutClientsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutClientsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutClientsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutClientsInput, Prisma.UserUncheckedCreateWithoutClientsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutClientsInput
+  upsert?: Prisma.UserUpsertWithoutClientsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutClientsInput, Prisma.UserUpdateWithoutClientsInput>, Prisma.UserUncheckedUpdateWithoutClientsInput>
+}
+
+export type UserCreateNestedOneWithoutServicesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutServicesInput, Prisma.UserUncheckedCreateWithoutServicesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutServicesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutServicesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutServicesInput, Prisma.UserUncheckedCreateWithoutServicesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutServicesInput
+  upsert?: Prisma.UserUpsertWithoutServicesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutServicesInput, Prisma.UserUpdateWithoutServicesInput>, Prisma.UserUncheckedUpdateWithoutServicesInput>
+}
+
+export type UserCreateNestedOneWithoutBookingsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutBookingsInput, Prisma.UserUncheckedCreateWithoutBookingsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutBookingsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutBookingsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutBookingsInput, Prisma.UserUncheckedCreateWithoutBookingsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutBookingsInput
+  upsert?: Prisma.UserUpsertWithoutBookingsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutBookingsInput, Prisma.UserUpdateWithoutBookingsInput>, Prisma.UserUncheckedUpdateWithoutBookingsInput>
 }
 
 export type UserCreateNestedOneWithoutSessionsInput = {
@@ -508,12 +712,482 @@ export type UserUpdateOneRequiredWithoutAccountsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAccountsInput, Prisma.UserUpdateWithoutAccountsInput>, Prisma.UserUncheckedUpdateWithoutAccountsInput>
 }
 
+export type UserCreateWithoutUserAvatarInput = {
+  id?: string
+  name: string
+  email: string
+  emailVerified?: boolean
+  image?: string | null
+  bio?: string | null
+  publicBookingSlug?: string | null
+  archivedAt?: Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  services?: Prisma.ServiceCreateNestedManyWithoutUserInput
+  clients?: Prisma.ClientCreateNestedManyWithoutOwnerInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutOwnerInput
+}
+
+export type UserUncheckedCreateWithoutUserAvatarInput = {
+  id?: string
+  name: string
+  email: string
+  emailVerified?: boolean
+  image?: string | null
+  bio?: string | null
+  publicBookingSlug?: string | null
+  archivedAt?: Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  services?: Prisma.ServiceUncheckedCreateNestedManyWithoutUserInput
+  clients?: Prisma.ClientUncheckedCreateNestedManyWithoutOwnerInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutOwnerInput
+}
+
+export type UserCreateOrConnectWithoutUserAvatarInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutUserAvatarInput, Prisma.UserUncheckedCreateWithoutUserAvatarInput>
+}
+
+export type UserUpsertWithoutUserAvatarInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutUserAvatarInput, Prisma.UserUncheckedUpdateWithoutUserAvatarInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutUserAvatarInput, Prisma.UserUncheckedCreateWithoutUserAvatarInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutUserAvatarInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutUserAvatarInput, Prisma.UserUncheckedUpdateWithoutUserAvatarInput>
+}
+
+export type UserUpdateWithoutUserAvatarInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  services?: Prisma.ServiceUpdateManyWithoutUserNestedInput
+  clients?: Prisma.ClientUpdateManyWithoutOwnerNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutOwnerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutUserAvatarInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  services?: Prisma.ServiceUncheckedUpdateManyWithoutUserNestedInput
+  clients?: Prisma.ClientUncheckedUpdateManyWithoutOwnerNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutOwnerNestedInput
+}
+
+export type UserCreateWithoutClientsInput = {
+  id?: string
+  name: string
+  email: string
+  emailVerified?: boolean
+  image?: string | null
+  bio?: string | null
+  publicBookingSlug?: string | null
+  archivedAt?: Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  services?: Prisma.ServiceCreateNestedManyWithoutUserInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutOwnerInput
+  userAvatar?: Prisma.UserAvatarCreateNestedOneWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutClientsInput = {
+  id?: string
+  name: string
+  email: string
+  emailVerified?: boolean
+  image?: string | null
+  bio?: string | null
+  publicBookingSlug?: string | null
+  archivedAt?: Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  services?: Prisma.ServiceUncheckedCreateNestedManyWithoutUserInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutOwnerInput
+  userAvatar?: Prisma.UserAvatarUncheckedCreateNestedOneWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutClientsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutClientsInput, Prisma.UserUncheckedCreateWithoutClientsInput>
+}
+
+export type UserUpsertWithoutClientsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutClientsInput, Prisma.UserUncheckedUpdateWithoutClientsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutClientsInput, Prisma.UserUncheckedCreateWithoutClientsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutClientsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutClientsInput, Prisma.UserUncheckedUpdateWithoutClientsInput>
+}
+
+export type UserUpdateWithoutClientsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  services?: Prisma.ServiceUpdateManyWithoutUserNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutOwnerNestedInput
+  userAvatar?: Prisma.UserAvatarUpdateOneWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutClientsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  services?: Prisma.ServiceUncheckedUpdateManyWithoutUserNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutOwnerNestedInput
+  userAvatar?: Prisma.UserAvatarUncheckedUpdateOneWithoutUserNestedInput
+}
+
+export type UserCreateWithoutServicesInput = {
+  id?: string
+  name: string
+  email: string
+  emailVerified?: boolean
+  image?: string | null
+  bio?: string | null
+  publicBookingSlug?: string | null
+  archivedAt?: Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  clients?: Prisma.ClientCreateNestedManyWithoutOwnerInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutOwnerInput
+  userAvatar?: Prisma.UserAvatarCreateNestedOneWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutServicesInput = {
+  id?: string
+  name: string
+  email: string
+  emailVerified?: boolean
+  image?: string | null
+  bio?: string | null
+  publicBookingSlug?: string | null
+  archivedAt?: Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  clients?: Prisma.ClientUncheckedCreateNestedManyWithoutOwnerInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutOwnerInput
+  userAvatar?: Prisma.UserAvatarUncheckedCreateNestedOneWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutServicesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutServicesInput, Prisma.UserUncheckedCreateWithoutServicesInput>
+}
+
+export type UserUpsertWithoutServicesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutServicesInput, Prisma.UserUncheckedUpdateWithoutServicesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutServicesInput, Prisma.UserUncheckedCreateWithoutServicesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutServicesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutServicesInput, Prisma.UserUncheckedUpdateWithoutServicesInput>
+}
+
+export type UserUpdateWithoutServicesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  clients?: Prisma.ClientUpdateManyWithoutOwnerNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutOwnerNestedInput
+  userAvatar?: Prisma.UserAvatarUpdateOneWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutServicesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  clients?: Prisma.ClientUncheckedUpdateManyWithoutOwnerNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutOwnerNestedInput
+  userAvatar?: Prisma.UserAvatarUncheckedUpdateOneWithoutUserNestedInput
+}
+
+export type UserCreateWithoutBookingsInput = {
+  id?: string
+  name: string
+  email: string
+  emailVerified?: boolean
+  image?: string | null
+  bio?: string | null
+  publicBookingSlug?: string | null
+  archivedAt?: Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  services?: Prisma.ServiceCreateNestedManyWithoutUserInput
+  clients?: Prisma.ClientCreateNestedManyWithoutOwnerInput
+  userAvatar?: Prisma.UserAvatarCreateNestedOneWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutBookingsInput = {
+  id?: string
+  name: string
+  email: string
+  emailVerified?: boolean
+  image?: string | null
+  bio?: string | null
+  publicBookingSlug?: string | null
+  archivedAt?: Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  services?: Prisma.ServiceUncheckedCreateNestedManyWithoutUserInput
+  clients?: Prisma.ClientUncheckedCreateNestedManyWithoutOwnerInput
+  userAvatar?: Prisma.UserAvatarUncheckedCreateNestedOneWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutBookingsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutBookingsInput, Prisma.UserUncheckedCreateWithoutBookingsInput>
+}
+
+export type UserUpsertWithoutBookingsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutBookingsInput, Prisma.UserUncheckedUpdateWithoutBookingsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutBookingsInput, Prisma.UserUncheckedCreateWithoutBookingsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutBookingsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutBookingsInput, Prisma.UserUncheckedUpdateWithoutBookingsInput>
+}
+
+export type UserUpdateWithoutBookingsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  services?: Prisma.ServiceUpdateManyWithoutUserNestedInput
+  clients?: Prisma.ClientUpdateManyWithoutOwnerNestedInput
+  userAvatar?: Prisma.UserAvatarUpdateOneWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutBookingsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  services?: Prisma.ServiceUncheckedUpdateManyWithoutUserNestedInput
+  clients?: Prisma.ClientUncheckedUpdateManyWithoutOwnerNestedInput
+  userAvatar?: Prisma.UserAvatarUncheckedUpdateOneWithoutUserNestedInput
+}
+
 export type UserCreateWithoutSessionsInput = {
   id?: string
   name: string
   email: string
   emailVerified?: boolean
   image?: string | null
+  bio?: string | null
+  publicBookingSlug?: string | null
+  archivedAt?: Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   role?: string | null
@@ -521,6 +1195,10 @@ export type UserCreateWithoutSessionsInput = {
   banReason?: string | null
   banExpires?: Date | string | null
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  services?: Prisma.ServiceCreateNestedManyWithoutUserInput
+  clients?: Prisma.ClientCreateNestedManyWithoutOwnerInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutOwnerInput
+  userAvatar?: Prisma.UserAvatarCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -529,6 +1207,12 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   email: string
   emailVerified?: boolean
   image?: string | null
+  bio?: string | null
+  publicBookingSlug?: string | null
+  archivedAt?: Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   role?: string | null
@@ -536,6 +1220,10 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   banReason?: string | null
   banExpires?: Date | string | null
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  services?: Prisma.ServiceUncheckedCreateNestedManyWithoutUserInput
+  clients?: Prisma.ClientUncheckedCreateNestedManyWithoutOwnerInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutOwnerInput
+  userAvatar?: Prisma.UserAvatarUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -560,6 +1248,12 @@ export type UserUpdateWithoutSessionsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -567,6 +1261,10 @@ export type UserUpdateWithoutSessionsInput = {
   banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  services?: Prisma.ServiceUpdateManyWithoutUserNestedInput
+  clients?: Prisma.ClientUpdateManyWithoutOwnerNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutOwnerNestedInput
+  userAvatar?: Prisma.UserAvatarUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -575,6 +1273,12 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -582,6 +1286,10 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  services?: Prisma.ServiceUncheckedUpdateManyWithoutUserNestedInput
+  clients?: Prisma.ClientUncheckedUpdateManyWithoutOwnerNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutOwnerNestedInput
+  userAvatar?: Prisma.UserAvatarUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAccountsInput = {
@@ -590,6 +1298,12 @@ export type UserCreateWithoutAccountsInput = {
   email: string
   emailVerified?: boolean
   image?: string | null
+  bio?: string | null
+  publicBookingSlug?: string | null
+  archivedAt?: Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   role?: string | null
@@ -597,6 +1311,10 @@ export type UserCreateWithoutAccountsInput = {
   banReason?: string | null
   banExpires?: Date | string | null
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  services?: Prisma.ServiceCreateNestedManyWithoutUserInput
+  clients?: Prisma.ClientCreateNestedManyWithoutOwnerInput
+  bookings?: Prisma.BookingCreateNestedManyWithoutOwnerInput
+  userAvatar?: Prisma.UserAvatarCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -605,6 +1323,12 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   email: string
   emailVerified?: boolean
   image?: string | null
+  bio?: string | null
+  publicBookingSlug?: string | null
+  archivedAt?: Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   role?: string | null
@@ -612,6 +1336,10 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   banReason?: string | null
   banExpires?: Date | string | null
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  services?: Prisma.ServiceUncheckedCreateNestedManyWithoutUserInput
+  clients?: Prisma.ClientUncheckedCreateNestedManyWithoutOwnerInput
+  bookings?: Prisma.BookingUncheckedCreateNestedManyWithoutOwnerInput
+  userAvatar?: Prisma.UserAvatarUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -636,6 +1364,12 @@ export type UserUpdateWithoutAccountsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -643,6 +1377,10 @@ export type UserUpdateWithoutAccountsInput = {
   banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  services?: Prisma.ServiceUpdateManyWithoutUserNestedInput
+  clients?: Prisma.ClientUpdateManyWithoutOwnerNestedInput
+  bookings?: Prisma.BookingUpdateManyWithoutOwnerNestedInput
+  userAvatar?: Prisma.UserAvatarUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -651,6 +1389,12 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -658,6 +1402,10 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  services?: Prisma.ServiceUncheckedUpdateManyWithoutUserNestedInput
+  clients?: Prisma.ClientUncheckedUpdateManyWithoutOwnerNestedInput
+  bookings?: Prisma.BookingUncheckedUpdateManyWithoutOwnerNestedInput
+  userAvatar?: Prisma.UserAvatarUncheckedUpdateOneWithoutUserNestedInput
 }
 
 
@@ -668,11 +1416,17 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
 export type UserCountOutputType = {
   sessions: number
   accounts: number
+  services: number
+  clients: number
+  bookings: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sessions?: boolean | UserCountOutputTypeCountSessionsArgs
   accounts?: boolean | UserCountOutputTypeCountAccountsArgs
+  services?: boolean | UserCountOutputTypeCountServicesArgs
+  clients?: boolean | UserCountOutputTypeCountClientsArgs
+  bookings?: boolean | UserCountOutputTypeCountBookingsArgs
 }
 
 /**
@@ -699,6 +1453,27 @@ export type UserCountOutputTypeCountAccountsArgs<ExtArgs extends runtime.Types.E
   where?: Prisma.AccountWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountServicesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ServiceWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountClientsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClientWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountBookingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BookingWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -706,6 +1481,12 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   email?: boolean
   emailVerified?: boolean
   image?: boolean
+  bio?: boolean
+  publicBookingSlug?: boolean
+  archivedAt?: boolean
+  calendarWeekHours?: boolean
+  calendarClosedSlotKeys?: boolean
+  bookingsLastViewedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   role?: boolean
@@ -714,6 +1495,10 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   banExpires?: boolean
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
+  services?: boolean | Prisma.User$servicesArgs<ExtArgs>
+  clients?: boolean | Prisma.User$clientsArgs<ExtArgs>
+  bookings?: boolean | Prisma.User$bookingsArgs<ExtArgs>
+  userAvatar?: boolean | Prisma.User$userAvatarArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -723,6 +1508,12 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   email?: boolean
   emailVerified?: boolean
   image?: boolean
+  bio?: boolean
+  publicBookingSlug?: boolean
+  archivedAt?: boolean
+  calendarWeekHours?: boolean
+  calendarClosedSlotKeys?: boolean
+  bookingsLastViewedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   role?: boolean
@@ -737,6 +1528,12 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   email?: boolean
   emailVerified?: boolean
   image?: boolean
+  bio?: boolean
+  publicBookingSlug?: boolean
+  archivedAt?: boolean
+  calendarWeekHours?: boolean
+  calendarClosedSlotKeys?: boolean
+  bookingsLastViewedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   role?: boolean
@@ -751,6 +1548,12 @@ export type UserSelectScalar = {
   email?: boolean
   emailVerified?: boolean
   image?: boolean
+  bio?: boolean
+  publicBookingSlug?: boolean
+  archivedAt?: boolean
+  calendarWeekHours?: boolean
+  calendarClosedSlotKeys?: boolean
+  bookingsLastViewedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   role?: boolean
@@ -759,10 +1562,14 @@ export type UserSelectScalar = {
   banExpires?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "image" | "createdAt" | "updatedAt" | "role" | "banned" | "banReason" | "banExpires", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "image" | "bio" | "publicBookingSlug" | "archivedAt" | "calendarWeekHours" | "calendarClosedSlotKeys" | "bookingsLastViewedAt" | "createdAt" | "updatedAt" | "role" | "banned" | "banReason" | "banExpires", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
+  services?: boolean | Prisma.User$servicesArgs<ExtArgs>
+  clients?: boolean | Prisma.User$clientsArgs<ExtArgs>
+  bookings?: boolean | Prisma.User$bookingsArgs<ExtArgs>
+  userAvatar?: boolean | Prisma.User$userAvatarArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -773,6 +1580,13 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   objects: {
     sessions: Prisma.$SessionPayload<ExtArgs>[]
     accounts: Prisma.$AccountPayload<ExtArgs>[]
+    services: Prisma.$ServicePayload<ExtArgs>[]
+    clients: Prisma.$ClientPayload<ExtArgs>[]
+    bookings: Prisma.$BookingPayload<ExtArgs>[]
+    /**
+     * Large profile photo (e.g. data URL) kept out of `image` so Better Auth responses stay small.
+     */
+    userAvatar: Prisma.$UserAvatarPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -780,6 +1594,24 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     email: string
     emailVerified: boolean
     image: string | null
+    bio: string | null
+    /**
+     * URL path segment for public booking, e.g. `jonathan-malro-coach` → /jonathan-malro-coach/services
+     */
+    publicBookingSlug: string | null
+    archivedAt: Date | null
+    /**
+     * Weekly opening hours (Mon–Sun) for the admin calendar grid.
+     */
+    calendarWeekHours: runtime.JsonValue | null
+    /**
+     * Slot keys `mon-09:00` … marking extra closed slots (e.g. lunch) within the grid.
+     */
+    calendarClosedSlotKeys: runtime.JsonValue | null
+    /**
+     * When the host last opened the admin bookings list; used for “new client booking” nav badge.
+     */
+    bookingsLastViewedAt: Date | null
     createdAt: Date
     updatedAt: Date
     role: string | null
@@ -1182,6 +2014,10 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   readonly [Symbol.toStringTag]: "PrismaPromise"
   sessions<T extends Prisma.User$sessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   accounts<T extends Prisma.User$accountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$accountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  services<T extends Prisma.User$servicesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$servicesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ServicePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  clients<T extends Prisma.User$clientsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$clientsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClientPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  bookings<T extends Prisma.User$bookingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$bookingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  userAvatar<T extends Prisma.User$userAvatarArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$userAvatarArgs<ExtArgs>>): Prisma.Prisma__UserAvatarClient<runtime.Types.Result.GetResult<Prisma.$UserAvatarPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1216,6 +2052,12 @@ export interface UserFieldRefs {
   readonly email: Prisma.FieldRef<"User", 'String'>
   readonly emailVerified: Prisma.FieldRef<"User", 'Boolean'>
   readonly image: Prisma.FieldRef<"User", 'String'>
+  readonly bio: Prisma.FieldRef<"User", 'String'>
+  readonly publicBookingSlug: Prisma.FieldRef<"User", 'String'>
+  readonly archivedAt: Prisma.FieldRef<"User", 'DateTime'>
+  readonly calendarWeekHours: Prisma.FieldRef<"User", 'Json'>
+  readonly calendarClosedSlotKeys: Prisma.FieldRef<"User", 'Json'>
+  readonly bookingsLastViewedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly role: Prisma.FieldRef<"User", 'String'>
@@ -1660,6 +2502,97 @@ export type User$accountsArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.AccountScalarFieldEnum | Prisma.AccountScalarFieldEnum[]
+}
+
+/**
+ * User.services
+ */
+export type User$servicesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Service
+   */
+  select?: Prisma.ServiceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Service
+   */
+  omit?: Prisma.ServiceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ServiceInclude<ExtArgs> | null
+  where?: Prisma.ServiceWhereInput
+  orderBy?: Prisma.ServiceOrderByWithRelationInput | Prisma.ServiceOrderByWithRelationInput[]
+  cursor?: Prisma.ServiceWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ServiceScalarFieldEnum | Prisma.ServiceScalarFieldEnum[]
+}
+
+/**
+ * User.clients
+ */
+export type User$clientsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Client
+   */
+  select?: Prisma.ClientSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Client
+   */
+  omit?: Prisma.ClientOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClientInclude<ExtArgs> | null
+  where?: Prisma.ClientWhereInput
+  orderBy?: Prisma.ClientOrderByWithRelationInput | Prisma.ClientOrderByWithRelationInput[]
+  cursor?: Prisma.ClientWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClientScalarFieldEnum | Prisma.ClientScalarFieldEnum[]
+}
+
+/**
+ * User.bookings
+ */
+export type User$bookingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Booking
+   */
+  select?: Prisma.BookingSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Booking
+   */
+  omit?: Prisma.BookingOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookingInclude<ExtArgs> | null
+  where?: Prisma.BookingWhereInput
+  orderBy?: Prisma.BookingOrderByWithRelationInput | Prisma.BookingOrderByWithRelationInput[]
+  cursor?: Prisma.BookingWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BookingScalarFieldEnum | Prisma.BookingScalarFieldEnum[]
+}
+
+/**
+ * User.userAvatar
+ */
+export type User$userAvatarArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UserAvatar
+   */
+  select?: Prisma.UserAvatarSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the UserAvatar
+   */
+  omit?: Prisma.UserAvatarOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserAvatarInclude<ExtArgs> | null
+  where?: Prisma.UserAvatarWhereInput
 }
 
 /**

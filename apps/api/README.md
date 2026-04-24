@@ -50,59 +50,7 @@ export class AppRouter {
 
 ### Auth hooks (sign-up / sign-in)
 
-Better-auth hooks let you run logic at the moment of sign-up or sign-in. Use `@BeforeHook` with the route path and inject `AuthHookContext` in your handler to access the event (body, headers, etc.) at that moment.
-
-**Sign-up hook** — `src/features/authentication/signup-hook.ts`:
-
-```ts
-import { Injectable } from "@nestjs/common";
-import {
-  BeforeHook,
-  Hook,
-  AuthHookContext,
-  AuthService,
-} from "@thallesp/nestjs-better-auth";
-
-@Hook()
-@Injectable()
-export class SignUpHook {
-  constructor(private readonly authService: AuthService) {}
-
-  @BeforeHook("/sign-up/email")
-  async handle(ctx: AuthHookContext) {
-    // ctx gives access to the sign-up request at this moment (body, etc.)
-    const { body } = ctx;
-    // your logic (validation, logging, side effects…)
-    return ctx;
-  }
-}
-```
-
-**Sign-in hook** — `src/features/authentication/signin-hook.ts`:
-
-```ts
-import { Injectable } from "@nestjs/common";
-import {
-  BeforeHook,
-  Hook,
-  AuthHookContext,
-  AuthService,
-} from "@thallesp/nestjs-better-auth";
-
-@Hook()
-@Injectable()
-export class SignInHook {
-  constructor(private readonly authService: AuthService) {}
-
-  @BeforeHook("/sign-in/email")
-  async handle(ctx: AuthHookContext) {
-    // ctx gives access to the sign-in request at this moment (body, etc.)
-    const { body } = ctx;
-    // your logic (audit, rate limiting, …)
-    return ctx;
-  }
-}
-```
+Use Better Auth’s `hooks.before` / `databaseHooks` in `src/features/authentication/auth.ts` (see the archived-account check on `/sign-in/email`). Avoid stacking several `@BeforeHook` Nest providers for the same `hooks.before` slot: `nestjs-better-auth` composes them into one middleware and path guards can break the chain.
 
 ### Important Note 🚧
 

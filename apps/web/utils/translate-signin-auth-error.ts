@@ -16,8 +16,21 @@ function rawMessage(error: unknown): string {
   return "";
 }
 
+function errorCode(error: unknown): string {
+  if (error && typeof error === "object") {
+    const c = (error as { code?: string }).code;
+    return typeof c === "string" ? c.trim().toUpperCase() : "";
+  }
+  return "";
+}
+
 /** Maps Better Auth sign-in errors to `login.errors.*` */
 export function translateSigninAuthError(p: { error: unknown; t: Translate }): string {
+  const code = errorCode(p.error);
+  if (code === "EMAIL_NOT_VERIFIED") {
+    return p.t("login.errors.emailNotVerified");
+  }
+
   const raw = rawMessage(p.error);
   const lower = raw.toLowerCase();
 
@@ -30,6 +43,14 @@ export function translateSigninAuthError(p: { error: unknown; t: Translate }): s
     (lower.includes("password") || lower.includes("credential") || lower.includes("email") || lower.includes("login"))
   ) {
     return p.t("login.errors.invalidCredentials");
+  }
+
+  if (
+    lower.includes("email_not_verified") ||
+    lower.includes("email not verified") ||
+    lower.includes("not verified")
+  ) {
+    return p.t("login.errors.emailNotVerified");
   }
 
   if (lower.includes("email") && (lower.includes("verify") || lower.includes("verification") || lower.includes("confirm"))) {

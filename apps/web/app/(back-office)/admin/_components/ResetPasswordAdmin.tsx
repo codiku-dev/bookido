@@ -193,10 +193,11 @@ export default function ResetPasswordAdmin() {
 
             <Button
               type="submit"
-              disabled={form.formState.isSubmitting}
+              pending={form.formState.isSubmitting}
+              pendingChildren={t("resetPassword.submitting")}
               className="w-full h-auto min-h-12 px-6 py-3 rounded-xl bg-blue-600 text-base text-white font-medium hover:bg-blue-700"
             >
-              {form.formState.isSubmitting ? t("resetPassword.submitting") : t("resetPassword.submit")}
+              {t("resetPassword.submit")}
             </Button>
           </form>
         </Form>

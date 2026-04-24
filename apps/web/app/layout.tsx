@@ -7,6 +7,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { Geist } from "next/font/google";
 import { cn } from "@repo/ui/utils/cn";
+import { Toaster } from "#/components/ui/sonner";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -35,7 +36,10 @@ export default async function RootLayout({
     <html lang={locale} className={cn("font-sans", geist.variable)}>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <NextIntlClientProvider messages={messages}>
-          <Providers>{children}</Providers>
+          <Providers>
+            {children}
+            <Toaster richColors closeButton />
+          </Providers>
         </NextIntlClientProvider>
       </body>
     </html>

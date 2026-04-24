@@ -1,15 +1,34 @@
-import { useMemo, useState } from "react";
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CreditCard,
-  Lock,
+  Link2,
+  Mail,
   Receipt,
   Save,
   ShieldAlert,
+  Upload,
   User,
   XCircle,
 } from "lucide-react";
+import Link from "next/link";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
+import { z } from "zod";
 
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "#/components/ui/alert-dialog";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
@@ -20,6 +39,14 @@ import {
   CardHeader,
   CardTitle,
 } from "#/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "#/components/ui/form";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
 import {
@@ -32,26 +59,261 @@ import {
 import { Switch } from "#/components/ui/switch";
 import { Textarea } from "#/components/ui/textarea";
 import { useLanguage } from "#/components/use-language";
+import { clearAdminAuthBridgeCookie } from "@web/libs/admin-auth-bridge-cookie";
+import { signOut, useSession } from "@web/libs/auth-client";
+import { trpc } from "@web/libs/trpc-client";
+import { TRPCClientError } from "@trpc/react-query";
+
+type AuthUser = {
+  id: string;
+  email: string;
+  name: string;
+  bio?: string | null;
+  image?: string | null;
+};
+
+const ARCHIVE_ERROR_CODES = new Set([
+  "CONFIRM_EMAIL_MISMATCH",
+  "PASSWORD_REQUIRED",
+  "INVALID_PASSWORD",
+  "ALREADY_ARCHIVED",
+]);
+
+function mapArchiveTrpcMessage(p: { code: string; t: ReturnType<typeof useTranslations> }): string {
+  const { code } = p;
+  switch (code) {
+    case "CONFIRM_EMAIL_MISMATCH":
+      return p.t("profile.archive.errors.CONFIRM_EMAIL_MISMATCH");
+    case "PASSWORD_REQUIRED":
+      return p.t("profile.archive.errors.PASSWORD_REQUIRED");
+    case "INVALID_PASSWORD":
+      return p.t("profile.archive.errors.INVALID_PASSWORD");
+    case "ALREADY_ARCHIVED":
+      return p.t("profile.archive.errors.ALREADY_ARCHIVED");
+    default:
+      return p.t("profile.archive.errors.generic");
+  }
+}
 
 export default function ProfileSettings() {
   const t = useTranslations();
   const { locale, setLocale } = useLanguage();
+  const { data: sessionPayload, isPending: sessionPending, refetch: refetchSession } = useSession();
 
-  const [profileData, setProfileData] = useState({
-    name: "Sarah Johnson",
-    email: "sarah@example.com",
-    bio: "Coach personnel certifié avec plus de 10 ans d'expérience pour aider les clients à atteindre leurs objectifs de remise en forme.",
-  });
+  const user = sessionPayload?.user as AuthUser | undefined;
 
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
-
-  const [saved, setSaved] = useState(false);
   const [billingCancelled, setBillingCancelled] = useState(false);
-  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
+  const [publicSlugDraft, setPublicSlugDraft] = useState("");
+  const [profileImageDraft, setProfileImageDraft] = useState("");
+  const [profileImageSaving, setProfileImageSaving] = useState(false);
+  const [publicUrlOrigin, setPublicUrlOrigin] = useState("");
+  const profileImageFileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const utils = trpc.useUtils();
+  const presenceQuery = trpc.profile.getPublicBookingPresence.useQuery(undefined, {
+    enabled: Boolean(user?.id),
+  });
+
+  const updateProfileBasicsMutation = trpc.profile.updateProfileBasics.useMutation({
+    onSuccess: async () => {
+      await utils.publicBooking.getStorefront.invalidate();
+    },
+    onError: () => {
+      toast.error(t("profile.errors.profileUpdate"));
+    },
+  });
+
+  const updateProfileAvatarMutation = trpc.profile.updateProfileAvatar.useMutation();
+
+  const slugMutation = trpc.profile.updatePublicBookingPresence.useMutation({
+    onSuccess: () => {
+      toast.success(t("profile.publicBooking.toastSlugSaved"));
+      void presenceQuery.refetch();
+    },
+    onError: (e) => {
+      if (e instanceof TRPCClientError) {
+        const msg = e.message;
+        if (msg === "SLUG_RESERVED") {
+          toast.error(t("profile.publicBooking.errors.reserved"));
+          return;
+        }
+        if (msg === "SLUG_ALREADY_TAKEN") {
+          toast.error(t("profile.publicBooking.errors.taken"));
+          return;
+        }
+      }
+      toast.error(t("profile.publicBooking.errors.generic"));
+    },
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setPublicUrlOrigin(window.location.origin);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!presenceQuery.data) {
+      return;
+    }
+    setPublicSlugDraft(presenceQuery.data.publicBookingSlug ?? "");
+    setProfileImageDraft(presenceQuery.data.image ?? "");
+  }, [presenceQuery.data]);
+
+  const profileSchema = useMemo(
+    () =>
+      z.object({
+        name: z.string().min(1, { message: t("profile.validation.nameRequired") }),
+        bio: z.string().max(4000).optional(),
+      }),
+    [t],
+  );
+
+  type ProfileFormValues = z.infer<typeof profileSchema>;
+
+  const profileForm = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: { name: "", bio: "" },
+  });
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+    profileForm.reset({
+      name: user.name ?? "",
+      bio: user.bio ?? "",
+    });
+  }, [user?.id, user?.name, user?.bio, profileForm]);
+
+  const archiveSchema = useMemo(
+    () =>
+      z.object({
+        confirmEmail: z.string().email({ message: t("login.validation.emailInvalid") }),
+        password: z.string().optional(),
+      }),
+    [t],
+  );
+
+  type ArchiveFormValues = z.infer<typeof archiveSchema>;
+
+  const archiveForm = useForm<ArchiveFormValues>({
+    resolver: zodResolver(archiveSchema),
+    defaultValues: { confirmEmail: "", password: "" },
+  });
+
+  const archiveMutation = trpc.profile.archiveAccount.useMutation({
+    onSuccess: async () => {
+      clearAdminAuthBridgeCookie();
+      await signOut();
+      if (typeof window !== "undefined") {
+        window.location.replace("/admin/signin");
+      }
+    },
+  });
+
+  const onProfileSubmit = profileForm.handleSubmit(async (values) => {
+    try {
+      await updateProfileBasicsMutation.mutateAsync({
+        name: values.name.trim(),
+        bio: values.bio?.trim().length ? values.bio.trim() : null,
+      });
+      await refetchSession();
+      toast.success(t("profile.toast.profileUpdated"));
+    } catch {
+      /* toast in mutation onError */
+    }
+  });
+
+  const onArchiveSubmit = archiveForm.handleSubmit(async (values) => {
+    archiveForm.clearErrors("root");
+    try {
+      await archiveMutation.mutateAsync({
+        confirmEmail: values.confirmEmail,
+        password: values.password?.length ? values.password : undefined,
+      });
+    } catch (e) {
+      let code = "generic";
+      if (e instanceof TRPCClientError) {
+        const msg = e.message;
+        if (ARCHIVE_ERROR_CODES.has(msg)) {
+          code = msg;
+        }
+      }
+      archiveForm.setError("root", {
+        message: mapArchiveTrpcMessage({ code, t }),
+      });
+    }
+  });
+
+  const handleSavePublicSlug = async () => {
+    const raw = publicSlugDraft.trim().toLowerCase();
+    await slugMutation.mutateAsync({ publicBookingSlug: raw.length === 0 ? "" : raw });
+  };
+
+  const handleProfileImageFileChange = async (file: File | null) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error(t("profile.publicBooking.imageInvalidType"));
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(t("profile.publicBooking.imageTooLarge"));
+      return;
+    }
+    const reader = new FileReader();
+    const result = await new Promise<string>((resolve) => {
+      reader.onload = () => {
+        resolve(typeof reader.result === "string" ? reader.result : "");
+      };
+      reader.readAsDataURL(file);
+    });
+    if (result.length === 0) {
+      return;
+    }
+    setProfileImageDraft(result);
+    setProfileImageSaving(true);
+    try {
+      await applyProfileImageToAccount(result);
+    } finally {
+      setProfileImageSaving(false);
+      if (profileImageFileInputRef.current) {
+        profileImageFileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const applyProfileImageToAccount = async (imageValue: string) => {
+    try {
+      await updateProfileAvatarMutation.mutateAsync({
+        image: imageValue.trim().length === 0 ? null : imageValue.trim(),
+      });
+      toast.success(t("profile.publicBooking.toastImageSaved"));
+      await refetchSession();
+      void presenceQuery.refetch();
+      await utils.publicBooking.getStorefront.invalidate();
+      return true;
+    } catch {
+      toast.error(t("profile.errors.profileUpdate"));
+      return false;
+    }
+  };
+
+  const handleRemoveProfileImage = async () => {
+    setProfileImageSaving(true);
+    try {
+      const ok = await applyProfileImageToAccount("");
+      if (ok) {
+        setProfileImageDraft("");
+        if (profileImageFileInputRef.current) {
+          profileImageFileInputRef.current.value = "";
+        }
+      }
+    } finally {
+      setProfileImageSaving(false);
+    }
+  };
 
   const upcomingInvoice = useMemo(
     () => ({
@@ -150,31 +412,9 @@ export default function ProfileSettings() {
     </div>
   );
 
-  const handleProfileSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
-  };
-
-  const handlePasswordChange = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (passwordData.newPassword === passwordData.confirmPassword) {
-      // Handle password change
-      setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-    }
-  };
-
   const handleCancelSubscription = () => {
     setBillingCancelled(true);
   };
-
-  const renderSuccessMessage = saved ? (
-    <div className="rounded-xl border border-green-200 bg-green-50 px-6 py-4 text-green-800">
-      {t("profile.saved")}
-    </div>
-  ) : null;
 
   const billingStatusBadge = (
     <Badge variant={billingCancelled ? "outline" : "secondary"} className="capitalize">
@@ -242,7 +482,106 @@ export default function ProfileSettings() {
     </Card>
   );
 
-  const profileInformationSection = (
+  const watchedProfileName = profileForm.watch("name");
+
+  const profileInitials = useMemo(() => {
+    const nameValue = (watchedProfileName ?? user?.name ?? "").trim();
+    if (nameValue.length === 0) {
+      return "U";
+    }
+    const parts = nameValue.split(/\s+/).filter(Boolean);
+    if (parts.length === 1) {
+      return (parts[0] ?? "").slice(0, 2).toUpperCase();
+    }
+    const first = parts[0] ?? "";
+    const second = parts[1] ?? "";
+    return `${first[0] ?? ""}${second[0] ?? ""}`.toUpperCase();
+  }, [watchedProfileName, user?.name]);
+
+  const isProfileAvatarDisabled =
+    sessionPending || !user || presenceQuery.isLoading || profileImageSaving;
+
+  const profileAvatarMedia = profileImageDraft.trim().length > 0 ? (
+    <img
+      src={profileImageDraft}
+      alt={t("profile.publicBooking.imagePreviewAlt")}
+      className="h-full w-full object-cover transition duration-200 group-hover:scale-105"
+    />
+  ) : (
+    <span className="flex h-full w-full items-center justify-center text-lg font-semibold text-slate-700 transition duration-200 group-hover:text-slate-900">
+      {profileInitials}
+    </span>
+  );
+
+  const profileAvatarUploadOverlay = (
+    <div
+      className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-0.5 rounded-full bg-slate-900/55 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
+      aria-hidden
+    >
+      <Upload className="size-6 text-white drop-shadow-sm" />
+      <span className="sr-only">{t("profile.publicBooking.imageClickToUpload")}</span>
+    </div>
+  );
+
+  const profileAvatarSavingOverlay = profileImageSaving ? (
+    <div
+      className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-full bg-slate-900/35"
+      aria-hidden
+    >
+      <span className="size-7 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+    </div>
+  ) : null;
+
+  const profileImageAvatarButton = (
+    <button
+      type="button"
+      className="group relative h-20 w-20 overflow-hidden rounded-full border border-slate-200 bg-slate-100 shadow-sm transition hover:border-blue-400 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:hover:border-slate-200 disabled:hover:shadow-sm"
+      onClick={() => {
+        profileImageFileInputRef.current?.click();
+      }}
+      disabled={isProfileAvatarDisabled}
+      aria-label={t("profile.publicBooking.imageLabel")}
+      aria-busy={profileImageSaving}
+      title={isProfileAvatarDisabled && !profileImageSaving ? undefined : t("profile.publicBooking.imageClickToUpload")}
+    >
+      {profileAvatarMedia}
+      {profileAvatarSavingOverlay}
+      {!isProfileAvatarDisabled ? profileAvatarUploadOverlay : null}
+    </button>
+  );
+
+  const hiddenProfileImageFileInput = (
+    <Input
+      ref={profileImageFileInputRef}
+      id="profile-image-file"
+      type="file"
+      accept="image/*"
+      disabled={sessionPending || !user || presenceQuery.isLoading || profileImageSaving}
+      className="sr-only"
+      onChange={(e) => {
+        void handleProfileImageFileChange(e.target.files?.[0] ?? null);
+      }}
+    />
+  );
+
+  const profileImageFieldBlock = (
+    <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+      <div className="flex items-center gap-2">
+        <Label htmlFor="profile-image-file">{t("profile.publicBooking.imageLabel")}</Label>
+        <Upload className="h-4 w-4 text-slate-500" aria-hidden />
+      </div>
+      <div className="flex items-center gap-4">
+        {profileImageAvatarButton}
+        <div className="space-y-1">
+          <p className="text-sm text-slate-700">{t("profile.publicBooking.imageHelp")}</p>
+          <p className="text-xs text-slate-500">{t("profile.publicBooking.imageFileHint")}</p>
+        </div>
+      </div>
+      {hiddenProfileImageFileInput}
+    </div>
+  );
+
+  const renderProfileInformationSection = () => (
     <Card>
       <CardHeader>
         <div className="flex items-center gap-3">
@@ -255,123 +594,225 @@ export default function ProfileSettings() {
         </div>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleProfileSave} className="space-y-6">
-          <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-2">
-            <Label htmlFor="profile-name">{t("profile.full.name")}</Label>
-            <Input
-              id="profile-name"
-              type="text"
-              value={profileData.name}
-              onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-              className="h-11 border-slate-300 bg-white"
-            />
-          </div>
+        <Form {...profileForm}>
+          <form onSubmit={onProfileSubmit} className="space-y-6">
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-2">
+              <Label htmlFor="profile-name">{t("profile.full.name")}</Label>
+              <FormField
+                control={profileForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        id="profile-name"
+                        type="text"
+                        disabled={sessionPending || !user}
+                        className="h-11 border-slate-300 bg-white"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-          <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-2">
-            <Label htmlFor="profile-email">{t("profile.email")}</Label>
-            <Input
-              id="profile-email"
-              type="email"
-              value={profileData.email}
-              onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-              className="h-11 border-slate-300 bg-white"
-            />
-          </div>
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-2">
+              <Label htmlFor="profile-email">{t("profile.email")}</Label>
+              <Input
+                id="profile-email"
+                type="email"
+                value={user?.email ?? ""}
+                readOnly
+                disabled
+                className="h-11 border-slate-300 bg-slate-100 text-slate-600"
+              />
+              <p className="text-sm text-slate-500">{t("profile.emailReadOnlyHelp")}</p>
+            </div>
 
-          <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-2">
-            <Label htmlFor="profile-bio">{t("profile.bioTitle")}</Label>
-            <Textarea
-              id="profile-bio"
-              value={profileData.bio}
-              onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
-              rows={5}
-              placeholder={t("profile.bio.placeholder")}
-              className="border-slate-300 bg-white"
-            />
-          </div>
+            <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+              <div className="flex items-start gap-3">
+                <div className="rounded-xl bg-indigo-50 p-3">
+                  <Link2 className="h-5 w-5 text-indigo-600" />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-slate-900">{t("profile.publicBooking.title")}</h3>
+                  <p className="text-sm text-slate-500">{t("profile.publicBooking.subtitle")}</p>
+                </div>
+              </div>
+              {publicSlugFieldBlock}
+              {publicUrlPreviewBlock}
+              {saveSlugButtonOutsideBlock}
+              {publicBookingBioFieldBlock}
+              {profileImageFieldBlock}
+              {saveImageButtonBlock}
+            </div>
 
-          <Button type="submit">
-            <Save className="h-4 w-4" />
-            {t("profile.save.changes")}
-          </Button>
-        </form>
+            <Button
+              type="submit"
+              disabled={sessionPending || !user}
+              pending={profileForm.formState.isSubmitting}
+              pendingChildren={t("profile.save.pending")}
+            >
+              <Save className="h-4 w-4" />
+              {t("profile.save.changes")}
+            </Button>
+          </form>
+        </Form>
       </CardContent>
     </Card>
   );
 
-  const passwordSection = (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-purple-50 p-3">
-            <Lock className="h-6 w-6 text-purple-600" />
+  const publicSlugSegment = publicSlugDraft.trim().toLowerCase();
+  const fullPublicBookingUrl =
+    publicUrlOrigin && publicSlugSegment.length > 0 ? `${publicUrlOrigin}/${publicSlugSegment}` : "";
+
+  const publicSlugFieldBlock = (
+    <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+      <Label htmlFor="public-booking-slug">{t("profile.publicBooking.slugLabel")}</Label>
+      <Input
+        id="public-booking-slug"
+        value={publicSlugDraft}
+        onChange={(e) => setPublicSlugDraft(e.target.value)}
+        disabled={sessionPending || !user || presenceQuery.isLoading}
+        className="h-11 border-slate-300 bg-white font-mono text-sm"
+        autoComplete="off"
+        spellCheck={false}
+      />
+      <p className="text-sm text-slate-500">{t("profile.publicBooking.slugHelp")}</p>
+    </div>
+  );
+
+  const saveSlugButtonElement = (
+    <Button
+      type="button"
+      variant="secondary"
+      disabled={sessionPending || !user || presenceQuery.isLoading}
+      pending={slugMutation.isPending}
+      pendingChildren={t("profile.save.pending")}
+      onClick={() => {
+        void handleSavePublicSlug();
+      }}
+    >
+      {t("profile.publicBooking.slugSave")}
+    </Button>
+  );
+
+  const publicUrlPreviewBlock =
+    fullPublicBookingUrl.length > 0 ? (
+      <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-4 text-sm">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+          <div className="min-w-0 flex-1">
+            <p className="font-medium text-slate-800">{t("profile.publicBooking.publicUrl")}</p>
+            <Link
+              href={`/${publicSlugSegment}`}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-1 block break-all text-blue-700 hover:underline"
+            >
+              {fullPublicBookingUrl}
+            </Link>
           </div>
-          <CardTitle className="text-2xl font-bold text-slate-900">
-            {t("profile.passwordTitle")}
-          </CardTitle>
+          <div className="flex shrink-0 sm:justify-end">{saveSlugButtonElement}</div>
         </div>
-      </CardHeader>
+      </div>
+    ) : null;
 
-      <CardContent>
-        <form onSubmit={handlePasswordChange} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="current-password">{t("profile.password.current")}</Label>
-            <Input
-              id="current-password"
-              type="password"
-              value={passwordData.currentPassword}
-              onChange={(e) =>
-                setPasswordData({ ...passwordData, currentPassword: e.target.value })
-              }
-              placeholder="••••••••"
-            />
-          </div>
+  const saveSlugButtonOutsideBlock =
+    fullPublicBookingUrl.length === 0 ? <div className="flex justify-end">{saveSlugButtonElement}</div> : null;
 
-          <div className="space-y-2">
-            <Label htmlFor="new-password">{t("profile.password.new")}</Label>
-            <Input
-              id="new-password"
-              type="password"
-              value={passwordData.newPassword}
-              onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-              placeholder="••••••••"
-            />
-            <p className="text-sm text-slate-500">{t("profile.password.requirement")}</p>
-          </div>
+  const bioFieldErrorMessage = profileForm.formState.errors.bio?.message;
 
-          <div className="space-y-2">
-            <Label htmlFor="confirm-password">{t("profile.password.confirm")}</Label>
-            <Input
-              id="confirm-password"
-              type="password"
-              value={passwordData.confirmPassword}
-              onChange={(e) =>
-                setPasswordData({ ...passwordData, confirmPassword: e.target.value })
-              }
-              placeholder="••••••••"
-            />
-            {passwordData.newPassword &&
-              passwordData.confirmPassword &&
-              passwordData.newPassword !== passwordData.confirmPassword && (
-                <p className="text-sm text-red-600">{t("profile.password.mismatch")}</p>
-              )}
-          </div>
+  const publicBookingBioFieldBlock = (
+    <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+      <Label htmlFor="profile-bio">{t("profile.bioTitle")}</Label>
+      <Textarea
+        id="profile-bio"
+        rows={5}
+        placeholder={t("profile.bio.placeholder")}
+        disabled={sessionPending || !user}
+        className="border-slate-300 bg-white"
+        value={profileForm.watch("bio") ?? ""}
+        onChange={(event) => {
+          profileForm.setValue("bio", event.target.value, {
+            shouldDirty: true,
+            shouldTouch: true,
+            shouldValidate: true,
+          });
+        }}
+      />
+      {bioFieldErrorMessage ? <p className="text-sm font-medium text-destructive">{bioFieldErrorMessage}</p> : null}
+      <p className="text-sm text-slate-500">{t("profile.bio.publicHint")}</p>
+    </div>
+  );
 
-          <Button
-            type="submit"
-            disabled={
-              !passwordData.currentPassword ||
-              !passwordData.newPassword ||
-              passwordData.newPassword !== passwordData.confirmPassword
-            }
-            className="bg-purple-600 hover:bg-purple-700"
-          >
-            <Lock className="h-4 w-4" />
-            {t("profile.password.update")}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+  const saveImageButtonBlock = (
+    <div className="flex flex-wrap items-center gap-2">
+      {profileImageDraft.trim().length > 0 ? (
+        <Button
+          type="button"
+          variant="ghost"
+          className="text-slate-600"
+          disabled={sessionPending || !user || presenceQuery.isLoading || profileImageSaving}
+          onClick={() => {
+            void handleRemoveProfileImage();
+          }}
+        >
+          {t("profile.publicBooking.imageRemove")}
+        </Button>
+      ) : null}
+    </div>
+  );
+
+  const languageSelectBlock = (
+    <div className="space-y-2">
+      <Label htmlFor="language-select">{t("profile.language")}</Label>
+      <Select value={locale} onValueChange={(value) => setLocale(value as "fr" | "en")}>
+        <SelectTrigger id="language-select" className="h-11 border-slate-300 bg-white">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="bg-white border-slate-300 shadow-lg">
+          <SelectItem value="fr">{t("language.fr")}</SelectItem>
+          <SelectItem value="en">{t("language.en")}</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
+  const emailNotificationsIcon = (
+    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100">
+      <Mail className="h-5 w-5 text-slate-600" aria-hidden />
+    </div>
+  );
+
+  const emailNotificationsCopy = (
+    <div className="min-w-0 flex-1 space-y-1">
+      <Label htmlFor="email-notifications" className="cursor-pointer text-base font-medium text-slate-900">
+        {t("profile.notificationsTitle")}
+      </Label>
+      <p className="text-sm text-slate-600">{t("profile.notifications.desc")}</p>
+    </div>
+  );
+
+  const emailNotificationsToggle = (
+    <Switch
+      id="email-notifications"
+      checked={emailNotificationsEnabled}
+      onCheckedChange={setEmailNotificationsEnabled}
+      aria-label={t("profile.notifications.toggleAriaLabel")}
+    />
+  );
+
+  const emailNotificationsRow = (
+    <div className="space-y-2">
+      <div className="flex items-center gap-3 rounded-xl border border-slate-200 p-4">
+        {emailNotificationsIcon}
+        {emailNotificationsCopy}
+        <div className="flex shrink-0 items-center self-center pl-2">{emailNotificationsToggle}</div>
+      </div>
+      <p className="text-xs text-slate-500">{t("profile.notifications.notPersistedHint")}</p>
+    </div>
   );
 
   const preferencesSection = (
@@ -383,26 +824,8 @@ export default function ProfileSettings() {
       </CardHeader>
 
       <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="language-select">{t("profile.language")}</Label>
-          <Select value={locale} onValueChange={(value) => setLocale(value as "fr" | "en")}>
-            <SelectTrigger id="language-select" className="h-11 border-slate-300 bg-white">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-white border-slate-300 shadow-lg">
-              <SelectItem value="fr">{t("language.fr")}</SelectItem>
-              <SelectItem value="en">{t("language.en")}</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex items-center justify-between rounded-xl border border-slate-200 p-4">
-          <div className="space-y-1">
-            <p className="font-medium text-slate-900">{t("profile.notificationsTitle")}</p>
-            <p className="text-sm text-slate-600">{t("profile.notifications.desc")}</p>
-          </div>
-          <Switch checked={emailNotifications} onCheckedChange={setEmailNotifications} />
-        </div>
+        {languageSelectBlock}
+        {emailNotificationsRow}
       </CardContent>
     </Card>
   );
@@ -421,12 +844,97 @@ export default function ProfileSettings() {
         <p className="text-red-700">{t("profile.danger.warning")}</p>
       </CardContent>
       <CardFooter>
-        <Button variant="destructive" className="bg-red-600 text-white hover:bg-red-700">
-          {t("profile.delete.account")}
-        </Button>
+        <AlertDialog
+          onOpenChange={(open) => {
+            if (!open) {
+              archiveForm.reset({ confirmEmail: "", password: "" });
+              archiveForm.clearErrors("root");
+            }
+          }}
+        >
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" className="bg-red-600 text-white hover:bg-red-700">
+              {t("profile.delete.account")}
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t("profile.archive.title")}</AlertDialogTitle>
+              <AlertDialogDescription>{t("profile.archive.description")}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <Form {...archiveForm}>
+              <form onSubmit={onArchiveSubmit} className="space-y-4 py-2">
+                <FormField
+                  control={archiveForm.control}
+                  name="confirmEmail"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("profile.archive.confirmEmailLabel")}</FormLabel>
+                      <FormControl>
+                        <Input type="email" autoComplete="off" disabled={archiveMutation.isPending} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={archiveForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("profile.archive.passwordLabel")}</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          autoComplete="current-password"
+                          disabled={archiveMutation.isPending}
+                          {...field}
+                        />
+                      </FormControl>
+                      <p className="text-sm text-slate-500">{t("profile.archive.passwordHint")}</p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {archiveForm.formState.errors.root?.message != null ? (
+                  <p className="text-sm text-red-600">{archiveForm.formState.errors.root.message}</p>
+                ) : null}
+                <AlertDialogFooter>
+                  <AlertDialogCancel type="button" disabled={archiveMutation.isPending}>
+                    {t("profile.archive.cancel")}
+                  </AlertDialogCancel>
+                  <Button
+                    type="submit"
+                    variant="destructive"
+                    className="bg-red-600 text-white hover:bg-red-700"
+                    disabled={archiveMutation.isPending}
+                  >
+                    {t("profile.archive.submit")}
+                  </Button>
+                </AlertDialogFooter>
+              </form>
+            </Form>
+          </AlertDialogContent>
+        </AlertDialog>
       </CardFooter>
     </Card>
   );
+
+  if (sessionPending) {
+    return (
+      <div className="p-8">
+        <p className="text-slate-600">{t("profile.loading")}</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="p-8">
+        <p className="text-slate-600">{t("profile.sessionRequired")}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">
@@ -437,10 +945,8 @@ export default function ProfileSettings() {
         <p className="text-slate-600">{t("profile.subtitle")}</p>
       </div>
 
-      <div className="max-w-3xl space-y-6">
-        {renderSuccessMessage}
-        {profileInformationSection}
-        {passwordSection}
+      <div className="w-full space-y-6">
+        {renderProfileInformationSection()}
         {preferencesSection}
         {billingOverview}
         {dangerZoneSection}

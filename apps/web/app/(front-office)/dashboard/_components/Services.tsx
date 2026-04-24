@@ -98,7 +98,8 @@ export default function Services() {
             <div>
               <label className="block text-slate-700 mb-2">Duration (minutes)</label>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 value={formData.duration}
                 onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                 placeholder="60"
@@ -108,7 +109,8 @@ export default function Services() {
             <div>
               <label className="block text-slate-700 mb-2">Price (€)</label>
               <input
-                type="number"
+                type="text"
+                inputMode="decimal"
                 value={formData.price}
                 onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                 placeholder="50"

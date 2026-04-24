@@ -1,0 +1,20 @@
+export const RESERVED_PUBLIC_BOOKING_SLUGS = new Set(
+  [
+    "admin",
+    "api",
+    "dashboard",
+    "services",
+    "booking",
+    "signin",
+    "signup",
+    "forgot-password",
+    "reset-password",
+    "examples",
+    "trpc",
+    "docs",
+    "_next",
+    "favicon",
+    "robots",
+    "sitemap",
+  ].map((s) => s.toLowerCase()),
+);

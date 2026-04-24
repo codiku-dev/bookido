@@ -3,81 +3,17 @@
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Users, Euro, ShoppingCart, ArrowUp, ArrowDown, Calendar } from "lucide-react";
+import { Users, Euro, ShoppingCart, ArrowUp, ArrowDown, Calendar, Loader2 } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import type { TooltipProps } from "recharts";
 import { useLocale, useTranslations } from "next-intl";
+import { useSession } from "@web/libs/auth-client";
+import { trpc } from "@web/libs/trpc-client";
+import { formatRelativeTimeLabel } from "#/utils/relative-time-label";
 
 type Period = "weekly" | "monthly" | "yearly" | "custom";
 
-type RevenueRow = { periodId: string; revenue: number };
-type SalesRow = { periodId: string; sales: number };
-
 type ChartTooltipFormatter = NonNullable<TooltipProps["formatter"]>;
-
-const revenueDataByPeriod: Record<Period, RevenueRow[]> = {
-  weekly: [
-    { periodId: "weekday_mon", revenue: 420 },
-    { periodId: "weekday_tue", revenue: 580 },
-    { periodId: "weekday_wed", revenue: 390 },
-    { periodId: "weekday_thu", revenue: 650 },
-    { periodId: "weekday_fri", revenue: 480 },
-    { periodId: "weekday_sat", revenue: 720 },
-    { periodId: "weekday_sun", revenue: 550 },
-  ],
-  monthly: [
-    { periodId: "month_jan", revenue: 1200 },
-    { periodId: "month_feb", revenue: 1800 },
-    { periodId: "month_mar", revenue: 1600 },
-    { periodId: "month_apr", revenue: 2400 },
-    { periodId: "month_may", revenue: 2180 },
-    { periodId: "month_jun", revenue: 2800 },
-  ],
-  yearly: [
-    { periodId: "year_2020", revenue: 12000 },
-    { periodId: "year_2021", revenue: 18000 },
-    { periodId: "year_2022", revenue: 22000 },
-    { periodId: "year_2023", revenue: 28000 },
-    { periodId: "year_2024", revenue: 32000 },
-    { periodId: "year_2025", revenue: 38000 },
-  ],
-  custom: [
-    { periodId: "custom_s1", revenue: 1200 },
-    { periodId: "custom_s2", revenue: 1800 },
-    { periodId: "custom_s3", revenue: 1600 },
-    { periodId: "custom_s4", revenue: 2400 },
-  ],
-};
-
-const salesDataByPeriod: Record<Period, SalesRow[]> = {
-  weekly: [
-    { periodId: "weekday_mon", sales: 3 },
-    { periodId: "weekday_tue", sales: 5 },
-    { periodId: "weekday_wed", sales: 2 },
-    { periodId: "weekday_thu", sales: 7 },
-    { periodId: "weekday_fri", sales: 4 },
-    { periodId: "weekday_sat", sales: 8 },
-    { periodId: "weekday_sun", sales: 6 },
-  ],
-  monthly: [
-    { periodId: "month_sales_s1", sales: 12 },
-    { periodId: "month_sales_s2", sales: 19 },
-    { periodId: "month_sales_s3", sales: 15 },
-    { periodId: "month_sales_s4", sales: 22 },
-  ],
-  yearly: [
-    { periodId: "quarter_q1", sales: 120 },
-    { periodId: "quarter_q2", sales: 180 },
-    { periodId: "quarter_q3", sales: 150 },
-    { periodId: "quarter_q4", sales: 220 },
-  ],
-  custom: [
-    { periodId: "custom_s1", sales: 12 },
-    { periodId: "custom_s2", sales: 19 },
-    { periodId: "custom_s3", sales: 15 },
-    { periodId: "custom_s4", sales: 22 },
-  ],
-};
 
 function chartAxisPeriodLabel(t: ReturnType<typeof useTranslations>, periodId: string) {
   if (periodId.startsWith("weekday_")) {
@@ -93,8 +29,7 @@ function chartAxisPeriodLabel(t: ReturnType<typeof useTranslations>, periodId: s
     return t(`dashboard.chart.axis.custom.${key}`);
   }
   if (periodId.startsWith("year_")) {
-    const year = periodId.replace("year_", "");
-    return t(`dashboard.chart.axis.year.y${year}`);
+    return periodId.replace("year_", "");
   }
   if (periodId.startsWith("quarter_")) {
     const key = periodId.replace("quarter_", "");
@@ -107,13 +42,49 @@ function chartAxisPeriodLabel(t: ReturnType<typeof useTranslations>, periodId: s
   return periodId;
 }
 
+function formatSignedCurrency(value: number, fmt: Intl.NumberFormat): string {
+  if (value > 0) return `+${fmt.format(value)}`;
+  if (value < 0) return `-${fmt.format(Math.abs(value))}`;
+  return fmt.format(0);
+}
+
+function formatTrendPercent(pct: number | null): string | null {
+  if (pct === null || Number.isNaN(pct)) return null;
+  const rounded = Math.round(pct * 10) / 10;
+  const s = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+  return `${rounded > 0 ? "+" : ""}${s}%`;
+}
+
 export default function Dashboard() {
   const t = useTranslations();
   const locale = useLocale();
   const router = useRouter();
+  const { data: sessionPayload, isPending: sessionPending } = useSession();
   const [period, setPeriod] = useState<Period>("monthly");
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
+
+  const sessionReady = !sessionPending && Boolean(sessionPayload?.user);
+
+  const chartsOverviewInput = useMemo(() => {
+    if (period === "custom" && customStartDate && customEndDate) {
+      return { chartPeriod: period, customFrom: customStartDate, customTo: customEndDate };
+    }
+    return { chartPeriod: period };
+  }, [period, customStartDate, customEndDate]);
+
+  const kpisQuery = trpc.dashboard.overview.useQuery(
+    { chartPeriod: "monthly" },
+    {
+      enabled: sessionReady,
+      retry: false,
+    },
+  );
+
+  const chartsQuery = trpc.dashboard.overview.useQuery(chartsOverviewInput, {
+    enabled: sessionReady && (period !== "custom" || (Boolean(customStartDate) && Boolean(customEndDate))),
+    retry: false,
+  });
 
   const currencyFormatter = useMemo(
     () =>
@@ -150,20 +121,84 @@ export default function Dashboard() {
     return label;
   };
 
-  const recentBookings = [
-    { id: 1, client: "Marie Dupont", service: "Coaching Personnel 1-on-1", amount: 50, time: "2 heures" },
-    { id: 2, client: "Pierre Martin", service: "Coaching Nutrition", amount: 40, time: "5 heures" },
-    { id: 3, client: "Sophie Bernard", service: "Pack 5 Sessions", amount: 200, time: "1 jour" },
-  ];
+  const kpis = kpisQuery.data?.kpis;
+  const revenueLineData = useMemo(
+    () => chartsQuery.data?.revenueSeries.map((r) => ({ periodId: r.periodKey, revenue: r.revenue })) ?? [],
+    [chartsQuery.data],
+  );
+  const salesBarData = useMemo(
+    () => chartsQuery.data?.salesSeries.map((r) => ({ periodId: r.periodKey, sales: r.sales })) ?? [],
+    [chartsQuery.data],
+  );
+  const recentBookings = kpisQuery.data?.recentBookings ?? [];
+
+  const greetingName = sessionPayload?.user?.name?.trim() ?? "";
+  const showGreeting = !sessionPending && greetingName.length > 0;
+
+  const greetingLine = showGreeting ? (
+    <p className="text-base font-medium text-slate-800 mb-2">{t("dashboard.greeting", { name: greetingName })}</p>
+  ) : null;
 
   const headerBlock = (
     <div className="mb-8">
+      {greetingLine}
       <h1 className="text-3xl font-bold text-slate-900 mb-2">{t("dashboard.title")}</h1>
       <p className="text-slate-600">{t("dashboard.welcome")}</p>
     </div>
   );
 
-  const kpiCards = (
+  const revenueTrendLabel = formatTrendPercent(kpis?.revenueTrendPercent ?? null);
+  const clientsTrendLabel = formatTrendPercent(kpis?.clientsTrendPercent ?? null);
+  const bookingsTrendLabel = formatTrendPercent(kpis?.bookingsTrendPercent ?? null);
+
+  const revenueTrendBadge =
+    revenueTrendLabel === null ? null : (
+      <div
+        className={`flex items-center gap-1 text-sm ${
+          (kpis?.revenueTrendPercent ?? 0) >= 0 ? "text-green-600" : "text-red-600"
+        }`}
+      >
+        {(kpis?.revenueTrendPercent ?? 0) >= 0 ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
+        {revenueTrendLabel}
+      </div>
+    );
+
+  const clientsTrendBadge =
+    clientsTrendLabel === null ? null : (
+      <div
+        className={`flex items-center gap-1 text-sm ${
+          (kpis?.clientsTrendPercent ?? 0) >= 0 ? "text-green-600" : "text-red-600"
+        }`}
+      >
+        {(kpis?.clientsTrendPercent ?? 0) >= 0 ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
+        {clientsTrendLabel}
+      </div>
+    );
+
+  const bookingsTrendBadge =
+    bookingsTrendLabel === null ? null : (
+      <div
+        className={`flex items-center gap-1 text-sm ${
+          (kpis?.bookingsTrendPercent ?? 0) >= 0 ? "text-green-600" : "text-red-600"
+        }`}
+      >
+        {(kpis?.bookingsTrendPercent ?? 0) >= 0 ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
+        {bookingsTrendLabel}
+      </div>
+    );
+
+  const kpiLoading = kpisQuery.isPending ? (
+    <div className="flex items-center justify-center py-12 text-slate-500 gap-2">
+      <Loader2 className="w-5 h-5 animate-spin" />
+      {t("dashboard.loading")}
+    </div>
+  ) : null;
+
+  const kpiError = kpisQuery.isError ? (
+    <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 mb-6">{t("dashboard.loadError")}</div>
+  ) : null;
+
+  const kpiCards = kpisQuery.data && !kpisQuery.isError ? (
     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
       <button
         type="button"
@@ -174,14 +209,15 @@ export default function Dashboard() {
           <div className="p-3 bg-blue-50 rounded-xl">
             <Euro className="w-6 h-6 text-blue-600" />
           </div>
-          <div className="flex items-center gap-1 text-green-600 text-sm">
-            <ArrowUp className="w-4 h-4" />
-            12%
-          </div>
+          {revenueTrendBadge}
         </div>
-        <div className="text-3xl font-bold text-slate-900 mb-1">€2,800</div>
+        <div className="text-3xl font-bold text-slate-900 mb-1">{currencyFormatter.format(kpis?.totalRevenue ?? 0)}</div>
         <div className="text-slate-600">{t("dashboard.revenue.total")}</div>
-        <div className="text-sm text-green-600 mt-2">+€680 {t("dashboard.growth.month")}</div>
+        <div
+          className={`text-sm mt-2 ${(kpis?.revenueThisMonth ?? 0) >= 0 ? "text-green-600" : "text-red-600"}`}
+        >
+          {formatSignedCurrency(kpis?.revenueThisMonth ?? 0, currencyFormatter)} {t("dashboard.growth.month")}
+        </div>
       </button>
 
       <div className="bg-white rounded-2xl p-6 border border-slate-200">
@@ -189,14 +225,13 @@ export default function Dashboard() {
           <div className="p-3 bg-purple-50 rounded-xl">
             <Users className="w-6 h-6 text-purple-600" />
           </div>
-          <div className="flex items-center gap-1 text-green-600 text-sm">
-            <ArrowUp className="w-4 h-4" />
-            15%
-          </div>
+          {clientsTrendBadge}
         </div>
-        <div className="text-3xl font-bold text-slate-900 mb-1">142</div>
+        <div className="text-3xl font-bold text-slate-900 mb-1">{salesCountFormatter.format(kpis?.clientsTotal ?? 0)}</div>
         <div className="text-slate-600">{t("dashboard.total.users")}</div>
-        <div className="text-sm text-green-600 mt-2">+12 {t("dashboard.users.month")}</div>
+        <div className="text-sm text-green-600 mt-2">
+          +{salesCountFormatter.format(kpis?.clientsNewThisMonth ?? 0)} {t("dashboard.users.month")}
+        </div>
       </div>
 
       <div className="bg-white rounded-2xl p-6 border border-slate-200">
@@ -204,16 +239,13 @@ export default function Dashboard() {
           <div className="p-3 bg-orange-50 rounded-xl">
             <ShoppingCart className="w-6 h-6 text-orange-600" />
           </div>
-          <div className="flex items-center gap-1 text-red-600 text-sm">
-            <ArrowDown className="w-4 h-4" />
-            3%
-          </div>
+          {bookingsTrendBadge}
         </div>
-        <div className="text-3xl font-bold text-slate-900 mb-1">68</div>
+        <div className="text-3xl font-bold text-slate-900 mb-1">{salesCountFormatter.format(kpis?.bookingsThisMonth ?? 0)}</div>
         <div className="text-slate-600">{t("dashboard.sales.month")}</div>
       </div>
     </div>
-  );
+  ) : null;
 
   const periodSelector = (
     <div className="mb-6">
@@ -266,11 +298,13 @@ export default function Dashboard() {
     </div>
   );
 
+  const chartsReady = Boolean(chartsQuery.data) && !chartsQuery.isError;
+
   const revenueChart = (
     <div className="bg-white rounded-2xl p-6 border border-slate-200">
       <h2 className="text-xl font-bold text-slate-900 mb-6">{t("dashboard.revenue.overview")}</h2>
       <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={revenueDataByPeriod[period]}>
+        <LineChart data={revenueLineData}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
           <XAxis dataKey="periodId" stroke="#64748b" tickFormatter={(id) => chartAxisPeriodLabel(t, id)} />
           <YAxis stroke="#64748b" tickFormatter={(v) => currencyFormatter.format(Number(v))} />
@@ -293,7 +327,7 @@ export default function Dashboard() {
     <div className="bg-white rounded-2xl p-6 border border-slate-200">
       <h2 className="text-xl font-bold text-slate-900 mb-6">{t("dashboard.weekly.sales")}</h2>
       <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={salesDataByPeriod[period]}>
+        <BarChart data={salesBarData}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
           <XAxis dataKey="periodId" stroke="#64748b" tickFormatter={(id) => chartAxisPeriodLabel(t, id)} />
           <YAxis stroke="#64748b" />
@@ -319,30 +353,51 @@ export default function Dashboard() {
     </div>
   );
 
+  const recentEmpty = recentBookings.length === 0 && chartsReady ? (
+    <p className="px-6 py-8 text-center text-slate-500 text-sm">{t("dashboard.recent.empty")}</p>
+  ) : null;
+
+  const recentRows =
+    recentBookings.length > 0
+      ? recentBookings.map((booking) => {
+          const createdAt = new Date(booking.createdAt);
+          const relativeLabel = formatRelativeTimeLabel(locale, createdAt);
+          const row = (
+            <div
+              key={booking.id}
+              onClick={() => router.push(`/admin/bookings/${booking.id}`)}
+              className="p-6 hover:bg-slate-50 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h3 className="font-medium text-slate-900">{booking.clientName}</h3>
+                  <p className="text-sm text-slate-600">{booking.serviceName}</p>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold text-blue-600">{currencyFormatter.format(booking.amount)}</div>
+                  <div className="text-sm text-slate-500">{relativeLabel}</div>
+                </div>
+              </div>
+            </div>
+          );
+          return row;
+        })
+      : null;
+
   const recentActivity = (
     <div className="bg-white rounded-2xl border border-slate-200">
       <div className="p-6 border-b border-slate-200">
         <h2 className="text-xl font-bold text-slate-900">{t("dashboard.recent.bookings")}</h2>
       </div>
       <div className="divide-y divide-slate-200">
-        {recentBookings.map((booking) => (
-          <div
-            key={booking.id}
-            onClick={() => router.push(`/admin/bookings/${booking.id}`)}
-            className="p-6 hover:bg-slate-50 transition-colors cursor-pointer"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <h3 className="font-medium text-slate-900">{booking.client}</h3>
-                <p className="text-sm text-slate-600">{booking.service}</p>
-              </div>
-              <div className="text-right">
-                <div className="font-bold text-blue-600">€{booking.amount}</div>
-                <div className="text-sm text-slate-500">il y a {booking.time}</div>
-              </div>
-            </div>
+        {kpisQuery.isPending ? (
+          <div className="flex items-center justify-center py-10 text-slate-500 gap-2 text-sm">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            {t("dashboard.loading")}
           </div>
-        ))}
+        ) : null}
+        {recentEmpty}
+        {recentRows}
       </div>
     </div>
   );
@@ -350,6 +405,8 @@ export default function Dashboard() {
   return (
     <div className="p-8">
       {headerBlock}
+      {kpiError}
+      {kpiLoading}
       {kpiCards}
       {periodSelector}
       {chartsGrid}

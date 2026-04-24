@@ -14,10 +14,12 @@
     "test:e2e": "npx dotenvx run -- jest --config ./test/jest-e2e.json",
     "lint": "npx dotenvx run -- eslint \"{src,apps,libs,test}/**/*.ts\"",
     "db:start": "docker compose up -d",
-    "db:update": "npx dotenvx run -f .env -- prisma migrate dev && npx dotenvx run -f .env -- prisma generate",
-    "db:studio": "npx dotenvx run -- prisma studio"
+    "db:migrate": "npx dotenvx run -f .env -f .env.local.development -- prisma migrate deploy",
+    "db:update": "npx dotenvx run -f .env -f .env.local.development -- prisma migrate dev && npx dotenvx run -f .env -f .env.local.development -- prisma generate",
+    "db:studio": "npx dotenvx run -f .env -f .env.local.development -- prisma studio"
   },
   "dependencies": {
+    "@better-auth/utils": "^0.4.0",
     "@nestjs/common": "^11.1.12",
     "@nestjs/core": "^11.1.12",
     "@nestjs/platform-express": "^11.1.12",

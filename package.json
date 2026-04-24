@@ -47,8 +47,8 @@
     "#---------------------------ENV---------------------------------#": "",
     "check-env": "bun run scripts/check-env-all-apps.ts",
     "check-env:watch": "bun run scripts/check-env-all-apps.ts -- --watch",
-    "encrypt-env": "npx dotenvx encrypt -f ./apps/*/.env.production",
-    "decrypt-env": "npx dotenvx decrypt -f ./apps/*/.env.production"
+    "encrypt-env": "npx dotenvx encrypt -f ./apps/*/.env.production ./apps/*/.env.local.development",
+    "decrypt-env": "npx dotenvx decrypt -f ./apps/*/.env.production ./apps/*/.env.local.development"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",

@@ -1,6 +1,8 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Calendar,
@@ -9,6 +11,7 @@ import {
   Package,
   UserCircle,
   LogOut,
+  Euro,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import BookidoLogo from "#/components/BookidoLogo";
@@ -23,13 +26,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "#/components/ui/alert-dialog";
-import { clearAdminAuthBridgeCookie } from "@web/libs/admin-auth-bridge-cookie";
-import { signOut } from "@web/libs/auth-client";
+import { clearAdminAuthBridgeCookie, setAdminAuthBridgeCookie } from "@web/libs/admin-auth-bridge-cookie";
+import { signOut, useSession } from "@web/libs/auth-client";
+import { trpc } from "@web/libs/trpc-client";
 
 const navItems = [
   { path: "/admin", labelId: "nav.dashboard", icon: LayoutDashboard },
   { path: "/admin/calendar", labelId: "nav.calendar", icon: Calendar },
-  { path: "/admin/bookings", labelId: "nav.bookings", icon: NotebookText, badgeCount: 1 },
+  { path: "/admin/bookings", labelId: "nav.bookings", icon: NotebookText },
+  { path: "/admin/revenue", labelId: "nav.revenue", icon: Euro },
   { path: "/admin/users", labelId: "nav.users", icon: Users },
   { path: "/admin/services", labelId: "nav.services", icon: Package },
   { path: "/admin/profile", labelId: "nav.profile", icon: UserCircle },
@@ -37,8 +42,24 @@ const navItems = [
 
 export default function AdminLayout(p: { children: ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
   const t = useTranslations();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { data: sessionPayload, isPending: sessionPending } = useSession();
+  const sessionReady = !sessionPending && Boolean(sessionPayload?.user);
+
+  useEffect(() => {
+    if (sessionPayload?.user) {
+      setAdminAuthBridgeCookie();
+    }
+  }, [sessionPayload?.user]);
+
+  const clientBookingBadgeQuery = trpc.bookings.clientBadgeCount.useQuery(undefined, {
+    enabled: sessionReady,
+    retry: false,
+    staleTime: 20_000,
+    refetchOnWindowFocus: true,
+  });
+  const clientBookingBadgeCount = clientBookingBadgeQuery.data ?? 0;
 
   const handleLogout = async () => {
     try {
@@ -47,8 +68,9 @@ export default function AdminLayout(p: { children: ReactNode }) {
       /* session may already be cleared */
     } finally {
       clearAdminAuthBridgeCookie();
-      router.push("/admin/signin");
-      router.refresh();
+      if (typeof window !== "undefined") {
+        window.location.replace("/admin/signin");
+      }
     }
   };
 
@@ -75,6 +97,7 @@ export default function AdminLayout(p: { children: ReactNode }) {
           <AlertDialogAction
             className="bg-red-600 text-white hover:bg-red-600/90"
             onClick={() => {
+              setIsLoggingOut(true);
               void handleLogout();
             }}
           >
@@ -85,8 +108,19 @@ export default function AdminLayout(p: { children: ReactNode }) {
     </AlertDialog>
   );
 
+  const logoutBlockingOverlay = isLoggingOut ? (
+    <div
+      className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-3 bg-background/85 backdrop-blur-sm"
+      aria-busy
+      aria-live="polite"
+    >
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-300 border-t-blue-600" />
+      <p className="text-sm font-medium text-slate-700">{t("nav.logoutDialog.inProgress")}</p>
+    </div>
+  ) : null;
+
   return (
-    <div className="flex h-screen bg-slate-50">
+    <div className="relative flex h-screen bg-slate-50">
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-slate-200 flex flex-col">
         <div className="p-6 border-b border-slate-200">
@@ -117,11 +151,11 @@ export default function AdminLayout(p: { children: ReactNode }) {
                 >
                   <Icon className="w-5 h-5" />
                   <span className="flex-1">{t(item.labelId)}</span>
-                  {item.badgeCount && item.badgeCount > 0 && (
+                  {item.path === "/admin/bookings" && clientBookingBadgeCount > 0 ? (
                     <span className="min-w-5 h-5 px-1 rounded-full bg-red-600 text-white text-xs font-semibold flex items-center justify-center">
-                      {item.badgeCount}
+                      {clientBookingBadgeCount > 99 ? "99+" : clientBookingBadgeCount}
                     </span>
-                  )}
+                  ) : null}
                 </Link>
               );
             })}
@@ -135,6 +169,7 @@ export default function AdminLayout(p: { children: ReactNode }) {
       <main className="flex-1 overflow-auto">
         {p.children}
       </main>
+      {logoutBlockingOverlay}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
+import { Loader2 } from "lucide-react";
 import { Slot } from "radix-ui";
 
 import { cn } from "@repo/ui/utils/cn";
@@ -21,7 +22,7 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
+        default: "h-11 gap-2 rounded-xl px-6 has-data-[icon=inline-end]:pr-5 has-data-[icon=inline-start]:pl-5",
         xs: "h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
         sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
         lg: "h-9 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
@@ -44,12 +45,41 @@ function Button({
   variant = "default",
   size = "default",
   asChild = false,
+  pending = false,
+  pendingChildren,
+  disabled,
+  children,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
+    /** Shows a spinner, disables the control, sets `aria-busy` (ignored when `asChild` is true). */
+    pending?: boolean;
+    /** When `pending`, replaces the default label (children are not rendered while busy). */
+    pendingChildren?: React.ReactNode;
   }) {
   const Comp = asChild ? Slot.Root : "button";
+  const isBusy = Boolean(pending);
+  const isDisabled = Boolean(disabled) || (isBusy && !asChild);
+
+  const renderContent = () => {
+    if (asChild) {
+      return children;
+    }
+    if (!isBusy) {
+      return children;
+    }
+    const label = pendingChildren !== undefined ? pendingChildren : children;
+    const spinner = (
+      <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
+    );
+    return (
+      <>
+        {spinner}
+        {label}
+      </>
+    );
+  };
 
   return (
     <Comp
@@ -57,8 +87,12 @@ function Button({
       data-variant={variant}
       data-size={size}
       className={cn(buttonVariants({ variant, size, className }))}
+      disabled={asChild ? disabled : isDisabled}
+      aria-busy={!asChild && isBusy ? true : undefined}
       {...props}
-    />
+    >
+      {renderContent()}
+    </Comp>
   );
 }
 

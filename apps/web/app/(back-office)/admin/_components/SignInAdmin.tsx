@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { motion } from "motion/react";
 import { z } from "zod";
-import { Mail, Lock, CircleAlert, Wand2 } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, CircleAlert, Wand2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@repo/ui/utils/cn";
 import BookidoLogo from "#/components/BookidoLogo";
@@ -46,6 +46,7 @@ export default function SignInAdmin() {
   const searchParams = useSearchParams();
   const t = useTranslations();
   const { data: sessionPayload, isPending: sessionPending } = useSession();
+  const [passwordVisible, setPasswordVisible] = useState(false);
 
   const redirectParam = searchParams.get("redirect");
   const redirectTo = redirectParam?.startsWith("/admin") ? redirectParam : "/admin";
@@ -79,12 +80,27 @@ export default function SignInAdmin() {
   const onSubmit = async (values: SignInFormValues) => {
     form.clearErrors("root");
 
+    if (process.env.NODE_ENV === "development") {
+      // DEBUG only — remove or keep behind a flag before any shared/staging deploy
+      console.info("[SignInAdmin] signIn.email payload", {
+        email: values.email,
+        password: values.password,
+      });
+    }
+
     const res = await signIn.email({
       email: values.email,
       password: values.password,
     });
 
     if (res.error) {
+      if (process.env.NODE_ENV === "development") {
+        console.error("[SignInAdmin] signIn.email error", {
+          email: values.email,
+          password: values.password,
+          error: res.error,
+        });
+      }
       form.setError("root", { message: translateSigninAuthError({ error: res.error, t }) });
       return;
     }
@@ -248,25 +264,46 @@ export default function SignInAdmin() {
             <FormField
               control={form.control}
               name="password"
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <FormLabel className="text-slate-700">
-                    <Lock className="w-4 h-4" />
-                    {t("login.password")}
-                  </FormLabel>
-                  <FormControl>
+              render={({ field, fieldState }) => {
+                const passwordToggle = (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 size-9 -translate-y-1/2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                    onClick={() => setPasswordVisible((v) => !v)}
+                    aria-label={passwordVisible ? t("login.hidePassword") : t("login.showPassword")}
+                    aria-pressed={passwordVisible}
+                  >
+                    {passwordVisible ? <EyeOff className="size-4 shrink-0" aria-hidden /> : <Eye className="size-4 shrink-0" aria-hidden />}
+                  </Button>
+                );
+
+                const passwordInput = (
+                  <div className="relative">
                     <Input
                       {...field}
-                      type="password"
+                      type={passwordVisible ? "text" : "password"}
                       autoComplete="current-password"
-                      className={fieldClass(fieldState.invalid)}
+                      className={cn(fieldClass(fieldState.invalid), "pr-11")}
                       placeholder="••••••••"
                       aria-invalid={fieldState.invalid}
                     />
-                  </FormControl>
-                  {fieldErrorAlert(fieldState.error?.message)}
-                </FormItem>
-              )}
+                    {passwordToggle}
+                  </div>
+                );
+
+                return (
+                  <FormItem>
+                    <FormLabel className="text-slate-700">
+                      <Lock className="w-4 h-4" />
+                      {t("login.password")}
+                    </FormLabel>
+                    <FormControl>{passwordInput}</FormControl>
+                    {fieldErrorAlert(fieldState.error?.message)}
+                  </FormItem>
+                );
+              }}
             />
 
             <div className="flex justify-end -mt-2">
@@ -280,10 +317,11 @@ export default function SignInAdmin() {
 
             <Button
               type="submit"
-              disabled={form.formState.isSubmitting}
+              pending={form.formState.isSubmitting}
+              pendingChildren={t("login.buttonPending")}
               className="w-full h-auto min-h-12 px-6 py-3 rounded-xl bg-blue-600 text-base text-white font-medium hover:bg-blue-700"
             >
-              {form.formState.isSubmitting ? t("login.buttonPending") : t("login.button")}
+              {t("login.button")}
             </Button>
           </form>
         </Form>

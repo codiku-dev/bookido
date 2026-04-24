@@ -710,13 +710,13 @@ The validator ensures all required variables are present before the app starts.
 
 The project uses Dotenvx to encrypt environment variables.
 
-This command will encrypt the .env.production file.
+These commands encrypt or decrypt, for each app under `apps/*`, both `.env.production` and `.env.local.development`.
 
 ```bash
 bun run encrypt-env
 ```
 
-This command will decrypt the .env.production file.
+This command decrypts the same files.
 
 ```bash
 bun run decrypt-env

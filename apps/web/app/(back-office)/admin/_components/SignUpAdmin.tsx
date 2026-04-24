@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { motion } from "motion/react";
 import { z } from "zod";
-import { Mail, Lock, User, MailCheck, CircleAlert } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, MailCheck, CircleAlert } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@repo/ui/utils/cn";
 import BookidoLogo from "#/components/BookidoLogo";
@@ -14,8 +14,8 @@ import { Button } from "#/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "#/components/ui/form";
 import { Input } from "#/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "#/components/ui/alert";
-import { signIn, signUp } from "@web/libs/auth-client";
-import { translateSignupAuthError } from "@web/utils/translate-signup-auth-error";
+import { authClient, signIn, signUp } from "@web/libs/auth-client";
+import { isSignupUserAlreadyExistsError, translateSignupAuthError } from "@web/utils/translate-signup-auth-error";
 
 type SignUpFormValues = {
   name: string;
@@ -40,6 +40,7 @@ function getEmailCallbackURL() {
 export default function SignUpAdmin() {
   const t = useTranslations();
   const [emailSent, setEmailSent] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
 
   const signupSchema = useMemo(
     () =>
@@ -69,6 +70,19 @@ export default function SignUpAdmin() {
     });
 
     if (res.error) {
+      if (isSignupUserAlreadyExistsError(res.error)) {
+        const verifyRes = await authClient.sendVerificationEmail({
+          email: values.email,
+          callbackURL: callbackURL || undefined,
+        });
+        if (verifyRes.error) {
+          form.setError("root", { message: translateSignupAuthError({ error: verifyRes.error, t }) });
+          return;
+        }
+        setEmailSent(true);
+        form.reset({ name: "", email: "", password: "" });
+        return;
+      }
       form.setError("root", { message: translateSignupAuthError({ error: res.error, t }) });
       return;
     }
@@ -244,33 +258,55 @@ export default function SignUpAdmin() {
             <FormField
               control={form.control}
               name="password"
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <FormLabel className="text-slate-700">
-                    <Lock className="w-4 h-4" />
-                    {t("signup.password")}
-                  </FormLabel>
-                  <FormControl>
+              render={({ field, fieldState }) => {
+                const passwordToggle = (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 size-9 -translate-y-1/2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                    onClick={() => setPasswordVisible((v) => !v)}
+                    aria-label={passwordVisible ? t("login.hidePassword") : t("login.showPassword")}
+                    aria-pressed={passwordVisible}
+                  >
+                    {passwordVisible ? <EyeOff className="size-4 shrink-0" aria-hidden /> : <Eye className="size-4 shrink-0" aria-hidden />}
+                  </Button>
+                );
+
+                const passwordInput = (
+                  <div className="relative">
                     <Input
                       {...field}
-                      type="password"
+                      type={passwordVisible ? "text" : "password"}
                       autoComplete="new-password"
-                      className={fieldClass(fieldState.invalid)}
+                      className={cn(fieldClass(fieldState.invalid), "pr-11")}
                       placeholder="••••••••"
                       aria-invalid={fieldState.invalid}
                     />
-                  </FormControl>
-                  {fieldErrorAlert(fieldState.error?.message)}
-                </FormItem>
-              )}
+                    {passwordToggle}
+                  </div>
+                );
+
+                return (
+                  <FormItem>
+                    <FormLabel className="text-slate-700">
+                      <Lock className="w-4 h-4" />
+                      {t("signup.password")}
+                    </FormLabel>
+                    <FormControl>{passwordInput}</FormControl>
+                    {fieldErrorAlert(fieldState.error?.message)}
+                  </FormItem>
+                );
+              }}
             />
 
             <Button
               type="submit"
-              disabled={form.formState.isSubmitting}
+              pending={form.formState.isSubmitting}
+              pendingChildren={t("signup.buttonPending")}
               className="w-full h-auto min-h-12 px-6 py-3 rounded-xl bg-blue-600 text-base text-white font-medium hover:bg-blue-700"
             >
-              {form.formState.isSubmitting ? t("signup.buttonPending") : t("signup.button")}
+              {t("signup.button")}
             </Button>
           </form>
         </Form>

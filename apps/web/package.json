@@ -12,10 +12,13 @@
     "start": "npx dotenvx run -f .env.production -- next start",
     "start:prod": "npx dotenvx run -f .env.production -- next start",
     "lint": "npx dotenvx run -f .env.production -- next lint --max-warnings 0",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "test:e2e": "PLAYWRIGHT_HTML_OPEN=never playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.0",
+    "@playwright/mcp": "^0.0.70",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-aspect-ratio": "^1.1.8",
@@ -71,6 +74,7 @@
     "zod": "^3.25.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@repo/eslint-config": "*",
     "@repo/typescript-config": "*",
     "@tailwindcss/postcss": "^4.1.18",

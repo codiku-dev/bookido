@@ -1,4 +1,4 @@
-/** Cookie lu par `middleware.ts` pour protéger `/admin` côté Next (session Better Auth sur l’API). */
+/** Cookie lu par `proxy.ts` pour protéger `/admin` côté Next (session Better Auth sur l’API). */
 const COOKIE_NAME = "admin-authenticated";
 
 export function setAdminAuthBridgeCookie() {

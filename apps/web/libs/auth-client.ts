@@ -23,4 +23,6 @@ export const signUp: WebAuthClient["signUp"] = authClient.signUp;
 export const signOut: WebAuthClient["signOut"] = authClient.signOut;
 export const requestPasswordReset: WebAuthClient["requestPasswordReset"] = authClient.requestPasswordReset;
 export const resetPassword: WebAuthClient["resetPassword"] = authClient.resetPassword;
+export const updateUser: WebAuthClient["updateUser"] = authClient.updateUser;
+export const changePassword: WebAuthClient["changePassword"] = authClient.changePassword;
 export { authClient };

@@ -2,6 +2,7 @@ export type EmailLocale = "en" | "fr";
 
 export const messages: Record<EmailLocale, Record<string, string>> = {
   en: {
+    "email.brand.tagline": "Book simply with a pro.",
     "auth.signup.preview": "Confirm your email to activate your account",
     "auth.signup.heading": "Confirm your email ✨",
     "auth.signup.body.greeting": "Hi {name},",
@@ -24,6 +25,7 @@ export const messages: Record<EmailLocale, Record<string, string>> = {
       "If you did not request a password reset, you can ignore this email.",
   },
   fr: {
+    "email.brand.tagline": "Bookez simplement avec un pro.",
     "auth.signup.preview":
       "Confirme ton e-mail pour activer ton compte",
     "auth.signup.heading": "Confirme ton e-mail ✨",

@@ -1,6 +1,15 @@
 import { initTRPC } from "@trpc/server";
 import { z } from "zod";
 
+/** Mirrors `apps/api` `PROFILE_AVATAR_DATA_URL_MAX_LEN` for client-side procedure typing. */
+const PROFILE_AVATAR_DATA_URL_MAX_LEN = 8_388_608;
+
+const publicBookingSlugSchema = z
+  .string()
+  .min(2)
+  .max(96)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+
 const t = initTRPC.create();
 const publicProcedure = t.procedure;
 
@@ -228,6 +237,572 @@ const appRouter = t.router({
       banned: z.boolean().nullable().optional(),
       banReason: z.string().nullable().optional(),
       banExpires: z.coerce.date().nullable().optional(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+  }),
+  clients: t.router({
+    list: publicProcedure.output(z.array(z.object({
+      id: z.string(),
+      ownerId: z.string(),
+      name: z.string(),
+      email: z.string().email(),
+      phone: z.string(),
+      address: z.string().nullable(),
+      notes: z.string().nullable(),
+      createdAt: z.coerce.date(),
+      updatedAt: z.coerce.date(),
+    }).extend({
+      totalBookings: z.number(),
+      totalSpent: z.number(),
+      status: z.enum(["active", "inactive"]),
+      lastBooking: z.string().nullable(),
+      nextBookingDate: z.string().nullable(),
+      nextBookingService: z.string().nullable(),
+    }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    getById: publicProcedure.input(z.object({ id: z.string() })).output(z.object({
+      id: z.string(),
+      ownerId: z.string(),
+      name: z.string(),
+      email: z.string().email(),
+      phone: z.string(),
+      address: z.string().nullable(),
+      notes: z.string().nullable(),
+      createdAt: z.coerce.date(),
+      updatedAt: z.coerce.date(),
+    }).extend({
+      totalBookings: z.number(),
+      totalSpent: z.number(),
+      status: z.enum(["active", "inactive"]),
+      lastBooking: z.string().nullable(),
+      nextBookingDate: z.string().nullable(),
+      nextBookingService: z.string().nullable(),
+    })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    create: publicProcedure.input(z.object({
+      name: z.string().min(1),
+      email: z.string().email(),
+      phone: z.string().min(1),
+      address: z.string().optional(),
+      notes: z.string().optional(),
+    })).output(z.object({
+      id: z.string(),
+      ownerId: z.string(),
+      name: z.string(),
+      email: z.string().email(),
+      phone: z.string(),
+      address: z.string().nullable(),
+      notes: z.string().nullable(),
+      createdAt: z.coerce.date(),
+      updatedAt: z.coerce.date(),
+    }).extend({
+      totalBookings: z.number(),
+      totalSpent: z.number(),
+      status: z.enum(["active", "inactive"]),
+      lastBooking: z.string().nullable(),
+      nextBookingDate: z.string().nullable(),
+      nextBookingService: z.string().nullable(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    update: publicProcedure.input(z.object({
+      id: z.string(),
+      data: z.object({
+        name: z.string().min(1),
+        email: z.string().email(),
+        phone: z.string().min(1),
+        address: z.string().optional(),
+        notes: z.string().optional(),
+      }).partial(),
+    })).output(z.object({
+      id: z.string(),
+      ownerId: z.string(),
+      name: z.string(),
+      email: z.string().email(),
+      phone: z.string(),
+      address: z.string().nullable(),
+      notes: z.string().nullable(),
+      createdAt: z.coerce.date(),
+      updatedAt: z.coerce.date(),
+    }).extend({
+      totalBookings: z.number(),
+      totalSpent: z.number(),
+      status: z.enum(["active", "inactive"]),
+      lastBooking: z.string().nullable(),
+      nextBookingDate: z.string().nullable(),
+      nextBookingService: z.string().nullable(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    delete: publicProcedure.input(z.object({ id: z.string() })).output(z.object({ id: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+  }),
+  profile: t.router({
+    getCalendarAvailability: publicProcedure.output(z.object({
+      weekHours: z.object({
+        Monday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+        Tuesday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+        Wednesday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+        Thursday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+        Friday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+        Saturday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+        Sunday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+      }),
+      closedSlotKeys: z.array(z.string().regex(/^(sun|mon|tue|wed|thu|fri|sat)-\d{2}:\d{2}$/)),
+    })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    updateCalendarAvailability: publicProcedure.input(z.object({
+      weekHours: z.object({
+        Monday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+        Tuesday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+        Wednesday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+        Thursday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+        Friday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+        Saturday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+        Sunday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+      }),
+      closedSlotKeys: z.array(z.string().regex(/^(sun|mon|tue|wed|thu|fri|sat)-\d{2}:\d{2}$/)),
+    })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    getPublicBookingPresence: publicProcedure.output(z.object({
+      publicBookingSlug: z.string().nullable(),
+      image: z.string().nullable(),
+    })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    updatePublicBookingPresence: publicProcedure.input(z.object({
+      publicBookingSlug: z.union([publicBookingSlugSchema, z.literal("")]).optional(),
+    })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    updateProfileBasics: publicProcedure.input(z.object({
+      name: z.string().min(1).max(200),
+      bio: z.string().max(4000).nullable().optional(),
+    })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    updateProfileAvatar: publicProcedure.input(z.object({
+      /** `null` or `""` removes the avatar; otherwise a `data:image/...` URL or short HTTPS URL. */
+      image: z
+        .union([z.literal(""), z.string().min(1).max(PROFILE_AVATAR_DATA_URL_MAX_LEN)])
+        .nullable(),
+    })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    archiveAccount: publicProcedure.input(z.object({
+      confirmEmail: z.string().email(),
+      password: z.string().optional(),
+    })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+  }),
+  services: t.router({
+    list: publicProcedure.output(z.array(z.object({
+      id: z.string(),
+      userId: z.string(),
+      name: z.string(),
+      description: z.string(),
+      durationMinutes: z.number().int(),
+      price: z.number(),
+      isFree: z.boolean(),
+      packSize: z.number().int(),
+      imageUrl: z.string().nullable(),
+      availableSlotKeys: z.array(z.string()),
+      requiresValidation: z.boolean(),
+      allowsDirectPayment: z.boolean(),
+      createdAt: z.coerce.date(),
+      updatedAt: z.coerce.date(),
+    }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    create: publicProcedure.input(z.object({
+      name: z.string().min(1),
+      description: z.string(),
+      durationMinutes: z.number().int().positive(),
+      price: z.number().nonnegative(),
+      isFree: z.boolean(),
+      packSize: z.number().int().min(1),
+      imageUrl: z.string().nullable().optional(),
+      availableSlotKeys: z.array(z.string()),
+      requiresValidation: z.boolean(),
+      allowsDirectPayment: z.boolean(),
+    })).output(z.object({
+      id: z.string(),
+      userId: z.string(),
+      name: z.string(),
+      description: z.string(),
+      durationMinutes: z.number().int(),
+      price: z.number(),
+      isFree: z.boolean(),
+      packSize: z.number().int(),
+      imageUrl: z.string().nullable(),
+      availableSlotKeys: z.array(z.string()),
+      requiresValidation: z.boolean(),
+      allowsDirectPayment: z.boolean(),
+      createdAt: z.coerce.date(),
+      updatedAt: z.coerce.date(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    update: publicProcedure.input(z.object({
+      id: z.string(),
+      data: z.object({
+        name: z.string().min(1),
+        description: z.string(),
+        durationMinutes: z.number().int().positive(),
+        price: z.number().nonnegative(),
+        isFree: z.boolean(),
+        packSize: z.number().int().min(1),
+        imageUrl: z.string().nullable().optional(),
+        availableSlotKeys: z.array(z.string()),
+        requiresValidation: z.boolean(),
+        allowsDirectPayment: z.boolean(),
+      }).partial(),
+    })).output(z.object({
+      id: z.string(),
+      userId: z.string(),
+      name: z.string(),
+      description: z.string(),
+      durationMinutes: z.number().int(),
+      price: z.number(),
+      isFree: z.boolean(),
+      packSize: z.number().int(),
+      imageUrl: z.string().nullable(),
+      availableSlotKeys: z.array(z.string()),
+      requiresValidation: z.boolean(),
+      allowsDirectPayment: z.boolean(),
+      createdAt: z.coerce.date(),
+      updatedAt: z.coerce.date(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    delete: publicProcedure.input(z.object({ id: z.string() })).output(z.object({ id: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+  }),
+  bookings: t.router({
+    list: publicProcedure.input(z.object({
+      rangeFrom: z.string().datetime().optional(),
+      rangeTo: z.string().datetime().optional(),
+    })).output(z.array(z.object({
+      id: z.string(),
+      ownerId: z.string(),
+      clientId: z.string(),
+      serviceId: z.string(),
+      startsAt: z.coerce.date(),
+      durationMinutes: z.number().int(),
+      price: z.number(),
+      paidAmount: z.number(),
+      status: z.enum(["confirmed", "pending", "cancelled"]),
+      notes: z.string().nullable(),
+      location: z.string(),
+      paymentMethod: z.string(),
+      requiresHostValidation: z.boolean(),
+      hostValidationAccepted: z.boolean(),
+      createdByClient: z.boolean(),
+      createdAt: z.coerce.date(),
+      updatedAt: z.coerce.date(),
+      clientName: z.string(),
+      clientEmail: z.string(),
+      clientPhone: z.string(),
+      serviceName: z.string(),
+      allowsDirectPayment: z.boolean(),
+    }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    getById: publicProcedure.input(z.object({ id: z.string() })).output(z.object({
+      id: z.string(),
+      ownerId: z.string(),
+      clientId: z.string(),
+      serviceId: z.string(),
+      startsAt: z.coerce.date(),
+      durationMinutes: z.number().int(),
+      price: z.number(),
+      paidAmount: z.number(),
+      status: z.enum(["confirmed", "pending", "cancelled"]),
+      notes: z.string().nullable(),
+      location: z.string(),
+      paymentMethod: z.string(),
+      requiresHostValidation: z.boolean(),
+      hostValidationAccepted: z.boolean(),
+      createdByClient: z.boolean(),
+      createdAt: z.coerce.date(),
+      updatedAt: z.coerce.date(),
+      clientName: z.string(),
+      clientEmail: z.string(),
+      clientPhone: z.string(),
+      serviceName: z.string(),
+      allowsDirectPayment: z.boolean(),
+    })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    clientBadgeCount: publicProcedure.output(z.number().int()).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    create: publicProcedure.input(z.object({
+      clientId: z.string(),
+      serviceId: z.string(),
+      startsAt: z.string().datetime(),
+      durationMinutes: z.number().int().positive().optional(),
+      price: z.number().nonnegative().optional(),
+      paidAmount: z.number().nonnegative().optional(),
+      status: z.enum(["confirmed", "pending", "cancelled"]),
+      notes: z.string().optional(),
+      location: z.string().optional(),
+      paymentMethod: z.string().optional(),
+      /** Set true only from client-facing booking APIs; admin UI must omit (defaults to false). */
+      createdByClient: z.boolean().optional(),
+    })).output(z.object({
+      id: z.string(),
+      ownerId: z.string(),
+      clientId: z.string(),
+      serviceId: z.string(),
+      startsAt: z.coerce.date(),
+      durationMinutes: z.number().int(),
+      price: z.number(),
+      paidAmount: z.number(),
+      status: z.enum(["confirmed", "pending", "cancelled"]),
+      notes: z.string().nullable(),
+      location: z.string(),
+      paymentMethod: z.string(),
+      requiresHostValidation: z.boolean(),
+      hostValidationAccepted: z.boolean(),
+      createdByClient: z.boolean(),
+      createdAt: z.coerce.date(),
+      updatedAt: z.coerce.date(),
+      clientName: z.string(),
+      clientEmail: z.string(),
+      clientPhone: z.string(),
+      serviceName: z.string(),
+      allowsDirectPayment: z.boolean(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    update: publicProcedure.input(z.object({
+      id: z.string(),
+      data: z.object({
+        status: z.enum(["confirmed", "pending", "cancelled"]).optional(),
+        paidAmount: z.number().nonnegative().optional(),
+        notes: z.string().optional(),
+        startsAt: z.string().datetime().optional(),
+        durationMinutes: z.number().int().positive().optional(),
+        hostValidationAccepted: z.boolean().optional(),
+      }),
+    })).output(z.object({
+      id: z.string(),
+      ownerId: z.string(),
+      clientId: z.string(),
+      serviceId: z.string(),
+      startsAt: z.coerce.date(),
+      durationMinutes: z.number().int(),
+      price: z.number(),
+      paidAmount: z.number(),
+      status: z.enum(["confirmed", "pending", "cancelled"]),
+      notes: z.string().nullable(),
+      location: z.string(),
+      paymentMethod: z.string(),
+      requiresHostValidation: z.boolean(),
+      hostValidationAccepted: z.boolean(),
+      createdByClient: z.boolean(),
+      createdAt: z.coerce.date(),
+      updatedAt: z.coerce.date(),
+      clientName: z.string(),
+      clientEmail: z.string(),
+      clientPhone: z.string(),
+      serviceName: z.string(),
+      allowsDirectPayment: z.boolean(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    delete: publicProcedure.input(z.object({ id: z.string() })).output(z.object({ id: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    markBookingsListViewed: publicProcedure.input(z.object({})).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+  }),
+  dashboard: t.router({
+    overview: publicProcedure.input(z.object({
+      chartPeriod: z.enum(["weekly", "monthly", "yearly", "custom"]),
+      customFrom: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/)
+        .optional(),
+      customTo: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/)
+        .optional(),
+    })).output(z.object({
+      kpis: z.object({
+        totalRevenue: z.number(),
+        revenueThisMonth: z.number(),
+        revenueTrendPercent: z.number().nullable(),
+        clientsTotal: z.number().int(),
+        clientsNewThisMonth: z.number().int(),
+        clientsTrendPercent: z.number().nullable(),
+        bookingsThisMonth: z.number().int(),
+        bookingsTrendPercent: z.number().nullable(),
+      }),
+      revenueSeries: z.array(
+        z.object({
+          periodKey: z.string(),
+          revenue: z.number(),
+        }),
+      ),
+      salesSeries: z.array(
+        z.object({
+          periodKey: z.string(),
+          sales: z.number(),
+        }),
+      ),
+      recentBookings: z.array(z.object({
+        id: z.string(),
+        clientName: z.string(),
+        serviceName: z.string(),
+        amount: z.number(),
+        createdAt: z.coerce.date(),
+      })),
+    })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    revenueMonths: publicProcedure.input(z.object({
+      limitMonths: z.number().int().min(1).max(36).default(24),
+    })).output(z.array(z.object({
+      year: z.number().int(),
+      month: z.number().int().min(1).max(12),
+      revenue: z.number(),
+      bookingsCount: z.number().int(),
+      growthPercent: z.number().nullable(),
+    }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    revenueMonthBookings: publicProcedure.input(z.object({
+      year: z.number().int(),
+      month: z.number().int().min(1).max(12),
+    })).output(z.array(z.object({
+      id: z.string(),
+      clientName: z.string(),
+      serviceName: z.string(),
+      startsAt: z.coerce.date(),
+      price: z.number(),
+      paidAmount: z.number(),
+      amount: z.number(),
+      status: z.enum(["confirmed", "pending", "cancelled"]),
+    }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+  }),
+  publicBooking: t.router({
+    getStorefront: publicProcedure.input(z.object({
+      coachSlug: z
+        .string()
+        .min(2)
+        .max(96)
+        .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "INVALID_SLUG_FORMAT"),
+      rangeFrom: z.string().datetime(),
+      rangeTo: z.string().datetime(),
+    })).output(z.object({
+      coach: z.object({
+        name: z.string(),
+        bio: z.string().nullable(),
+        imageUrl: z.string().nullable(),
+      }),
+      weekHours: z.object({
+        Monday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+        Tuesday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+        Wednesday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+        Thursday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+        Friday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+        Saturday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+        Sunday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+      }),
+      closedSlotKeys: z.array(z.string()),
+      services: z.array(z.object({
+        id: z.string(),
+        name: z.string(),
+        description: z.string(),
+        imageUrl: z.string().nullable(),
+        durationMinutes: z.number().int(),
+        price: z.number(),
+        isFree: z.boolean(),
+        requiresValidation: z.boolean(),
+      })),
+      bookingSegments: z.array(z.object({
+        startsAt: z.string().datetime(),
+        durationMinutes: z.number().int(),
+        status: z.string(),
+      })),
+    })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    request: publicProcedure.input(z.object({
+      coachSlug: z
+        .string()
+        .min(2)
+        .max(96)
+        .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "INVALID_SLUG_FORMAT"),
+      serviceId: z.string().uuid(),
+      startsAt: z.string().datetime(),
+      clientName: z.string().min(1).max(200),
+      clientEmail: z.string().email().max(320),
+      clientPhone: z.string().max(80).optional(),
+    })).output(z.object({
+      id: z.string(),
+      ownerId: z.string(),
+      clientId: z.string(),
+      serviceId: z.string(),
+      startsAt: z.coerce.date(),
+      durationMinutes: z.number().int(),
+      price: z.number(),
+      paidAmount: z.number(),
+      status: z.enum(["confirmed", "pending", "cancelled"]),
+      notes: z.string().nullable(),
+      location: z.string(),
+      paymentMethod: z.string(),
+      requiresHostValidation: z.boolean(),
+      hostValidationAccepted: z.boolean(),
+      createdByClient: z.boolean(),
+      createdAt: z.coerce.date(),
+      updatedAt: z.coerce.date(),
+      clientName: z.string(),
+      clientEmail: z.string(),
+      clientPhone: z.string(),
+      serviceName: z.string(),
+      allowsDirectPayment: z.boolean(),
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   })
 });

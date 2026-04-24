@@ -1,0 +1,5 @@
+---
+alwaysApply: true
+---
+
+Utilise hook form et zod resolver pour les form

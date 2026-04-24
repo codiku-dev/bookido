@@ -179,14 +179,17 @@
       "subtitle": "Bookez simplement avec un pro"
     },
     "hero": {
-      "badge": "Coach personnel certifié",
-      "description": "Transformez votre parcours fitness avec des programmes d'entraînement personnalisés selon vos objectifs.",
-      "imageAlt": "Sarah Johnson - Coach personnel",
-      "subtitle": "Coach personnel certifié • Disponible 7j/7 • Résultats garantis",
+      "badge": "Professionnel indépendant",
+      "description": "Réservez vos rendez-vous en ligne en quelques étapes. Choisissez un créneau qui vous convient.",
+      "imageAlt": "Prestataire",
+      "subtitle": "Professionnel qualifié • Horaires souples • Un service fiable",
       "cta": "Réserver maintenant"
     },
     "services": {
       "title": "Choisissez votre service",
+      "loadError": "Impossible de charger les services. Réessayez plus tard.",
+      "empty": "Aucun service n’est encore disponible pour la réservation en ligne.",
+      "durationMinutes": "{minutes} min",
       "items": {
         "personalTraining": {
           "name": "Coaching sportif individuel",
@@ -215,13 +218,27 @@
       "unavailable": "Indisponible",
       "selectedLabel": "Sélectionné",
       "days": {
-        "mon": { "short": "Lun" },
-        "tue": { "short": "Mar" },
-        "wed": { "short": "Mer" },
-        "thu": { "short": "Jeu" },
-        "fri": { "short": "Ven" },
-        "sat": { "short": "Sam" },
-        "sun": { "short": "Dim" }
+        "mon": {
+          "short": "Lun"
+        },
+        "tue": {
+          "short": "Mar"
+        },
+        "wed": {
+          "short": "Mer"
+        },
+        "thu": {
+          "short": "Jeu"
+        },
+        "fri": {
+          "short": "Ven"
+        },
+        "sat": {
+          "short": "Sam"
+        },
+        "sun": {
+          "short": "Dim"
+        }
       }
     },
     "mobile": {
@@ -234,6 +251,34 @@
       "slots": "Créneaux",
       "total": "Total"
     },
+    "booking": {
+      "coachSectionLabel": "Votre professionnel",
+      "coachBioFallback": "Aucune bio n’a encore été ajoutée.",
+      "calendarTitle": "Choisissez un horaire",
+      "pickSlotSubtitle": "Choisissez l’heure de début de votre séance. Les créneaux indisponibles correspondent au calendrier du coach.",
+      "invalidSlugTitle": "Ce lien de réservation n’est pas valide.",
+      "coachNotFoundTitle": "Nous n’avons trouvé aucun coach à cette adresse.",
+      "coachNotFoundHint": "Vérifiez le lien envoyé par votre coach ou demandez-lui son URL publique de réservation.",
+      "weekPrev": "Semaine précédente",
+      "weekNext": "Semaine suivante",
+      "durationLabel": "{minutes} min",
+      "free": "Gratuit",
+      "clientName": "Nom complet",
+      "clientEmail": "E-mail",
+      "clientPhone": "Téléphone (optionnel)",
+      "submit": "Confirmer la réservation",
+      "submitting": "Envoi…",
+      "detailsTitle": "Vos coordonnées",
+      "continueToDetails": "Continuer",
+      "slotTaken": "Ce créneau n’est plus disponible. Choisissez un autre horaire.",
+      "error": "La réservation n’a pas pu être enregistrée. Réessayez.",
+      "noEnabledDays": "Aucun jour d’ouverture n’est configuré pour cette semaine.",
+      "noVisibleSlots": "Aucun horaire réservable n’apparaît cette semaine pour ce coach.",
+      "validation": {
+        "name": "Indiquez votre nom.",
+        "email": "Saisissez une adresse e-mail valide."
+      }
+    },
     "confirmation": {
       "title": "Merci !",
       "successMessage": "Votre réservation pour {service} a bien été prise en compte.",
@@ -242,12 +287,112 @@
     },
     "footer": {
       "copyright": "© 2026 Sarah Johnson Coaching. Propulsé par Bookido. Tous droits réservés."
+    },
+    "home": {
+      "slugIntro": "Chaque professionnel a un lien de réservation public. Ouvrez le vôtre avec le segment que votre coach vous a communiqué, par exemple votredomaine.com/nom-du-coach/services.",
+      "slugExample": "Exemple : bookido.com/jonathan-malro-coach/services",
+      "adminSignIn": "Coach ou équipe ? Connexion à l’administration"
+    },
+    "landing": {
+      "nav": {
+        "howItWorks": "Comment ça marche",
+        "pricing": "Prix",
+        "try": "Essayer",
+        "signIn": "Se connecter",
+        "adminAccess": "Accéder à l'admin"
+      },
+      "hero": {
+        "badge": "La planification pour les indépendants",
+        "titleBefore": "Transformez le temps libre en",
+        "titleAccent": "temps réservé",
+        "subtitle": "La façon simple de recevoir des réservations et vos paiements. (Pour les indépendants)",
+        "ctaScroll": "Essayer maintenant",
+        "urlHint": "bookido.com/marc-dupont",
+        "mockDateEyebrow": "Choisir une date",
+        "mockDateTitle": "Quand ?",
+        "mockServiceEyebrow": "Choisis ton service",
+        "mockServiceTitle": "Quoi ?",
+        "mockService1": "Coaching course",
+        "mockSelectedServiceLong": "Renforcement musculaire 1H",
+        "mockPaymentEyebrow": "Paiement sécurisé",
+        "mockPaymentSubtitle": "Paiement instantané",
+        "mockPaymentPrice": "45 €",
+        "mockPaymentTotal": "Total",
+        "mockPaymentCardStripe": "Carte · ···· 4242",
+        "mockPayButton": "Payer",
+        "mockScheduleEyebrow": "Planning",
+        "mockScheduleTitle": "Suivez vos réservations",
+        "mockPlanListHint": "Cette semaine",
+        "mockPlanRow1When": "mar. · 09:30",
+        "mockPlanRow1Label": "Coaching course",
+        "mockPlanRow2When": "mer. · 11:00",
+        "mockPlanRow2Label": "Sophie L. — bilan",
+        "mockPlanRow3When": "jeu. · 14:30",
+        "mockPlanRow3Label": "Renforcement musculaire 1H",
+        "mockDashboardEyebrow": "Tableau de bord",
+        "mockDashboardTitle": "Activité & revenus",
+        "mockDashboardKpi1": "Séances",
+        "mockDashboardKpi2": "Revenus",
+        "mockDashboardKpi3": "Taux",
+        "mockDashboardRevenueValue": "1,2 k€",
+        "mockAriaFlow": "Aperçu animé : date, service, paiement, planning et tableau de bord."
+      },
+      "pillars": {
+        "heading": "Comment ça marche",
+        "one": {
+          "title": "Partagez le lien",
+          "body": "Une URL claire : vos clients arrivent sur vos offres et réservent en quelques clics."
+        },
+        "two": {
+          "title": "Recevez vos paiements",
+          "body": "Encaissez au fil des confirmations, sans perdre le fil entre devis et séance."
+        },
+        "three": {
+          "title": "Suivez vos réservations",
+          "body": "Qui, quoi, quand : tout votre planning lisible au même endroit."
+        }
+      },
+      "pricing": {
+        "eyebrow": "Tarifs",
+        "title": "Des formules lisibles",
+        "subtitle": "Commencez gratuitement, passez à Pro quand votre agenda se remplit.",
+        "starter": {
+          "name": "Starter",
+          "price": "0 €",
+          "per": "/ mois",
+          "desc": "Pour les indépendants qui lancent la réservation en ligne.",
+          "f1": "Page publique de réservation",
+          "f2": "Services & calendrier",
+          "f3": "Confirmations par e-mail"
+        },
+        "pro": {
+          "badge": "Le plus choisi",
+          "name": "Pro",
+          "price": "29 €",
+          "per": "/ mois",
+          "desc": "Quand vous voulez tout le flux, sans plafond artificiel.",
+          "f1": "Acceptez les paiements en direct",
+          "f2": "Historique des réservations",
+          "f3": "Dashboard admin : clients, services, calendrier",
+          "f4": "Accès à l’app mobile de suivi en temps réel"
+        }
+      },
+      "ctaBand": {
+        "title": "Prêt quand vous l’êtes",
+        "subtitle": "Créez votre page publique, partagez votre lien, et laissez Bookido porter l’histoire de la planification.",
+        "button": "Essayer maintenant"
+      },
+      "footer": {
+        "tagline": "Bookez simplement avec un pro.",
+        "rights": "© 2026 Bookido"
+      }
     }
   },
   "ClientForm": {
     "address": "Adresse",
     "cancel": "Annuler",
     "create": "Créer le client",
+    "devFill": "Remplissage dev",
     "email": "E-mail",
     "name": "Nom",
     "notes": {
@@ -263,7 +408,12 @@
     },
     "save": "Enregistrer",
     "title": {
-      "create": "Créer un nouveau client"
+      "create": "Créer un nouveau client",
+      "edit": "Modifier le client"
+    },
+    "validation": {
+      "required": "Ce champ est obligatoire",
+      "emailInvalid": "Saisissez une adresse e-mail valide"
     }
   },
   "address": "Address",
@@ -286,11 +436,18 @@
         "occupied": "Occupé",
         "unavailable": "Indispo",
         "selectedSlot": "Créneau sélectionné : {day} {date} à {time}"
-      }
+      },
+      "toast": {
+        "success": "Réservation mise à jour.",
+        "error": "Impossible de mettre à jour la réservation."
+      },
+      "notFound": "Cette réservation est introuvable."
     },
     "list": {
       "title": "Réservations",
       "subtitle": "Suivez et gérez toutes les réservations à venir et passées",
+      "loading": "Chargement des réservations…",
+      "new": "Réservation",
       "search": {
         "placeholder": "Rechercher par client, prestation ou montant"
       },
@@ -314,15 +471,42 @@
       },
       "payment": {
         "paid": "Payé",
+        "partial": "Partiellement payé",
         "unpaid": "Non payé"
       },
       "filter": {
         "dateFrom": "Du",
         "dateTo": "Au"
+      },
+      "loadError": "Impossible de charger les réservations. Réessayez.",
+      "empty": {
+        "title": "Aucune réservation pour le moment",
+        "description": "Créez une réservation depuis le planning ou ajoutez-en une manuellement — elle apparaîtra ici.",
+        "cta": "Nouvelle réservation"
+      },
+      "emptyFiltered": {
+        "title": "Aucune réservation ne correspond à vos filtres",
+        "description": "Modifiez la recherche, le paiement, le statut ou la plage de dates.",
+        "clear": "Réinitialiser les filtres"
       }
     },
     "detail": {
-      "actions": "Actions",
+      "notFound": "Cette réservation n'existe pas ou a été supprimée.",
+      "moreActions": "Ouvrir les actions de la réservation",
+      "validationPending": {
+        "message": "Cette réservation est en attente de validation.",
+        "accept": "Accepter la réservation"
+      },
+      "markAwaitingValidation": "Passer en attente de validation",
+      "markPaid": {
+        "menu": "Marquer comme payé",
+        "title": "Enregistrer un paiement",
+        "amountLabel": "Montant reçu (€)",
+        "hint": "Reste à payer : €{remaining}",
+        "submit": "Confirmer le paiement",
+        "invalid": "Indiquez un montant valide.",
+        "tooHigh": "Ce montant dépasse le reste à payer."
+      },
       "amount": "Montant",
       "cancel": "Annuler la réservation",
       "cancelConfirm": {
@@ -333,7 +517,6 @@
         "info": "Informations client"
       },
       "contact": "Contacter",
-      "createdAt": "Réservée le",
       "date": {
         "time": "Heure"
       },
@@ -342,22 +525,84 @@
       "payment": {
         "info": "Paiement",
         "method": "Moyen de paiement",
-        "status": "Statut du paiement"
+        "status": "Statut du paiement",
+        "total": "Total",
+        "paidSoFar": "Déjà payé",
+        "remaining": "Reste à payer",
+        "directTitle": "Paiement sur place / direct",
+        "directYes": "Autorisé pour cette réservation",
+        "directNo": "Non activé pour cette réservation"
       },
       "reschedule": "Re-plannifier",
       "service": "Prestation",
       "title": "Détail de la réservation",
       "clientLabel": "Client"
+    },
+    "create": {
+      "title": "Créer une réservation",
+      "subtitle": "Ajoutez une nouvelle réservation depuis l'admin.",
+      "back": "Retour aux réservations",
+      "devFill": "Remplissage dev",
+      "submit": "Créer la réservation",
+      "toast": {
+        "created": "Réservation créée"
+      },
+      "placeholders": {
+        "client": "Sélectionnez un client",
+        "service": "Sélectionnez une prestation",
+        "notes": "Notes optionnelles pour cette réservation..."
+      },
+      "validation": {
+        "clientRequired": "Le client est obligatoire.",
+        "serviceRequired": "La prestation est obligatoire.",
+        "dateRequired": "La date est obligatoire.",
+        "timeRequired": "L'heure est obligatoire.",
+        "amountRequired": "Le montant est obligatoire.",
+        "amountNumber": "Le montant doit être un nombre valide."
+      }
     }
   },
   "calendar": {
+    "contextMenu": {
+      "open": "Ouvrir",
+      "reschedule": "Reprogrammer",
+      "delete": "Supprimer"
+    },
+    "deleteBookingDialog": {
+      "title": "Supprimer cette réservation ?",
+      "description": "La réservation de {client} pour « {service} » sera supprimée définitivement.",
+      "cancel": "Annuler",
+      "confirm": "Supprimer"
+    },
+    "toast": {
+      "bookingCreated": "Réservation créée.",
+      "bookingCreateError": "Impossible de créer la réservation.",
+      "bookingDeleted": "Réservation supprimée.",
+      "bookingDeleteError": "Impossible de supprimer la réservation.",
+      "clientCreated": "Client créé.",
+      "clientCreateError": "Impossible de créer le client."
+    },
     "availability": {
-      "instruction": "Cliquez sur un créneau pour ouvrir ou fermer la disponibilité"
+      "sectionTitle": "Horaires d'ouverture et disponibilité",
+      "instruction": "Cliquez sur un créneau pour l'ouvrir ou le fermer (dans vos heures d'ouverture).",
+      "loading": "Chargement du calendrier…",
+      "saved": "Disponibilités enregistrées.",
+      "saveError": "Impossible d'enregistrer les disponibilités. Réessayez.",
+      "manualClosedSlotHint": "Mettez à jour les disponibilités pour modifier ce créneau (bouton « Définir les disponibilités »).",
+      "saveHint": "En quittant le mode disponibilité, vos horaires et créneaux fermés sont enregistrés automatiquement.",
+      "noEnabledDays": "Activez au moins un jour dans les horaires d'ouverture pour afficher la grille.",
+      "noVisibleSlots": "Aucun créneau n'est ouvert sur cette semaine : élargissez vos horaires ou rouvrez des créneaux en mode disponibilité.",
+      "bookingConflictTitle": "Réservations sur ce créneau",
+      "bookingConflictDescription": "Impossible de fermer ce créneau tant que ces réservations y sont prévues :",
+      "bookingConflictOpen": "Ouvrir la réservation",
+      "bookingConflictLine": "{client} — {service} ({timeRange})"
     },
     "create": {
       "bookingTitle": "Réservation",
       "newClient": "Créer un nouveau client",
-      "submit": "Créer la réservation"
+      "submit": "Créer la réservation",
+      "serviceUnavailableBetween": "Vous n'êtes pas disponible entre {from} et {to}.",
+      "serviceUnavailableEndOfSchedule": "Pas assez de temps libre consécutif avant la fin des créneaux affichés pour cette prestation."
     },
     "define": {
       "availability": "Définir les disponibilités"
@@ -367,7 +612,8 @@
     },
     "hours": {
       "closed": "Fermé",
-      "opening": "Horaires d'ouverture"
+      "opening": "Horaires d'ouverture",
+      "outsideSlotHint": "Mettez à jour les horaires d'ouverture pour libérer ou modifier ce créneau."
     },
     "weekday": {
       "monday": "Lundi",
@@ -407,7 +653,10 @@
       "service": "Service"
     },
     "subtitle": "Gérez vos rendez-vous et vos disponibilités hebdomadaires",
-    "title": "Planning"
+    "title": "Planning",
+    "rescheduleMode": {
+      "openSlotHover": "Cliquez pour reprogrammer à ce créneau."
+    }
   },
   "cancel": "Cancel",
   "dashboard": {
@@ -474,7 +723,8 @@
       "yearly": "Annuel"
     },
     "recent": {
-      "bookings": "Réservations récentes"
+      "bookings": "Réservations récentes",
+      "empty": "Aucune réservation pour le moment. Elles apparaîtront ici après création."
     },
     "revenue": {
       "month": "Revenus du mois",
@@ -483,20 +733,44 @@
     },
     "revenueHistory": {
       "title": "Historique des revenus",
-      "subtitle": "Consultez l'évolution des revenus mois par mois",
+      "subtitle": "Revenus mensuels à partir des réservations confirmées ou en attente (date du rendez-vous). Cliquez sur une ligne pour le détail.",
+      "clickHint": "Cliquez sur un mois pour voir toutes les réservations et les montants.",
+      "loading": "Chargement des revenus…",
+      "loadError": "Impossible de charger les revenus. Veuillez réessayer.",
+      "empty": "Aucune donnée pour cette période.",
+      "detailEmpty": "Aucune réservation ce mois-ci.",
+      "sheetTitle": "Réservations de {month}",
+      "openBooking": "Ouvrir",
       "columns": {
         "month": "Mois",
         "revenue": "Revenu",
-        "growth": "Variation",
-        "bookings": "Réservations"
+        "growth": "vs mois précédent",
+        "bookings": "Réservations facturables"
+      },
+      "detailColumns": {
+        "date": "Date",
+        "client": "Client",
+        "service": "Service",
+        "price": "Prix affiché",
+        "paid": "Payé",
+        "amount": "Montant",
+        "status": "Statut"
+      },
+      "status": {
+        "confirmed": "Confirmée",
+        "pending": "En attente",
+        "cancelled": "Annulée"
       }
     },
     "sales": {
       "month": "Ventes du mois"
     },
     "title": "Tableau de bord",
+    "greeting": "👋 {name}",
+    "loading": "Chargement du tableau de bord…",
+    "loadError": "Impossible de charger le tableau de bord. Veuillez réessayer.",
     "total": {
-      "users": "Users"
+      "users": "Clients"
     },
     "users": {
       "month": "ce mois"
@@ -517,6 +791,8 @@
     "email": "Email",
     "emailPlaceholder": "admin@exemple.com",
     "password": "Mot de passe",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe",
     "title": "Bookido Admin",
     "subtitle": "Accédez à votre espace administrateur",
     "orContinueWith": "Ou continuer avec",
@@ -527,7 +803,7 @@
       "title": "Une erreur s'est produite",
       "generic": "La connexion a échoué. Veuillez réessayer.",
       "invalidCredentials": "E-mail ou mot de passe incorrect.",
-      "emailNotVerified": "Veuillez confirmer votre e-mail avant de vous connecter.",
+      "emailNotVerified": "Cet e-mail n’est pas vérifié. Ouvrez le lien de confirmation dans votre boîte de réception.",
       "rateLimited": "Trop de tentatives. Patientez un instant puis réessayez.",
       "accountBlocked": "Ce compte ne peut pas se connecter."
     },
@@ -628,6 +904,7 @@
     "dashboard": "Tableau de bord",
     "calendar": "Planning",
     "bookings": "Réservations",
+    "revenue": "Revenus",
     "users": "Clients",
     "services": "Services",
     "profile": "Profil",
@@ -636,7 +913,8 @@
       "title": "Se déconnecter ?",
       "description": "Vous devrez vous reconnecter pour accéder à l’administration.",
       "confirm": "Se déconnecter",
-      "cancel": "Rester connecté"
+      "cancel": "Rester connecté",
+      "inProgress": "Déconnexion…"
     }
   },
   "notes": {
@@ -645,7 +923,8 @@
   "phone": "Phone",
   "profile": {
     "bio": {
-      "placeholder": "Décrivez votre activité, vos spécialités et votre approche"
+      "placeholder": "Décrivez votre activité, vos spécialités et votre approche",
+      "publicHint": "Cette description s’affiche sur vos pages de réservation publiques (liste des prestations et parcours de réservation) lorsque vos clients ouvrent votre lien."
     },
     "billing": {
       "cancel": {
@@ -706,20 +985,39 @@
       }
     },
     "danger": {
-      "warning": "Cette action est définitive. Toutes vos données seront supprimées.",
+      "warning": "L'archivage désactive votre compte : vous ne pourrez plus vous connecter. Les données sont conservées pour une éventuelle réactivation.",
       "zone": "Zone dangereuse"
     },
     "delete": {
-      "account": "Supprimer le compte"
+      "account": "Archiver le compte"
+    },
+    "archive": {
+      "title": "Archiver ce compte ?",
+      "description": "Vous serez déconnecté immédiatement et ne pourrez plus vous connecter avec ce compte.",
+      "confirmEmailLabel": "Saisissez votre e-mail pour confirmer",
+      "passwordLabel": "Mot de passe actuel",
+      "passwordHint": "Obligatoire si vous vous connectez par e-mail et mot de passe.",
+      "cancel": "Annuler",
+      "submit": "Archiver mon compte",
+      "errors": {
+        "CONFIRM_EMAIL_MISMATCH": "L'e-mail ne correspond pas à votre compte.",
+        "PASSWORD_REQUIRED": "Saisissez votre mot de passe actuel pour confirmer.",
+        "INVALID_PASSWORD": "Mot de passe incorrect.",
+        "ALREADY_ARCHIVED": "Ce compte est déjà archivé.",
+        "generic": "Une erreur s'est produite. Réessayez."
+      }
     },
     "email": "Email",
+    "emailReadOnlyHelp": "L'e-mail ne peut pas être modifié depuis cet écran.",
     "full": {
       "name": "Nom complet"
     },
     "information": "Information",
     "language": "Langue",
     "notifications": {
-      "desc": "Recevoir les nouvelles réservations et rappels par email"
+      "desc": "Recevoir les nouvelles réservations et rappels par email",
+      "notPersistedHint": "Ce réglage n'est pas encore enregistré — bientôt disponible.",
+      "toggleAriaLabel": "Activer ou désactiver les notifications par email"
     },
     "password": {
       "confirm": "Confirmer le mot de passe",
@@ -731,19 +1029,61 @@
     },
     "preferences": "Préférences",
     "save": {
-      "changes": "Enregistrer les modifications"
+      "changes": "Enregistrer les modifications",
+      "pending": "Enregistrement…"
     },
     "saved": "Modifications enregistrées",
+    "toast": {
+      "profileUpdated": "Profil mis à jour",
+      "passwordUpdated": "Mot de passe mis à jour"
+    },
+    "errors": {
+      "profileUpdate": "Impossible d'enregistrer le profil.",
+      "passwordUpdate": "Impossible de mettre à jour le mot de passe.",
+      "generic": "Une erreur s'est produite."
+    },
+    "validation": {
+      "nameRequired": "Le nom est obligatoire"
+    },
+    "loading": "Chargement du profil…",
+    "sessionRequired": "Vous devez être connecté pour afficher cette page.",
     "subtitle": "Mettez à jour vos informations, préférences et sécurité",
     "title": "Profil",
     "bioTitle": "Bio / Description",
     "passwordTitle": "Changer le mot de passe",
-    "notificationsTitle": "Notifications par email"
+    "notificationsTitle": "Notifications par email",
+    "publicBooking": {
+      "title": "Lien de réservation public",
+      "subtitle": "Vos clients utilisent cette adresse pour réserver avec vous.",
+      "slugLabel": "Segment d’URL",
+      "slugHelp": "Lettres minuscules, chiffres et tirets uniquement. Exemple : jonathan-malro-coach",
+      "slugSave": "Enregistrer l’URL",
+      "publicUrl": "Votre lien public",
+      "imageLabel": "Photo de profil",
+      "imageClickToUpload": "Cliquez pour envoyer une photo",
+      "imageHelp": "Affichée sur votre page de réservation pour que les clients sachent avec qui ils réservent.",
+      "imageFileHint": "Choisissez une image sur votre appareil (PNG, JPEG, WebP, etc.). Taille maximale 5 Mo.",
+      "imageInvalidType": "Veuillez sélectionner un fichier image valide.",
+      "imageTooLarge": "L’image doit faire 5 Mo maximum.",
+      "imagePreviewAlt": "Aperçu de la photo de profil",
+      "imagePreviewReady": "Image prête à être enregistrée.",
+      "imageRemove": "Retirer la photo",
+      "imageSave": "Enregistrer la photo",
+      "toastSlugSaved": "URL de réservation mise à jour",
+      "toastImageSaved": "Photo de profil mise à jour",
+      "errors": {
+        "reserved": "Cette URL est réservée. Choisissez-en une autre.",
+        "taken": "Cette URL est déjà utilisée.",
+        "generic": "Impossible d’enregistrer l’URL."
+      }
+    }
   },
   "services": {
     "availability": {
-      "instructions": "Cliquez ou glissez sur les créneaux pour définir vos disponibilités."
+      "instructions": "Cliquez ou glissez sur les créneaux pour définir vos disponibilités.",
+      "readOnlyInstructions": "Affiche selon votre planning et vos horaires d'ouverture. Modifiez-le dans les reglages Calendrier."
     },
+    "devFill": "Remplissage dev",
     "description": "Description",
     "duration": "Durée",
     "free": "Gratuit",
@@ -759,6 +1099,11 @@
       }
     },
     "imageUrl": "URL de l'image",
+    "imageInput": {
+      "hint": "Uploadez une image pour ce service.",
+      "previewAlt": "Apercu de l'image du service selectionnee",
+      "previewReady": "Image selectionnee."
+    },
     "minutes": "Minutes",
     "mock": {
       "freeConsultation": {
@@ -790,11 +1135,56 @@
       },
       "validationTitle": "Nécessite validation"
     },
+    "directPayment": {
+      "title": "Paiement sur place / direct",
+      "desc": "Le client peut vous régler sur place (espèces, TPE, etc.) lors de la réservation de cette prestation."
+    },
+    "paymentType": {
+      "label": "Paiement :",
+      "direct": "sur place / direct",
+      "card": "par carte (en ligne)"
+    },
     "save": "Enregistrer",
+    "actions": {
+      "openMenu": "Ouvrir le menu du service",
+      "duplicate": "Dupliquer"
+    },
     "sessions": "séances",
     "subtitle": "Créez et gérez vos prestations, tarifs et disponibilités",
     "title": "Services",
-    "availabilityTitle": "Disponibilité"
+    "availabilityTitle": "Disponibilité",
+    "durationValue": "{minutes} min",
+    "loading": "Chargement des services…",
+    "emptyList": {
+      "title": "Aucun service pour le moment",
+      "description": "Créez une prestation avec tarif, durée, visuel et créneaux de disponibilité pour la réservation en ligne.",
+      "cta": "Créer votre premier service"
+    },
+    "deleteConfirm": {
+      "title": "Supprimer ce service ?",
+      "description": "Cette action est irréversible. « {name} » sera retiré de votre catalogue.",
+      "confirm": "Supprimer",
+      "cancel": "Annuler"
+    },
+    "errors": {
+      "load": "Impossible de charger les services. Veuillez réessayer.",
+      "save": "Impossible d'enregistrer le service. Veuillez réessayer.",
+      "delete": "Impossible de supprimer le service. Veuillez réessayer."
+    },
+    "validation": {
+      "summaryTitle": "Veuillez corriger les champs suivants :",
+      "nameRequired": "Le nom est obligatoire.",
+      "descriptionRequired": "La description est obligatoire.",
+      "durationNumber": "La duree doit etre un nombre valide.",
+      "durationPositive": "La duree doit etre superieure a 0.",
+      "packSizeNumber": "La taille du pack doit etre un nombre valide.",
+      "packSizePositive": "La taille du pack doit etre au moins 1.",
+      "priceNumber": "Le prix doit etre un nombre valide.",
+      "priceNonNegative": "Le prix doit etre superieur ou egal a 0.",
+      "imageRequired": "Une image est obligatoire.",
+      "imageInvalidType": "Veuillez uploader un fichier image valide.",
+      "imageTooLarge": "L'image doit faire 5 Mo maximum."
+    }
   },
   "title": {
     "create": "Create"
@@ -834,12 +1224,21 @@
       "view": {
         "details": "Détails"
       },
-      "statusLabel": "Statut"
+      "statusLabel": "Statut",
+      "editClient": "Modifier le client",
+      "deleteClient": "Supprimer le client",
+      "deleteConfirm": {
+        "title": "Supprimer ce client ?",
+        "description": "Cette action est irréversible. « {name} » sera supprimé définitivement.",
+        "confirm": "Supprimer",
+        "cancel": "Annuler"
+      }
     }
   },
   "users": {
     "active": "Actif",
     "bookings": "Réservations",
+    "clearFilters": "Effacer les filtres",
     "contact": "Contact",
     "email": "Email",
     "name": "Nom",
@@ -848,10 +1247,15 @@
     },
     "phone": "Téléphone",
     "search": {
-      "placeholder": "Rechercher par nom, e-mail ou téléphone"
+      "label": "Recherche",
+      "placeholder": "Nom, e-mail ou téléphone",
+      "clearAria": "Effacer la recherche"
     },
     "nextBooking": {
       "column": "Prochaine réservation",
+      "filterLabel": "Date de réservation",
+      "clearFromAria": "Effacer la date de debut",
+      "clearToAria": "Effacer la date de fin",
       "from": "Du",
       "to": "Au"
     },
@@ -860,6 +1264,26 @@
     "title": "Clients",
     "view": {
       "details": "Détails"
+    },
+    "clients": {
+      "created": "Client créé",
+      "updated": "Client mis à jour",
+      "deleted": "Client supprimé",
+      "saveError": "Impossible d'enregistrer le client",
+      "deleteError": "Impossible de supprimer le client",
+      "loading": "Chargement des clients…",
+      "loadError": "Impossible de charger les clients. Reconnectez-vous si le problème persiste.",
+      "emptyList": {
+        "title": "Aucun client pour le moment",
+        "description": "Ajoutez votre premier client pour centraliser les coordonnées et l’historique des réservations.",
+        "cta": "Ajouter un client"
+      },
+      "emptyFiltered": {
+        "title": "Aucun client ne correspond à vos filtres",
+        "description": "Modifiez la recherche ou la plage de dates de la prochaine réservation.",
+        "clear": "Réinitialiser les filtres"
+      },
+      "detailError": "Client introuvable ou accès refusé."
     }
   }
 }

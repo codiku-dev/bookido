@@ -179,14 +179,17 @@
       "subtitle": "Book simply with a pro"
     },
     "hero": {
-      "badge": "Certified Personal Trainer",
-      "description": "Transform your fitness journey with personalized training programs designed for your goals.",
-      "imageAlt": "Sarah Johnson - Personal Trainer",
-      "subtitle": "Certified Personal Coach • Available 7 days a week • Guaranteed Results",
+      "badge": "Independent professional",
+      "description": "Book your appointments online in a few simple steps. Pick a time that works for you.",
+      "imageAlt": "Service provider",
+      "subtitle": "Qualified professional • Flexible scheduling • Trusted service",
       "cta": "Book Now"
     },
     "services": {
       "title": "Choose Your Service",
+      "loadError": "Could not load services. Try again later.",
+      "empty": "No services are available for online booking yet.",
+      "durationMinutes": "{minutes} min",
       "items": {
         "personalTraining": {
           "name": "1-on-1 Personal Training",
@@ -215,13 +218,27 @@
       "unavailable": "Unavailable",
       "selectedLabel": "Selected",
       "days": {
-        "mon": { "short": "Mon" },
-        "tue": { "short": "Tue" },
-        "wed": { "short": "Wed" },
-        "thu": { "short": "Thu" },
-        "fri": { "short": "Fri" },
-        "sat": { "short": "Sat" },
-        "sun": { "short": "Sun" }
+        "mon": {
+          "short": "Mon"
+        },
+        "tue": {
+          "short": "Tue"
+        },
+        "wed": {
+          "short": "Wed"
+        },
+        "thu": {
+          "short": "Thu"
+        },
+        "fri": {
+          "short": "Fri"
+        },
+        "sat": {
+          "short": "Sat"
+        },
+        "sun": {
+          "short": "Sun"
+        }
       }
     },
     "mobile": {
@@ -234,6 +251,34 @@
       "slots": "Time Slots",
       "total": "Total"
     },
+    "booking": {
+      "coachSectionLabel": "Your professional",
+      "coachBioFallback": "No bio has been added yet.",
+      "calendarTitle": "Choose a time",
+      "pickSlotSubtitle": "Pick one start time for your session. Unavailable slots match your coach’s calendar.",
+      "invalidSlugTitle": "This booking link is not valid.",
+      "coachNotFoundTitle": "We could not find a coach at this address.",
+      "coachNotFoundHint": "Check the link your coach sent you, or ask them for their public booking URL.",
+      "weekPrev": "Previous week",
+      "weekNext": "Next week",
+      "durationLabel": "{minutes} min",
+      "free": "Free",
+      "clientName": "Full name",
+      "clientEmail": "Email",
+      "clientPhone": "Phone (optional)",
+      "submit": "Confirm booking",
+      "submitting": "Sending…",
+      "detailsTitle": "Your details",
+      "continueToDetails": "Continue",
+      "slotTaken": "This slot is no longer available. Please choose another time.",
+      "error": "We could not complete your booking. Please try again.",
+      "noEnabledDays": "No opening days are configured for this week.",
+      "noVisibleSlots": "No bookable time appears in this week for this coach.",
+      "validation": {
+        "name": "Enter your name.",
+        "email": "Enter a valid email."
+      }
+    },
     "confirmation": {
       "title": "Thank you!",
       "successMessage": "Your booking for {service} has been received.",
@@ -242,12 +287,112 @@
     },
     "footer": {
       "copyright": "© 2026 Sarah Johnson Coaching. Powered by Bookido. All rights reserved."
+    },
+    "home": {
+      "slugIntro": "Each professional has a public booking link. Open yours using the segment your coach shared with you, for example yourdomain.com/your-coach-name/services.",
+      "slugExample": "Example: bookido.com/jonathan-malro-coach/services",
+      "adminSignIn": "Coach or staff? Sign in to the admin panel"
+    },
+    "landing": {
+      "nav": {
+        "howItWorks": "How it works",
+        "pricing": "Pricing",
+        "try": "Try",
+        "signIn": "Log in",
+        "adminAccess": "Go to admin"
+      },
+      "hero": {
+        "badge": "Scheduling for independent professionals",
+        "titleBefore": "Turn open time into",
+        "titleAccent": "booked time",
+        "subtitle": "The simple way to take bookings and get paid. (For independents)",
+        "ctaScroll": "Try now",
+        "urlHint": "bookido.com/marc-dupont",
+        "mockDateEyebrow": "Pick a date",
+        "mockDateTitle": "When?",
+        "mockServiceEyebrow": "Choose your service",
+        "mockServiceTitle": "What?",
+        "mockService1": "Coaching course",
+        "mockSelectedServiceLong": "Strength training 1 hr",
+        "mockPaymentEyebrow": "Secure payment",
+        "mockPaymentSubtitle": "Instant payment",
+        "mockPaymentPrice": "€45",
+        "mockPaymentTotal": "Total",
+        "mockPaymentCardStripe": "Card · ···· 4242",
+        "mockPayButton": "Pay",
+        "mockScheduleEyebrow": "Schedule",
+        "mockScheduleTitle": "Track your bookings",
+        "mockPlanListHint": "This week",
+        "mockPlanRow1When": "Tue · 9:30 am",
+        "mockPlanRow1Label": "Coaching course",
+        "mockPlanRow2When": "Wed · 11:00 am",
+        "mockPlanRow2Label": "Sophie L. — check-in",
+        "mockPlanRow3When": "Thu · 2:30 pm",
+        "mockPlanRow3Label": "Strength training 1 hr",
+        "mockDashboardEyebrow": "Dashboard",
+        "mockDashboardTitle": "Activity & revenue",
+        "mockDashboardKpi1": "Sessions",
+        "mockDashboardKpi2": "Revenue",
+        "mockDashboardKpi3": "Rate",
+        "mockDashboardRevenueValue": "€1.2k",
+        "mockAriaFlow": "Animated preview: date, service, checkout, schedule, and dashboard."
+      },
+      "pillars": {
+        "heading": "How it works",
+        "one": {
+          "title": "Share your link",
+          "body": "One memorable URL—clients land on your services and book in a few taps."
+        },
+        "two": {
+          "title": "Get paid",
+          "body": "Take payments alongside confirmations so nothing slips through the cracks."
+        },
+        "three": {
+          "title": "Track bookings",
+          "body": "See who booked what and when, all in the same calm dashboard."
+        }
+      },
+      "pricing": {
+        "eyebrow": "Pricing",
+        "title": "Plans that stay out of your way",
+        "subtitle": "Start on the free tier, move to Pro when your calendar fills up.",
+        "starter": {
+          "name": "Starter",
+          "price": "€0",
+          "per": "/ month",
+          "desc": "For solo pros getting their first online bookings.",
+          "f1": "Public booking page",
+          "f2": "Services & calendar",
+          "f3": "Email confirmations"
+        },
+        "pro": {
+          "badge": "Popular",
+          "name": "Pro",
+          "price": "€29",
+          "per": "/ month",
+          "desc": "When you want the full workflow without limits.",
+          "f1": "Accept direct payments (in person or online)",
+          "f2": "Full booking history",
+          "f3": "Admin dashboard: clients, services, calendar",
+          "f4": "Mobile app with real-time tracking"
+        }
+      },
+      "ctaBand": {
+        "title": "Ready when you are",
+        "subtitle": "Create your public page, share your link, and let Bookido handle the scheduling story.",
+        "button": "Try now"
+      },
+      "footer": {
+        "tagline": "Book simply with a pro.",
+        "rights": "© 2026 Bookido"
+      }
     }
   },
   "ClientForm": {
     "address": "Address",
     "cancel": "Cancel",
     "create": "Create client",
+    "devFill": "Dev fill",
     "email": "Email",
     "name": "Name",
     "notes": {
@@ -263,7 +408,12 @@
     },
     "save": "Save",
     "title": {
-      "create": "Create New Client"
+      "create": "Create New Client",
+      "edit": "Edit client"
+    },
+    "validation": {
+      "required": "This field is required",
+      "emailInvalid": "Enter a valid email address"
     }
   },
   "address": "Address",
@@ -286,11 +436,18 @@
         "occupied": "Occupied",
         "unavailable": "Unavailable",
         "selectedSlot": "Selected slot: {day} {date} at {time}"
-      }
+      },
+      "toast": {
+        "success": "Booking updated.",
+        "error": "Could not update the booking."
+      },
+      "notFound": "This booking could not be found."
     },
     "list": {
       "title": "Bookings",
       "subtitle": "Track and manage all upcoming and past bookings",
+      "loading": "Loading bookings…",
+      "new": "Booking",
       "search": {
         "placeholder": "Search by client, service or amount"
       },
@@ -314,15 +471,42 @@
       },
       "payment": {
         "paid": "Paid",
+        "partial": "Partially paid",
         "unpaid": "Unpaid"
       },
       "filter": {
         "dateFrom": "From",
         "dateTo": "To"
+      },
+      "loadError": "Could not load bookings. Please try again.",
+      "empty": {
+        "title": "No bookings yet",
+        "description": "Create a booking from the planning calendar or add one manually — it will show up in this list.",
+        "cta": "New booking"
+      },
+      "emptyFiltered": {
+        "title": "No bookings match your filters",
+        "description": "Try changing the search, payment, status or date range.",
+        "clear": "Clear filters"
       }
     },
     "detail": {
-      "actions": "Actions",
+      "notFound": "This booking does not exist or has been removed.",
+      "moreActions": "Open booking actions",
+      "validationPending": {
+        "message": "This booking is awaiting validation.",
+        "accept": "Accept booking"
+      },
+      "markAwaitingValidation": "Mark as awaiting validation",
+      "markPaid": {
+        "menu": "Mark as paid",
+        "title": "Record a payment",
+        "amountLabel": "Amount received (€)",
+        "hint": "Outstanding balance: €{remaining}",
+        "submit": "Confirm payment",
+        "invalid": "Enter a valid amount.",
+        "tooHigh": "This amount exceeds the outstanding balance."
+      },
       "amount": "Amount",
       "cancel": "Cancel booking",
       "cancelConfirm": {
@@ -333,7 +517,6 @@
         "info": "Client information"
       },
       "contact": "Contact client",
-      "createdAt": "Booked on",
       "date": {
         "time": "Time"
       },
@@ -342,22 +525,84 @@
       "payment": {
         "info": "Payment",
         "method": "Payment method",
-        "status": "Payment status"
+        "status": "Payment status",
+        "total": "Total",
+        "paidSoFar": "Already paid",
+        "remaining": "Outstanding",
+        "directTitle": "Direct / on-site payment",
+        "directYes": "Allowed for this booking",
+        "directNo": "Not enabled for this booking"
       },
       "reschedule": "Reschedule",
       "service": "Service",
       "title": "Booking details",
       "clientLabel": "Client"
+    },
+    "create": {
+      "title": "Create booking",
+      "subtitle": "Add a new booking from the admin panel.",
+      "back": "Back to bookings",
+      "devFill": "Dev fill",
+      "submit": "Create booking",
+      "toast": {
+        "created": "Booking created"
+      },
+      "placeholders": {
+        "client": "Select a client",
+        "service": "Select a service",
+        "notes": "Optional notes for this booking..."
+      },
+      "validation": {
+        "clientRequired": "Client is required.",
+        "serviceRequired": "Service is required.",
+        "dateRequired": "Date is required.",
+        "timeRequired": "Time is required.",
+        "amountRequired": "Amount is required.",
+        "amountNumber": "Amount must be a valid number."
+      }
     }
   },
   "calendar": {
+    "contextMenu": {
+      "open": "Open",
+      "reschedule": "Reschedule",
+      "delete": "Delete"
+    },
+    "deleteBookingDialog": {
+      "title": "Delete this booking?",
+      "description": "This will permanently remove {client}'s booking for {service}. This cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Delete"
+    },
+    "toast": {
+      "bookingCreated": "Booking created.",
+      "bookingCreateError": "Could not create the booking.",
+      "bookingDeleted": "Booking deleted.",
+      "bookingDeleteError": "Could not delete the booking.",
+      "clientCreated": "Client created.",
+      "clientCreateError": "Could not create the client."
+    },
     "availability": {
-      "instruction": "Click a slot to mark it available or unavailable"
+      "sectionTitle": "Opening hours & calendar availability",
+      "instruction": "Click a slot to mark it available or unavailable (within your opening hours).",
+      "loading": "Loading your calendar…",
+      "saved": "Availability saved.",
+      "saveError": "Could not save availability. Please try again.",
+      "manualClosedSlotHint": "Update your availability to change this slot (use “Set availability”).",
+      "saveHint": "When you leave availability mode, your hours and closed slots are saved automatically.",
+      "noEnabledDays": "Enable at least one weekday in opening hours to see the grid.",
+      "noVisibleSlots": "No time slot is open on this week: widen your opening hours or reopen slots in availability mode.",
+      "bookingConflictTitle": "Bookings blocking this slot",
+      "bookingConflictDescription": "You cannot mark this slot as unavailable while these bookings are scheduled here:",
+      "bookingConflictOpen": "Open booking",
+      "bookingConflictLine": "{client} — {service} ({timeRange})"
     },
     "create": {
       "bookingTitle": "Booking",
       "newClient": "Create a new client",
-      "submit": "Create booking"
+      "submit": "Create booking",
+      "serviceUnavailableBetween": "You are not available between {from} and {to}.",
+      "serviceUnavailableEndOfSchedule": "Not enough consecutive free time before the end of the schedule for this service."
     },
     "define": {
       "availability": "Set availability"
@@ -367,7 +612,8 @@
     },
     "hours": {
       "closed": "Closed",
-      "opening": "Opening hours"
+      "opening": "Opening hours",
+      "outsideSlotHint": "Update your opening hours to free or change this time range."
     },
     "weekday": {
       "monday": "Monday",
@@ -407,7 +653,10 @@
       "service": "Service"
     },
     "subtitle": "Manage bookings and weekly availability",
-    "title": "Planning"
+    "title": "Planning",
+    "rescheduleMode": {
+      "openSlotHover": "Click to reschedule to this slot."
+    }
   },
   "cancel": "Cancel",
   "dashboard": {
@@ -474,7 +723,8 @@
       "yearly": "Yearly"
     },
     "recent": {
-      "bookings": "Recent bookings"
+      "bookings": "Recent bookings",
+      "empty": "No bookings yet. They will appear here once you create some."
     },
     "revenue": {
       "month": "Monthly revenue",
@@ -483,20 +733,44 @@
     },
     "revenueHistory": {
       "title": "Revenue history",
-      "subtitle": "Track monthly revenue trends over time",
+      "subtitle": "Monthly revenue from confirmed and pending bookings (by appointment date). Click a row for details.",
+      "clickHint": "Click a month to see all bookings and amounts.",
+      "loading": "Loading revenue…",
+      "loadError": "We could not load revenue data. Please try again.",
+      "empty": "No data for this period yet.",
+      "detailEmpty": "No bookings in this month.",
+      "sheetTitle": "Bookings in {month}",
+      "openBooking": "Open",
       "columns": {
         "month": "Month",
         "revenue": "Revenue",
-        "growth": "Growth",
-        "bookings": "Bookings"
+        "growth": "vs previous month",
+        "bookings": "Billable bookings"
+      },
+      "detailColumns": {
+        "date": "Date",
+        "client": "Client",
+        "service": "Service",
+        "price": "List price",
+        "paid": "Paid",
+        "amount": "Amount",
+        "status": "Status"
+      },
+      "status": {
+        "confirmed": "Confirmed",
+        "pending": "Pending",
+        "cancelled": "Cancelled"
       }
     },
     "sales": {
       "month": "Sales this month"
     },
     "title": "Dashboard",
+    "greeting": "👋 {name}",
+    "loading": "Loading dashboard…",
+    "loadError": "We could not load your dashboard. Please try again.",
     "total": {
-      "users": "Users"
+      "users": "Customers"
     },
     "users": {
       "month": "this month"
@@ -517,6 +791,8 @@
     "email": "Email",
     "emailPlaceholder": "admin@example.com",
     "password": "Password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "title": "Bookido Admin",
     "subtitle": "Access your admin workspace",
     "orContinueWith": "Or continue with",
@@ -527,7 +803,7 @@
       "title": "Something went wrong",
       "generic": "Sign-in failed. Please try again.",
       "invalidCredentials": "Incorrect email or password.",
-      "emailNotVerified": "Please confirm your email before signing in.",
+      "emailNotVerified": "This email is not verified. Open the confirmation link in your inbox.",
       "rateLimited": "Too many attempts. Wait a moment and try again.",
       "accountBlocked": "This account cannot sign in."
     },
@@ -628,6 +904,7 @@
     "dashboard": "Dashboard",
     "calendar": "Planning",
     "bookings": "Bookings",
+    "revenue": "Revenue",
     "users": "Customers",
     "services": "Services",
     "profile": "Profile",
@@ -636,7 +913,8 @@
       "title": "Sign out?",
       "description": "You will need to sign in again to access the admin panel.",
       "confirm": "Sign out",
-      "cancel": "Stay signed in"
+      "cancel": "Stay signed in",
+      "inProgress": "Signing out…"
     }
   },
   "notes": {
@@ -645,7 +923,8 @@
   "phone": "Phone",
   "profile": {
     "bio": {
-      "placeholder": "Describe your activity, specialties, and coaching approach"
+      "placeholder": "Describe your activity, specialties, and coaching approach",
+      "publicHint": "This description is shown on your public booking pages (services list and booking flow) for clients who open your public link."
     },
     "billing": {
       "cancel": {
@@ -706,20 +985,39 @@
       }
     },
     "danger": {
-      "warning": "This action is permanent. All your data will be deleted.",
+      "warning": "Archiving disables your account: you will not be able to sign in. Your data is kept in our systems for possible recovery.",
       "zone": "Danger zone"
     },
     "delete": {
-      "account": "Delete account"
+      "account": "Archive account"
+    },
+    "archive": {
+      "title": "Archive this account?",
+      "description": "You will be signed out immediately and will not be able to sign in again with this account.",
+      "confirmEmailLabel": "Type your email to confirm",
+      "passwordLabel": "Current password",
+      "passwordHint": "Required if you use email and password sign-in.",
+      "cancel": "Cancel",
+      "submit": "Archive my account",
+      "errors": {
+        "CONFIRM_EMAIL_MISMATCH": "The email does not match your account.",
+        "PASSWORD_REQUIRED": "Enter your current password to confirm.",
+        "INVALID_PASSWORD": "Incorrect password.",
+        "ALREADY_ARCHIVED": "This account is already archived.",
+        "generic": "Something went wrong. Try again."
+      }
     },
     "email": "Email",
+    "emailReadOnlyHelp": "Email cannot be changed from this screen.",
     "full": {
       "name": "Full name"
     },
     "information": "Information",
     "language": "Language",
     "notifications": {
-      "desc": "Receive new bookings and reminders by email"
+      "desc": "Receive new bookings and reminders by email",
+      "notPersistedHint": "This setting is not saved yet — coming soon.",
+      "toggleAriaLabel": "Enable or disable email notifications"
     },
     "password": {
       "confirm": "Confirm password",
@@ -731,19 +1029,61 @@
     },
     "preferences": "Preferences",
     "save": {
-      "changes": "Save changes"
+      "changes": "Save changes",
+      "pending": "Saving…"
     },
     "saved": "Changes saved",
+    "toast": {
+      "profileUpdated": "Profile updated",
+      "passwordUpdated": "Password updated"
+    },
+    "errors": {
+      "profileUpdate": "Could not save your profile.",
+      "passwordUpdate": "Could not update your password.",
+      "generic": "Something went wrong."
+    },
+    "validation": {
+      "nameRequired": "Name is required"
+    },
+    "loading": "Loading profile…",
+    "sessionRequired": "You must be signed in to view this page.",
     "subtitle": "Update your information, preferences, and security",
     "title": "Profile",
     "bioTitle": "Bio / Description",
     "passwordTitle": "Change Password",
-    "notificationsTitle": "Email Notifications"
+    "notificationsTitle": "Email Notifications",
+    "publicBooking": {
+      "title": "Public booking link",
+      "subtitle": "Clients open this address to book with you.",
+      "slugLabel": "URL segment",
+      "slugHelp": "Lowercase letters, numbers, and hyphens only. Example: jonathan-malro-coach",
+      "slugSave": "Save URL",
+      "publicUrl": "Your public link",
+      "imageLabel": "Profile photo",
+      "imageClickToUpload": "Click to upload a photo",
+      "imageHelp": "Shown on your public booking page so clients know who they book with.",
+      "imageFileHint": "Choose an image from your device (PNG, JPEG, WebP, etc.). Maximum size 5 MB.",
+      "imageInvalidType": "Please choose a valid image file.",
+      "imageTooLarge": "Image must be 5 MB or less.",
+      "imagePreviewAlt": "Profile photo preview",
+      "imagePreviewReady": "Image ready to save.",
+      "imageRemove": "Remove photo",
+      "imageSave": "Save photo",
+      "toastSlugSaved": "Booking URL updated",
+      "toastImageSaved": "Profile photo updated",
+      "errors": {
+        "reserved": "This URL is reserved. Choose another.",
+        "taken": "This URL is already in use.",
+        "generic": "Could not save the URL."
+      }
+    }
   },
   "services": {
     "availability": {
-      "instructions": "Click or drag over slots to set your availability."
+      "instructions": "Click or drag over slots to set your availability.",
+      "readOnlyInstructions": "Displayed from your planning and opening hours. Edit it in the Calendar settings."
     },
+    "devFill": "Dev fill",
     "description": "Description",
     "duration": "Duration",
     "free": "Free",
@@ -759,6 +1099,11 @@
       }
     },
     "imageUrl": "Image URL",
+    "imageInput": {
+      "hint": "Upload an image file for this service.",
+      "previewAlt": "Selected service image preview",
+      "previewReady": "Image selected."
+    },
     "minutes": "Minutes",
     "mock": {
       "freeConsultation": {
@@ -790,11 +1135,56 @@
       },
       "validationTitle": "Requires Validation"
     },
+    "directPayment": {
+      "title": "Direct / on-site payment",
+      "desc": "Clients can pay you directly (cash, card terminal, etc.) when booking this service."
+    },
+    "paymentType": {
+      "label": "Payment:",
+      "direct": "on-site / direct",
+      "card": "card (online)"
+    },
     "save": "Save",
+    "actions": {
+      "openMenu": "Open service menu",
+      "duplicate": "Dupliquer"
+    },
     "sessions": "sessions",
     "subtitle": "Create and manage your services, pricing, and availability",
     "title": "Services",
-    "availabilityTitle": "Availability"
+    "availabilityTitle": "Availability",
+    "durationValue": "{minutes} min",
+    "loading": "Loading services…",
+    "emptyList": {
+      "title": "No services yet",
+      "description": "Create a service with pricing, duration, image, and availability slots so clients can book it online.",
+      "cta": "Create your first service"
+    },
+    "deleteConfirm": {
+      "title": "Delete this service?",
+      "description": "This cannot be undone. \"{name}\" will be removed from your catalog.",
+      "confirm": "Delete",
+      "cancel": "Cancel"
+    },
+    "errors": {
+      "load": "Could not load services. Please try again.",
+      "save": "Could not save the service. Please try again.",
+      "delete": "Could not delete the service. Please try again."
+    },
+    "validation": {
+      "summaryTitle": "Please fix the following fields:",
+      "nameRequired": "Name is required.",
+      "descriptionRequired": "Description is required.",
+      "durationNumber": "Duration must be a valid number.",
+      "durationPositive": "Duration must be greater than 0.",
+      "packSizeNumber": "Pack size must be a valid number.",
+      "packSizePositive": "Pack size must be at least 1.",
+      "priceNumber": "Price must be a valid number.",
+      "priceNonNegative": "Price must be 0 or higher.",
+      "imageRequired": "An image is required.",
+      "imageInvalidType": "Please upload a valid image file.",
+      "imageTooLarge": "Image must be 5MB or less."
+    }
   },
   "title": {
     "create": "Create"
@@ -834,12 +1224,21 @@
       "view": {
         "details": "Details"
       },
-      "statusLabel": "Status"
+      "statusLabel": "Status",
+      "editClient": "Edit client",
+      "deleteClient": "Delete client",
+      "deleteConfirm": {
+        "title": "Delete this client?",
+        "description": "This action cannot be undone. \"{name}\" will be permanently removed.",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      }
     }
   },
   "users": {
     "active": "Active",
     "bookings": "Bookings",
+    "clearFilters": "Clear filters",
     "contact": "Contact",
     "email": "Email",
     "name": "Name",
@@ -848,10 +1247,15 @@
     },
     "phone": "Phone",
     "search": {
-      "placeholder": "Search by name, email or phone"
+      "label": "Search",
+      "placeholder": "Search by name, email or phone",
+      "clearAria": "Clear search"
     },
     "nextBooking": {
       "column": "Next booking",
+      "filterLabel": "Booking date",
+      "clearFromAria": "Clear from date",
+      "clearToAria": "Clear to date",
       "from": "From",
       "to": "To"
     },
@@ -860,6 +1264,26 @@
     "title": "Customers",
     "view": {
       "details": "Details"
+    },
+    "clients": {
+      "created": "Client created",
+      "updated": "Client updated",
+      "deleted": "Client deleted",
+      "saveError": "Could not save the client",
+      "deleteError": "Could not delete the client",
+      "loading": "Loading clients…",
+      "loadError": "Unable to load clients. Sign in again if the problem persists.",
+      "emptyList": {
+        "title": "No clients yet",
+        "description": "Add your first client to keep contact details and booking history in one place.",
+        "cta": "Add client"
+      },
+      "emptyFiltered": {
+        "title": "No clients match your filters",
+        "description": "Try another search or adjust the booking date range.",
+        "clear": "Clear filters"
+      },
+      "detailError": "Client not found or you do not have access."
     }
   }
 }

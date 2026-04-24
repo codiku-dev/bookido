@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { format, isValid, parseISO } from "date-fns";
 import { enUS, fr as frLocale } from "date-fns/locale";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, X } from "lucide-react";
 import { useLanguage } from "#/components/use-language";
 import { Button } from "#/components/ui/button";
 import { Calendar } from "#/components/ui/calendar";
@@ -16,6 +16,7 @@ export function LocaleDatePicker(p: {
   value: string;
   onChange: (isoDate: string) => void;
   className?: string;
+  clearAriaLabel?: string;
 }) {
   const t = useTranslations("common.datePicker");
   const { locale } = useLanguage();
@@ -74,7 +75,31 @@ export function LocaleDatePicker(p: {
         )}
       >
         <span className="truncate text-left">{labelText}</span>
-        <CalendarIcon className="size-4 shrink-0 text-slate-800 opacity-80" aria-hidden />
+        <span className="flex items-center gap-1">
+          {selectedDate !== undefined ? (
+            <span
+              role="button"
+              tabIndex={0}
+              aria-label={p.clearAriaLabel ?? t("clear")}
+              className="inline-flex h-5 w-5 items-center justify-center rounded text-slate-500 hover:bg-slate-200 hover:text-slate-700"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                p.onChange("");
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  p.onChange("");
+                }
+              }}
+            >
+              <X className="size-3.5" aria-hidden />
+            </span>
+          ) : null}
+          <CalendarIcon className="size-4 shrink-0 text-slate-800 opacity-80" aria-hidden />
+        </span>
       </Button>
     </PopoverTrigger>
   );

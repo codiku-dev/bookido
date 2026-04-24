@@ -9,6 +9,10 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/User'
+export type * from './models/UserAvatar'
+export type * from './models/Client'
+export type * from './models/Service'
+export type * from './models/Booking'
 export type * from './models/Session'
 export type * from './models/Account'
 export type * from './models/Verification'

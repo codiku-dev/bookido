@@ -27,7 +27,7 @@ export function translateSignupAuthError(p: { error: unknown; t: Translate }): s
     return p.t("signup.errors.generic");
   }
 
-  if (lower.includes("already exists") || lower.includes("another email") || lower.includes("user already")) {
+  if (isSignupUserAlreadyExistsError(p.error)) {
     return p.t("signup.errors.userAlreadyExists");
   }
 
@@ -51,4 +51,15 @@ export function translateSignupAuthError(p: { error: unknown; t: Translate }): s
   }
 
   return p.t("signup.errors.generic");
+}
+
+/** Better Auth returns this when the email is already registered (verified or not). */
+export function isSignupUserAlreadyExistsError(error: unknown): boolean {
+  const raw = rawMessage(error).toLowerCase();
+  if (!raw) {
+    return false;
+  }
+  return (
+    raw.includes("already exists") || raw.includes("another email") || raw.includes("user already")
+  );
 }
