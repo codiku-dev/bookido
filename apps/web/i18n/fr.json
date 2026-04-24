@@ -588,7 +588,7 @@
       "loading": "Chargement du calendrier…",
       "saved": "Disponibilités enregistrées.",
       "saveError": "Impossible d'enregistrer les disponibilités. Réessayez.",
-      "manualClosedSlotHint": "Mettez à jour les disponibilités pour modifier ce créneau (bouton « Définir les disponibilités »).",
+      "manualClosedSlotHint": "Ce créneau est fermé sur votre calendrier. Modifiez vos disponibilités (horaires d’ouverture ou créneaux fermés via « Définir les disponibilités ») pour pouvoir ajouter une réservation ici.",
       "saveHint": "En quittant le mode disponibilité, vos horaires et créneaux fermés sont enregistrés automatiquement.",
       "noEnabledDays": "Activez au moins un jour dans les horaires d'ouverture pour afficher la grille.",
       "noVisibleSlots": "Aucun créneau n'est ouvert sur cette semaine : élargissez vos horaires ou rouvrez des créneaux en mode disponibilité.",

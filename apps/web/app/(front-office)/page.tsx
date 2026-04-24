@@ -25,6 +25,7 @@ import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { Card, CardContent } from "#/components/ui/card";
 import { useSession } from "@web/libs/auth-client";
+import { trpc } from "@web/libs/trpc-client";
 
 const HERO_MOCK_FLOW_MS = 20_000;
 const HERO_MOCK_SLIDE_COUNT = 5;
@@ -713,17 +714,31 @@ export default function Page() {
   const { data: sessionPayload } = useSession();
   const user = sessionPayload?.user ?? null;
 
+  const presenceForNavAvatar = trpc.profile.getPublicBookingPresence.useQuery(undefined, {
+    enabled: Boolean(user?.id),
+  });
+  const fromPresenceImage = presenceForNavAvatar.data?.image?.trim() ?? "";
+  const fromSessionImage = user?.image?.trim() ?? "";
+  const landingNavAvatarSrc =
+    fromPresenceImage.length > 0 ? fromPresenceImage : fromSessionImage.length > 0 ? fromSessionImage : null;
+
+  const adminAccessAvatar = user ? (
+    <Avatar className="size-5 border border-slate-200">
+      {landingNavAvatarSrc ? (
+        <AvatarImage src={landingNavAvatarSrc} alt={user.name ?? ""} className="object-cover" />
+      ) : null}
+      <AvatarFallback className="bg-slate-100 text-[10px] font-semibold text-slate-700">
+        {initialsFromName(user.name ?? "")}
+      </AvatarFallback>
+    </Avatar>
+  ) : null;
+
   const signInButton = (
     <Button variant="ghost" size="sm" className="inline-flex rounded-xl text-slate-600" asChild>
       <Link href="/admin/signin">
         {user ? (
           <span className="inline-flex items-center gap-2">
-            <Avatar className="size-5 border border-slate-200">
-              {user.image ? <AvatarImage src={user.image} alt={user.name ?? ""} className="object-cover" /> : null}
-              <AvatarFallback className="bg-slate-100 text-[10px] font-semibold text-slate-700">
-                {initialsFromName(user.name ?? "")}
-              </AvatarFallback>
-            </Avatar>
+            {adminAccessAvatar}
             <span>{t("nav.adminAccess")}</span>
           </span>
         ) : (

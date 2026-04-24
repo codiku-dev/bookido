@@ -89,9 +89,10 @@ export function resolveUserDisplayImage(row: {
 }): string | null {
   const fromAvatar = row.userAvatar?.imageData?.trim();
   if (fromAvatar && fromAvatar.length > 0) {
-    return row.userAvatar!.imageData;
+    return fromAvatar;
   }
-  return row.image;
+  const fromUser = row.image?.trim();
+  return fromUser && fromUser.length > 0 ? fromUser : null;
 }
 
 function parseClosedSlotKeys(value: Prisma.JsonValue | null | undefined): string[] {

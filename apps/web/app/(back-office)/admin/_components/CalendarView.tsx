@@ -1052,18 +1052,26 @@ export default function CalendarView(p: CalendarViewProps = {}) {
                   const isRescheduleOpenSlot =
                     mode === "reschedule" && !isAvailabilityMode && !booking && !closed;
 
-                  const slotButton =
-                    isOutsideClosedCell ? (
-                      <CalendarSlotHoverHint label={t("calendar.hours.outsideSlotHint")}>
+                  const manualClosedHoverHint =
+                    isManualClosedCell && !isAvailabilityMode ? (
+                      <CalendarSlotHoverHint label={t("calendar.availability.manualClosedSlotHint")}>
                         {slotInteractiveCore}
                       </CalendarSlotHoverHint>
-                    ) : isRescheduleOpenSlot ? (
-                      <CalendarSlotHoverHint label={t("calendar.rescheduleMode.openSlotHover")}>
-                        {slotInteractiveCore}
-                      </CalendarSlotHoverHint>
-                    ) : (
-                      slotInteractiveCore
-                    );
+                    ) : null;
+
+                  const slotButton = isOutsideClosedCell ? (
+                    <CalendarSlotHoverHint label={t("calendar.hours.outsideSlotHint")}>
+                      {slotInteractiveCore}
+                    </CalendarSlotHoverHint>
+                  ) : manualClosedHoverHint !== null ? (
+                    manualClosedHoverHint
+                  ) : isRescheduleOpenSlot ? (
+                    <CalendarSlotHoverHint label={t("calendar.rescheduleMode.openSlotHover")}>
+                      {slotInteractiveCore}
+                    </CalendarSlotHoverHint>
+                  ) : (
+                    slotInteractiveCore
+                  );
 
                   const contextMenuForBooking =
                     !isAvailabilityMode && booking && mode !== "reschedule" ? (

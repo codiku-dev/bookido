@@ -588,7 +588,7 @@
       "loading": "Loading your calendar…",
       "saved": "Availability saved.",
       "saveError": "Could not save availability. Please try again.",
-      "manualClosedSlotHint": "Update your availability to change this slot (use “Set availability”).",
+      "manualClosedSlotHint": "This slot is blocked in your calendar. Change your availability (opening hours or closed slots via “Set availability”) to add a booking here.",
       "saveHint": "When you leave availability mode, your hours and closed slots are saved automatically.",
       "noEnabledDays": "Enable at least one weekday in opening hours to see the grid.",
       "noVisibleSlots": "No time slot is open on this week: widen your opening hours or reopen slots in availability mode.",
