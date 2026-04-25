@@ -1,14 +1,11 @@
 "use client";
 
 import { Fragment, useEffect, useMemo, useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale, useTranslations } from "next-intl";
 import { useParams, useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
 import { Check, ChevronLeft, Clock, MapPin, Share2 } from "lucide-react";
 import Link from "next/link";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { BackButton } from "../../_components/BackButton";
@@ -27,8 +24,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "#/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "#/components/ui/form";
-import { Input } from "#/components/ui/input";
 import { trpc } from "@web/libs/trpc-client";
 import { DEFAULT_CALENDAR_WEEK_HOURS, type WeekHours } from "#/utils/calendar-availability";
 import {
@@ -78,7 +73,7 @@ export default function BookingPage() {
   const serviceIdParam = searchParams.get("service")?.trim() ?? "";
 
   const [weekAnchor, setWeekAnchor] = useState(() => new Date());
-  const [step, setStep] = useState<"service" | "pick" | "details" | "done">("service");
+  const [step, setStep] = useState<"service" | "pick" | "done">("service");
   const [selectedSlot, setSelectedSlot] = useState<SelectedSlot | null>(null);
   const [mobileHeroImageIndex, setMobileHeroImageIndex] = useState(0);
   const [mobilePickerMonthAnchor, setMobilePickerMonthAnchor] = useState(() => new Date());
@@ -196,23 +191,6 @@ export default function BookingPage() {
     },
   });
 
-  const clientFormSchema = useMemo(
-    () =>
-      z.object({
-        name: z.string().min(1, t("public.booking.validation.name")),
-        email: z.string().email(t("public.booking.validation.email")),
-        phone: z.string().optional(),
-      }),
-    [t],
-  );
-
-  type ClientFormValues = z.infer<typeof clientFormSchema>;
-
-  const form = useForm<ClientFormValues>({
-    resolver: zodResolver(clientFormSchema),
-    defaultValues: { name: "", email: "", phone: "" },
-  });
-
   const isCellBlocked = (column: BookingPageDayColumn, time: string, occupiedSlotKeys: Set<string>) => {
     if (!selectedService) {
       return true;
@@ -248,20 +226,20 @@ export default function BookingPage() {
     setSelectedSlot({ column, time });
   };
 
-  const onSubmitDetails = form.handleSubmit((values) => {
+  const submitBookingRequest = () => {
     if (!slugOk || !selectedService || !selectedSlot) {
       return;
     }
     const startsAt = new Date(`${selectedSlot.column.dateIso}T${selectedSlot.time}:00`).toISOString();
+    const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     requestMutation.mutate({
       coachSlug: coachSlugKey,
       serviceId: selectedService.id,
       startsAt,
-      clientName: values.name.trim(),
-      clientEmail: values.email.trim(),
-      clientPhone: values.phone?.trim() || undefined,
+      clientName: "Client public",
+      clientEmail: `public-booking-${uniqueSuffix}@bookido.local`,
     });
-  });
+  };
 
   const priceLabel =
     selectedService && (selectedService.isFree || selectedService.price <= 0)
@@ -365,12 +343,12 @@ export default function BookingPage() {
             <Button
               type="button"
               className="w-full rounded-xl"
-              onClick={() => {
-                setStep("details");
-                form.reset({ name: "", email: "", phone: "" });
-              }}
+              onClick={submitBookingRequest}
+              disabled={requestMutation.isPending}
+              pending={requestMutation.isPending}
+              pendingChildren={t("public.booking.submitting")}
             >
-              {t("public.booking.continueToDetails")}
+              {t("public.booking.submit")}
             </Button>
           </>
         )}
@@ -561,10 +539,12 @@ export default function BookingPage() {
           <Button
             type="button"
             className="w-full rounded-2xl py-6 text-base font-semibold"
-            onClick={() => setStep("details")}
-            disabled={!selectedSlot}
+            onClick={submitBookingRequest}
+            disabled={!selectedSlot || requestMutation.isPending}
+            pending={requestMutation.isPending}
+            pendingChildren={t("public.booking.submitting")}
           >
-            {t("public.booking.continueToDetails")}
+            {t("public.booking.submit")}
           </Button>
         </div>
       </div>
@@ -626,76 +606,6 @@ export default function BookingPage() {
   );
 
   const coachBannerPick = coach ? <PublicCoachBanner name={coach.name} bio={coach.bio} imageUrl={coach.imageUrl} /> : null;
-
-  const detailsForm = (
-    <div className="mx-auto max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-lg">
-      {coach ? <PublicCoachBanner name={coach.name} bio={coach.bio} imageUrl={coach.imageUrl} /> : null}
-      <h2 className="mb-4 text-xl font-bold text-slate-900">{t("public.booking.detailsTitle")}</h2>
-      {selectedSlot && selectedService ? (
-        <p className="mb-6 text-sm text-slate-600">
-          {selectedService.name} — {getDayShortLabel(selectedSlot.column.dayKey)} {getDayDateLabel(selectedSlot.column.fullDate)} ·{" "}
-          {selectedSlot.time}
-        </p>
-      ) : null}
-      {selectedService?.address ? (
-        <p className="mb-6 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
-          <MapPin className="size-4 text-slate-500" />
-          {selectedService.address}
-        </p>
-      ) : null}
-      <Form {...form}>
-        <form onSubmit={onSubmitDetails} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("public.booking.clientName")}</FormLabel>
-                <FormControl>
-                  <Input autoComplete="name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("public.booking.clientEmail")}</FormLabel>
-                <FormControl>
-                  <Input type="email" autoComplete="email" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="phone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("public.booking.clientPhone")}</FormLabel>
-                <FormControl>
-                  <Input type="tel" autoComplete="tel" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <div className="flex gap-3 pt-2">
-            <Button type="button" variant="outline" className="flex-1" onClick={() => setStep("pick")}>
-              {t("common.back")}
-            </Button>
-            <Button type="submit" className="flex-1" pending={requestMutation.isPending} pendingChildren={t("public.booking.submitting")}>
-              {t("public.booking.submit")}
-            </Button>
-          </div>
-        </form>
-      </Form>
-    </div>
-  );
 
   const doneBlock = (
     <div className="mx-auto max-w-2xl pt-12 text-center">
@@ -893,8 +803,6 @@ export default function BookingPage() {
     doneBlock
   ) : step === "service" ? (
     serviceDetailsStep
-  ) : step === "details" ? (
-    detailsForm
   ) : (
     pickStepContent
   );
