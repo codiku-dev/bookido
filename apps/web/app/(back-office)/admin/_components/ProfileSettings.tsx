@@ -10,7 +10,6 @@ import {
   ShieldAlert,
   Upload,
   User,
-  XCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -102,7 +101,6 @@ export default function ProfileSettings() {
 
   const user = sessionPayload?.user as AuthUser | undefined;
 
-  const [billingCancelled, setBillingCancelled] = useState(false);
   const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
   const [publicSlugDraft, setPublicSlugDraft] = useState("");
   const [profileImageDraft, setProfileImageDraft] = useState("");
@@ -166,6 +164,8 @@ export default function ProfileSettings() {
       z.object({
         name: z.string().min(1, { message: t("profile.validation.nameRequired") }),
         bio: z.string().max(4000).optional(),
+        defaultAddress: z.string().max(500).optional(),
+        publicBookingMinNoticeHours: z.coerce.number().int().min(0).max(168),
       }),
     [t],
   );
@@ -174,7 +174,7 @@ export default function ProfileSettings() {
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
-    defaultValues: { name: "", bio: "" },
+    defaultValues: { name: "", bio: "", defaultAddress: "", publicBookingMinNoticeHours: 0 },
   });
 
   useEffect(() => {
@@ -184,8 +184,10 @@ export default function ProfileSettings() {
     profileForm.reset({
       name: user.name ?? "",
       bio: user.bio ?? "",
+      defaultAddress: presenceQuery.data?.defaultAddress ?? "",
+      publicBookingMinNoticeHours: presenceQuery.data?.publicBookingMinNoticeHours ?? 0,
     });
-  }, [user?.id, user?.name, user?.bio, profileForm]);
+  }, [user?.id, user?.name, user?.bio, profileForm, presenceQuery.data?.defaultAddress, presenceQuery.data?.publicBookingMinNoticeHours]);
 
   const archiveSchema = useMemo(
     () =>
@@ -218,6 +220,8 @@ export default function ProfileSettings() {
       await updateProfileBasicsMutation.mutateAsync({
         name: values.name.trim(),
         bio: values.bio?.trim().length ? values.bio.trim() : null,
+        defaultAddress: values.defaultAddress?.trim().length ? values.defaultAddress.trim() : null,
+        publicBookingMinNoticeHours: values.publicBookingMinNoticeHours,
       });
       await refetchSession();
       toast.success(t("profile.toast.profileUpdated"));
@@ -412,15 +416,9 @@ export default function ProfileSettings() {
     </div>
   );
 
-  const handleCancelSubscription = () => {
-    setBillingCancelled(true);
-  };
-
   const billingStatusBadge = (
-    <Badge variant={billingCancelled ? "outline" : "secondary"} className="capitalize">
-      {billingCancelled
-        ? t("profile.billing.status.cancelled")
-        : t("profile.billing.status.active")}
+    <Badge variant="secondary" className="capitalize">
+      {t("profile.billing.status.active")}
     </Badge>
   );
 
@@ -467,18 +465,6 @@ export default function ProfileSettings() {
 
         {billingPaymentHistorySection}
       </CardContent>
-      <CardFooter className="flex justify-end border-t">
-        <Button
-          variant="destructive"
-          onClick={handleCancelSubscription}
-          disabled={billingCancelled}
-        >
-          <XCircle className="h-4 w-4" />
-          {billingCancelled
-            ? t("profile.billing.manage.cancelled")
-            : t("profile.billing.manage.cancel")}
-        </Button>
-      </CardFooter>
     </Card>
   );
 
@@ -631,6 +617,25 @@ export default function ProfileSettings() {
               <p className="text-sm text-slate-500">{t("profile.emailReadOnlyHelp")}</p>
             </div>
 
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-2">
+              <Label htmlFor="profile-default-address">{t("profile.defaultAddress.label")}</Label>
+              <Input
+                id="profile-default-address"
+                type="text"
+                disabled={sessionPending || !user}
+                className="h-11 border-slate-300 bg-white"
+                value={profileForm.watch("defaultAddress") ?? ""}
+                onChange={(event) => {
+                  profileForm.setValue("defaultAddress", event.target.value, {
+                    shouldDirty: true,
+                    shouldTouch: true,
+                    shouldValidate: true,
+                  });
+                }}
+              />
+              <p className="text-sm text-slate-500">{t("profile.defaultAddress.hint")}</p>
+            </div>
+
             <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
               <div className="flex items-start gap-3">
                 <div className="rounded-xl bg-indigo-50 p-3">
@@ -644,6 +649,7 @@ export default function ProfileSettings() {
               {publicSlugFieldBlock}
               {publicUrlPreviewBlock}
               {saveSlugButtonOutsideBlock}
+              {publicBookingMinNoticeHoursFieldBlock}
               {publicBookingBioFieldBlock}
               {profileImageFieldBlock}
               {saveImageButtonBlock}
@@ -721,6 +727,31 @@ export default function ProfileSettings() {
 
   const saveSlugButtonOutsideBlock =
     fullPublicBookingUrl.length === 0 ? <div className="flex justify-end">{saveSlugButtonElement}</div> : null;
+
+  const publicBookingMinNoticeHoursFieldBlock = (
+    <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+      <Label htmlFor="public-booking-min-notice-hours">{t("profile.publicBooking.minNoticeHours.label")}</Label>
+      <Input
+        id="public-booking-min-notice-hours"
+        type="number"
+        min={0}
+        max={168}
+        step={1}
+        disabled={sessionPending || !user}
+        className="h-11 border-slate-300 bg-white"
+        value={profileForm.watch("publicBookingMinNoticeHours")}
+        onChange={(event) => {
+          const parsed = Number.parseInt(event.target.value, 10);
+          profileForm.setValue("publicBookingMinNoticeHours", Number.isNaN(parsed) ? 0 : parsed, {
+            shouldDirty: true,
+            shouldTouch: true,
+            shouldValidate: true,
+          });
+        }}
+      />
+      <p className="text-sm text-slate-500">{t("profile.publicBooking.minNoticeHours.hint")}</p>
+    </div>
+  );
 
   const bioFieldErrorMessage = profileForm.formState.errors.bio?.message;
 

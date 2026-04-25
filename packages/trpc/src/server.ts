@@ -1,15 +1,6 @@
 import { initTRPC } from "@trpc/server";
 import { z } from "zod";
 
-/** Mirrors `apps/api` `PROFILE_AVATAR_DATA_URL_MAX_LEN` for client-side procedure typing. */
-const PROFILE_AVATAR_DATA_URL_MAX_LEN = 8_388_608;
-
-const publicBookingSlugSchema = z
-  .string()
-  .min(2)
-  .max(96)
-  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
-
 const t = initTRPC.create();
 const publicProcedure = t.procedure;
 
@@ -413,18 +404,24 @@ const appRouter = t.router({
     getPublicBookingPresence: publicProcedure.output(z.object({
       publicBookingSlug: z.string().nullable(),
       image: z.string().nullable(),
+      defaultAddress: z.string().nullable(),
+      publicBookingMinNoticeHours: z.number().int().min(0).max(168),
     })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     updatePublicBookingPresence: publicProcedure.input(z.object({
-      publicBookingSlug: z.union([publicBookingSlugSchema, z.literal("")]).optional(),
+      publicBookingSlug: z
+        .union([z.string().min(2).max(96).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "INVALID_SLUG_FORMAT"), z.literal("")])
+        .optional(),
     })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     updateProfileBasics: publicProcedure.input(z.object({
       name: z.string().min(1).max(200),
       bio: z.string().max(4000).nullable().optional(),
+      defaultAddress: z.string().max(500).nullable().optional(),
+      publicBookingMinNoticeHours: z.number().int().min(0).max(168).optional(),
     })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     updateProfileAvatar: publicProcedure.input(z.object({
       /** `null` or `""` removes the avatar; otherwise a `data:image/...` URL or short HTTPS URL. */
       image: z
-        .union([z.literal(""), z.string().min(1).max(PROFILE_AVATAR_DATA_URL_MAX_LEN)])
+        .union([z.literal(""), z.string().min(1).max(8_388_608)])
         .nullable(),
     })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     archiveAccount: publicProcedure.input(z.object({
@@ -443,6 +440,7 @@ const appRouter = t.router({
       isFree: z.boolean(),
       packSize: z.number().int(),
       imageUrl: z.string().nullable(),
+      address: z.string(),
       availableSlotKeys: z.array(z.string()),
       requiresValidation: z.boolean(),
       allowsDirectPayment: z.boolean(),
@@ -451,12 +449,13 @@ const appRouter = t.router({
     }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     create: publicProcedure.input(z.object({
       name: z.string().min(1),
-      description: z.string(),
+      description: z.string().trim().min(1),
       durationMinutes: z.number().int().positive(),
       price: z.number().nonnegative(),
       isFree: z.boolean(),
       packSize: z.number().int().min(1),
       imageUrl: z.string().nullable().optional(),
+      address: z.string().trim().min(1).max(500),
       availableSlotKeys: z.array(z.string()),
       requiresValidation: z.boolean(),
       allowsDirectPayment: z.boolean(),
@@ -470,6 +469,7 @@ const appRouter = t.router({
       isFree: z.boolean(),
       packSize: z.number().int(),
       imageUrl: z.string().nullable(),
+      address: z.string(),
       availableSlotKeys: z.array(z.string()),
       requiresValidation: z.boolean(),
       allowsDirectPayment: z.boolean(),
@@ -480,12 +480,13 @@ const appRouter = t.router({
       id: z.string(),
       data: z.object({
         name: z.string().min(1),
-        description: z.string(),
+        description: z.string().trim().min(1),
         durationMinutes: z.number().int().positive(),
         price: z.number().nonnegative(),
         isFree: z.boolean(),
         packSize: z.number().int().min(1),
         imageUrl: z.string().nullable().optional(),
+        address: z.string().trim().min(1).max(500),
         availableSlotKeys: z.array(z.string()),
         requiresValidation: z.boolean(),
         allowsDirectPayment: z.boolean(),
@@ -500,6 +501,7 @@ const appRouter = t.router({
       isFree: z.boolean(),
       packSize: z.number().int(),
       imageUrl: z.string().nullable(),
+      address: z.string(),
       availableSlotKeys: z.array(z.string()),
       requiresValidation: z.boolean(),
       allowsDirectPayment: z.boolean(),
@@ -753,11 +755,13 @@ const appRouter = t.router({
         }),
       }),
       closedSlotKeys: z.array(z.string()),
+      minBookingNoticeHours: z.number().int().min(0).max(168),
       services: z.array(z.object({
         id: z.string(),
         name: z.string(),
         description: z.string(),
         imageUrl: z.string().nullable(),
+        address: z.string(),
         durationMinutes: z.number().int(),
         price: z.number(),
         isFree: z.boolean(),

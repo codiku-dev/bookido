@@ -10,6 +10,7 @@ export const serviceSchema = z.object({
   isFree: z.boolean(),
   packSize: z.number().int(),
   imageUrl: z.string().nullable(),
+  address: z.string(),
   availableSlotKeys: z.array(z.string()),
   requiresValidation: z.boolean(),
   allowsDirectPayment: z.boolean(),
@@ -19,12 +20,13 @@ export const serviceSchema = z.object({
 
 export const createServiceSchema = z.object({
   name: z.string().min(1),
-  description: z.string(),
+  description: z.string().trim().min(1),
   durationMinutes: z.number().int().positive(),
   price: z.number().nonnegative(),
   isFree: z.boolean(),
   packSize: z.number().int().min(1),
   imageUrl: z.string().nullable().optional(),
+  address: z.string().trim().min(1).max(500),
   availableSlotKeys: z.array(z.string()),
   requiresValidation: z.boolean(),
   allowsDirectPayment: z.boolean(),

@@ -28,6 +28,7 @@ export class ServicesService {
     isFree: boolean;
     packSize: number;
     imageUrl: string | null;
+    address: string;
     availableSlotKeys: Prisma.JsonValue;
     requiresValidation: boolean;
     allowsDirectPayment: boolean;
@@ -44,6 +45,7 @@ export class ServicesService {
       isFree: row.isFree,
       packSize: row.packSize,
       imageUrl: row.imageUrl,
+      address: row.address,
       availableSlotKeys: slotKeysFromJson(row.availableSlotKeys),
       requiresValidation: row.requiresValidation,
       allowsDirectPayment: row.allowsDirectPayment,
@@ -71,6 +73,7 @@ export class ServicesService {
         isFree: input.isFree,
         packSize: input.packSize,
         imageUrl: input.imageUrl ?? null,
+        address: input.address.trim(),
         availableSlotKeys: input.availableSlotKeys as Prisma.InputJsonValue,
         requiresValidation: input.requiresValidation,
         allowsDirectPayment: input.allowsDirectPayment,
@@ -97,12 +100,13 @@ export class ServicesService {
       where: { id },
       data: {
         ...(data.name !== undefined && { name: data.name }),
-        ...(data.description !== undefined && { description: data.description }),
+        ...(data.description !== undefined && { description: data.description.trim() }),
         ...(data.durationMinutes !== undefined && { durationMinutes: data.durationMinutes }),
         ...(data.packSize !== undefined && { packSize: data.packSize }),
         ...(data.requiresValidation !== undefined && { requiresValidation: data.requiresValidation }),
         ...(data.allowsDirectPayment !== undefined && { allowsDirectPayment: data.allowsDirectPayment }),
         ...(data.imageUrl !== undefined && { imageUrl: data.imageUrl }),
+        ...(data.address !== undefined && { address: data.address.trim() }),
         ...(data.availableSlotKeys !== undefined && {
           availableSlotKeys: data.availableSlotKeys as Prisma.InputJsonValue,
         }),

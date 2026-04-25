@@ -22,6 +22,7 @@ export const publicServiceCardSchema = z.object({
   name: z.string(),
   description: z.string(),
   imageUrl: z.string().nullable(),
+  address: z.string(),
   durationMinutes: z.number().int(),
   price: z.number(),
   isFree: z.boolean(),
@@ -38,6 +39,7 @@ export const publicBookingGetStorefrontOutputSchema = z.object({
   coach: publicBookingCoachCardSchema,
   weekHours: weekHoursSchema,
   closedSlotKeys: z.array(z.string()),
+  minBookingNoticeHours: z.number().int().min(0).max(168),
   services: z.array(publicServiceCardSchema),
   bookingSegments: z.array(publicBookingBookingSegmentSchema),
 });

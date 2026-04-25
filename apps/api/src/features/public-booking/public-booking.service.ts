@@ -17,6 +17,11 @@ export class PublicBookingService {
     private readonly bookingsService: BookingsService,
   ) {}
 
+  private getNoticeThresholdMs(minNoticeHours: number) {
+    const safeHours = Math.max(0, minNoticeHours);
+    return Date.now() + safeHours * 60 * 60 * 1000;
+  }
+
   private async resolveCoachBySlug(coachSlug: string) {
     const normalized = coachSlug.trim().toLowerCase();
     if (!normalized || RESERVED_PUBLIC_BOOKING_SLUGS.has(normalized)) {
@@ -28,6 +33,8 @@ export class PublicBookingService {
         id: true,
         name: true,
         bio: true,
+        address: true,
+        publicBookingMinNoticeHours: true,
         image: true,
         userAvatar: { select: { imageData: true } },
       },
@@ -37,6 +44,8 @@ export class PublicBookingService {
         id: row.id,
         name: row.name,
         bio: row.bio,
+        address: row.address,
+        publicBookingMinNoticeHours: row.publicBookingMinNoticeHours,
         image: resolveUserDisplayImage(row),
       };
     }
@@ -47,6 +56,8 @@ export class PublicBookingService {
         id: true,
         name: true,
         bio: true,
+        address: true,
+        publicBookingMinNoticeHours: true,
         image: true,
         userAvatar: { select: { imageData: true } },
       },
@@ -69,6 +80,8 @@ export class PublicBookingService {
           id: true,
           name: true,
           bio: true,
+          address: true,
+        publicBookingMinNoticeHours: true,
           image: true,
           userAvatar: { select: { imageData: true } },
         },
@@ -78,6 +91,8 @@ export class PublicBookingService {
           id: raced.id,
           name: raced.name,
           bio: raced.bio,
+          address: raced.address,
+          publicBookingMinNoticeHours: raced.publicBookingMinNoticeHours,
           image: resolveUserDisplayImage(raced),
         };
       }
@@ -87,6 +102,8 @@ export class PublicBookingService {
       id: u.id,
       name: u.name,
       bio: u.bio,
+      address: u.address,
+      publicBookingMinNoticeHours: u.publicBookingMinNoticeHours,
       image: resolveUserDisplayImage(u),
     };
   }
@@ -110,8 +127,12 @@ export class PublicBookingService {
 
     const fromMs = rangeFrom.getTime();
     const toMs = rangeTo.getTime();
+    const noticeThresholdMs = this.getNoticeThresholdMs(coach.publicBookingMinNoticeHours);
     const bookingSegments = bookingRows
       .filter((b) => {
+        if (b.startsAt.getTime() < noticeThresholdMs) {
+          return false;
+        }
         const end = b.startsAt.getTime() + b.durationMinutes * 60_000;
         return end > fromMs && b.startsAt.getTime() < toMs;
       })
@@ -129,11 +150,13 @@ export class PublicBookingService {
       },
       weekHours: availability.weekHours,
       closedSlotKeys: availability.closedSlotKeys,
+      minBookingNoticeHours: coach.publicBookingMinNoticeHours,
       services: services.map((s) => ({
         id: s.id,
         name: s.name,
         description: s.description,
         imageUrl: s.imageUrl,
+        address: s.address,
         durationMinutes: s.durationMinutes,
         price: s.price,
         isFree: s.isFree,
@@ -157,6 +180,10 @@ export class PublicBookingService {
     const startsAt = new Date(input.startsAt);
     if (Number.isNaN(startsAt.getTime())) {
       throw new BadRequestException("INVALID_STARTS_AT");
+    }
+    const noticeThresholdMs = this.getNoticeThresholdMs(coach.publicBookingMinNoticeHours);
+    if (startsAt.getTime() < noticeThresholdMs) {
+      throw new BadRequestException("SLOT_TOO_SOON");
     }
 
     const endMs = startsAt.getTime() + service.durationMinutes * 60_000;
@@ -205,6 +232,7 @@ export class PublicBookingService {
       paidAmount: 0,
       status,
       notes: undefined,
+      location: service.address ?? coach.address ?? "",
       paymentMethod: "—",
       createdByClient: true,
     });

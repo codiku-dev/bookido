@@ -1,11 +1,11 @@
 "use client";
 
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale, useTranslations } from "next-intl";
 import { useParams, useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
-import { Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, ChevronLeft, Clock, MapPin, Share2 } from "lucide-react";
 import Link from "next/link";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -14,7 +14,19 @@ import { toast } from "sonner";
 import { BackButton } from "../../_components/BackButton";
 import { FrontOfficePageLayout } from "../../_components/FrontOfficePageLayout";
 import { PublicCoachBanner } from "../../_components/PublicCoachBanner";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "#/components/ui/accordion";
 import { Button } from "#/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "#/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "#/components/ui/form";
 import { Input } from "#/components/ui/input";
 import { trpc } from "@web/libs/trpc-client";
@@ -39,13 +51,19 @@ function slugLooksValid(slug: string) {
   return slug.length >= 2 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(slug);
 }
 
-function useWeekRangeTitle(weekDates: Date[], locale: string) {
-  return useMemo(() => {
-    const first = weekDates[0]!;
-    const last = weekDates[6]!;
-    const df = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric", year: "numeric" });
-    return `${df.format(first)} – ${df.format(last)}`;
-  }, [weekDates, locale]);
+function toSlotStartDate(column: BookingPageDayColumn, time: string) {
+  return new Date(`${column.dateIso}T${time}:00`);
+}
+
+function getMonthDates(anchor: Date) {
+  const year = anchor.getFullYear();
+  const month = anchor.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const dates: Date[] = [];
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    dates.push(new Date(year, month, day));
+  }
+  return dates;
 }
 
 export default function BookingPage() {
@@ -60,21 +78,23 @@ export default function BookingPage() {
   const serviceIdParam = searchParams.get("service")?.trim() ?? "";
 
   const [weekAnchor, setWeekAnchor] = useState(() => new Date());
-  const [step, setStep] = useState<"pick" | "details" | "done">("pick");
+  const [step, setStep] = useState<"service" | "pick" | "details" | "done">("service");
   const [selectedSlot, setSelectedSlot] = useState<SelectedSlot | null>(null);
-  const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
+  const [mobileHeroImageIndex, setMobileHeroImageIndex] = useState(0);
+  const [mobilePickerMonthAnchor, setMobilePickerMonthAnchor] = useState(() => new Date());
+  const [mobileMonthSelectOpen, setMobileMonthSelectOpen] = useState(false);
+  const [mobileYearSelectOpen, setMobileYearSelectOpen] = useState(false);
+  const [mobilePickerOpenDayKey, setMobilePickerOpenDayKey] = useState<string | null>(null);
 
   const weekDates = useMemo(() => getCalendarWeekDates(weekAnchor), [weekAnchor]);
 
   const rangeInput = useMemo(() => {
-    const d0 = weekDates[0]!;
-    const d6 = weekDates[6]!;
-    const from = new Date(d0);
+    const from = new Date(mobilePickerMonthAnchor.getFullYear(), mobilePickerMonthAnchor.getMonth(), 1);
     from.setHours(0, 0, 0, 0);
-    const to = new Date(d6);
+    const to = new Date(mobilePickerMonthAnchor.getFullYear(), mobilePickerMonthAnchor.getMonth() + 1, 0);
     to.setHours(23, 59, 59, 999);
     return { rangeFrom: from.toISOString(), rangeTo: to.toISOString() };
-  }, [weekDates]);
+  }, [mobilePickerMonthAnchor]);
 
   const storefrontQuery = trpc.publicBooking.getStorefront.useQuery(
     {
@@ -91,6 +111,8 @@ export default function BookingPage() {
   const services = storefrontQuery.data?.services ?? [];
   const bookingSegments = storefrontQuery.data?.bookingSegments ?? [];
   const coach = storefrontQuery.data?.coach ?? null;
+  const minBookingNoticeHours = storefrontQuery.data?.minBookingNoticeHours ?? 0;
+  const minStartDateMs = useMemo(() => Date.now() + minBookingNoticeHours * 60 * 60 * 1000, [minBookingNoticeHours]);
 
   const selectedService = useMemo(() => {
     if (services.length === 0) {
@@ -99,6 +121,37 @@ export default function BookingPage() {
     const byParam = serviceIdParam ? services.find((s) => s.id === serviceIdParam) : undefined;
     return byParam ?? services[0] ?? null;
   }, [services, serviceIdParam]);
+
+  const mobileHeroImageCandidates = useMemo(
+    () =>
+      [selectedService?.imageUrl ?? null, coach?.imageUrl ?? null].filter(
+        (value): value is string => typeof value === "string" && value.trim().length > 0,
+      ),
+    [selectedService?.imageUrl, coach?.imageUrl],
+  );
+
+  useEffect(() => {
+    setMobileHeroImageIndex(0);
+  }, [selectedService?.id]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const isMobileViewport = window.matchMedia("(max-width: 767px)").matches;
+    if (!isMobileViewport) {
+      return;
+    }
+    const shouldScrollToDrawer =
+      step === "service" ||
+      step === "pick" ||
+      mobileMonthSelectOpen ||
+      mobileYearSelectOpen;
+    if (!shouldScrollToDrawer) {
+      return;
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [step, mobileMonthSelectOpen, mobileYearSelectOpen]);
 
   const occupiedKeys = useMemo(
     () => buildOccupiedSlotKeySet(weekDates, bookingSegments),
@@ -135,6 +188,8 @@ export default function BookingPage() {
     onError: (err) => {
       if (err.data?.httpStatus === 409) {
         toast.error(t("public.booking.slotTaken"));
+      } else if (err.message === "SLOT_TOO_SOON") {
+        toast.error(t("public.booking.slotTooSoon"));
       } else {
         toast.error(t("public.booking.error"));
       }
@@ -158,19 +213,16 @@ export default function BookingPage() {
     defaultValues: { name: "", email: "", phone: "" },
   });
 
-  const navigateWeek = (dir: "prev" | "next") => {
-    const next = new Date(weekAnchor);
-    next.setDate(weekAnchor.getDate() + (dir === "next" ? 7 : -7));
-    setWeekAnchor(next);
-    setSelectedSlot(null);
-  };
-
-  const isCellBlocked = (column: BookingPageDayColumn, time: string) => {
+  const isCellBlocked = (column: BookingPageDayColumn, time: string, occupiedSlotKeys: Set<string>) => {
     if (!selectedService) {
       return true;
     }
+    const startsAt = toSlotStartDate(column, time);
+    if (startsAt.getTime() < minStartDateMs) {
+      return true;
+    }
     const key = buildCalendarSlotKey(column.dayKey, time);
-    if (occupiedKeys.has(key)) {
+    if (occupiedSlotKeys.has(key)) {
       return true;
     }
     if (
@@ -181,7 +233,7 @@ export default function BookingPage() {
         allTimeSlots: BOOKING_PAGE_GRID_SLOTS,
         weekHours,
         closedSlotKeys: closedSet,
-        occupiedSlotKeys: occupiedKeys,
+        occupiedSlotKeys,
       })
     ) {
       return true;
@@ -190,7 +242,7 @@ export default function BookingPage() {
   };
 
   const handlePickSlot = (column: BookingPageDayColumn, time: string) => {
-    if (isCellBlocked(column, time)) {
+    if (isCellBlocked(column, time, occupiedKeys)) {
       return;
     }
     setSelectedSlot({ column, time });
@@ -211,7 +263,6 @@ export default function BookingPage() {
     });
   });
 
-  const weekTitle = useWeekRangeTitle(weekDates, locale);
   const priceLabel =
     selectedService && (selectedService.isFree || selectedService.price <= 0)
       ? t("public.booking.free")
@@ -244,18 +295,6 @@ export default function BookingPage() {
     </div>
   );
 
-  const weekControls = (
-    <div className="mb-6 flex flex-wrap items-center justify-center gap-3">
-      <Button type="button" variant="outline" size="icon-sm" onClick={() => navigateWeek("prev")} aria-label={t("public.booking.weekPrev")}>
-        <ChevronLeft className="size-4" />
-      </Button>
-      <span className="min-w-[200px] text-center text-sm font-medium text-slate-800">{weekTitle}</span>
-      <Button type="button" variant="outline" size="icon-sm" onClick={() => navigateWeek("next")} aria-label={t("public.booking.weekNext")}>
-        <ChevronRight className="size-4" />
-      </Button>
-    </div>
-  );
-
   const desktopGrid = (
     <div className="hidden gap-6 lg:grid lg:grid-cols-[1fr_280px]">
       <div className="overflow-x-auto rounded-2xl bg-white p-6 shadow-lg">
@@ -279,7 +318,7 @@ export default function BookingPage() {
                   <span className="text-xs text-slate-600">{time}</span>
                 </div>
                 {enabledColumns.map((col) => {
-                  const blocked = isCellBlocked(col, time);
+                  const blocked = isCellBlocked(col, time, occupiedKeys);
                   const selected =
                     selectedSlot?.column.dateIso === col.dateIso && selectedSlot.time === time && selectedSlot.column.dayKey === col.dayKey;
                   return (
@@ -339,69 +378,250 @@ export default function BookingPage() {
     </div>
   );
 
-  const mobileDayColumns = enabledColumns;
+  const mobileMonthDates = useMemo(() => getMonthDates(mobilePickerMonthAnchor), [mobilePickerMonthAnchor]);
+  const mobileDayColumns = useMemo(
+    () => buildEnabledDayColumns(mobileMonthDates, weekHours),
+    [mobileMonthDates, weekHours],
+  );
+  const mobileOccupiedKeys = useMemo(
+    () => buildOccupiedSlotKeySet(mobileMonthDates, bookingSegments),
+    [mobileMonthDates, bookingSegments],
+  );
+  const mobileHeroClassName = "relative h-[30vh] min-h-56 overflow-hidden bg-slate-100";
+  const mobileDrawerClassName = "fixed inset-x-0 bottom-0 z-40 flex h-[70vh] -translate-y-5 flex-col rounded-t-[28px] bg-white";
+  const monthLabelFormatter = useMemo(
+    () => new Intl.DateTimeFormat(locale, { month: "long" }),
+    [locale],
+  );
+  const now = useMemo(() => new Date(), []);
+  const currentYear = now.getFullYear();
+  const currentMonthIndex = now.getMonth();
+  const mobileMonthLabel = monthLabelFormatter.format(mobilePickerMonthAnchor);
+  const mobileYearLabel = String(mobilePickerMonthAnchor.getFullYear());
+  const selectedMonthIndex = mobilePickerMonthAnchor.getMonth();
+  const selectedYearValue = mobilePickerMonthAnchor.getFullYear();
+  const mobileYearOptions = useMemo(() => {
+    return Array.from({ length: 9 }, (_, idx) => currentYear + idx);
+  }, [currentYear]);
+  const mobileMonthOptions = useMemo(
+    () =>
+      Array.from({ length: 12 }, (_, idx) => {
+        const monthDate = new Date(2026, idx, 1);
+        return {
+          monthIndex: idx,
+          label: monthLabelFormatter.format(monthDate),
+        };
+      }).filter((monthOption) => {
+        if (selectedYearValue > currentYear) {
+          return true;
+        }
+        return monthOption.monthIndex >= currentMonthIndex;
+      }),
+    [monthLabelFormatter, selectedYearValue, currentYear, currentMonthIndex],
+  );
+  const fullDateFormatter = useMemo(
+    () => new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" }),
+    [locale],
+  );
+  const pickerAccordionDays = useMemo(
+    () =>
+      mobileDayColumns.map((column) => ({
+        column,
+        label: fullDateFormatter.format(column.fullDate),
+        slots: BOOKING_PAGE_GRID_SLOTS.filter((time) => !isCellBlocked(column, time, mobileOccupiedKeys)),
+      }))
+      .filter((day) => day.slots.length > 0),
+    [mobileDayColumns, fullDateFormatter, mobileOccupiedKeys],
+  );
+
+  useEffect(() => {
+    const firstDay = pickerAccordionDays[0]?.column;
+    setMobilePickerOpenDayKey(firstDay ? firstDay.dateIso : null);
+  }, [pickerAccordionDays]);
 
   const mobileGrid = (
-    <div className="space-y-6 lg:hidden">
-      <div className="rounded-2xl bg-white p-6 shadow-lg">
-        <h3 className="mb-4 font-bold text-slate-900">{t("public.mobile.select.day")}</h3>
-        <div className="grid grid-cols-2 gap-3">
-          {mobileDayColumns.map((col) => {
-            const active = selectedDayKey === col.dateIso;
-            return (
-              <button
-                key={col.dateIso}
-                type="button"
-                onClick={() => setSelectedDayKey(col.dateIso)}
-                className={`rounded-xl border-2 p-4 text-left transition-all ${
-                  active ? "border-blue-600 bg-blue-50" : "border-slate-200 hover:border-blue-300"
-                }`}
-              >
-                <div className="font-bold text-slate-900">{getDayShortLabel(col.dayKey)}</div>
-                <div className="text-sm text-slate-600">{getDayDateLabel(col.fullDate)}</div>
-              </button>
-            );
-          })}
+    <div className="mx-auto max-w-3xl lg:hidden">
+      <div className={mobileHeroClassName}>
+        {mobileHeroImageCandidates[mobileHeroImageIndex] ? (
+          <img
+            src={mobileHeroImageCandidates[mobileHeroImageIndex]}
+            alt={selectedService?.name ?? "service"}
+            className="h-full w-full object-cover object-bottom"
+            onError={() => {
+              setMobileHeroImageIndex((current) => {
+                if (current >= mobileHeroImageCandidates.length - 1) {
+                  return current;
+                }
+                return current + 1;
+              });
+            }}
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center bg-slate-200 px-4 text-center text-sm text-slate-600">
+            {selectedService?.name ?? ""}
+          </div>
+        )}
+        <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 pt-5">
+          <button
+            type="button"
+            onClick={() => setStep("service")}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm"
+            aria-label={t("common.back")}
+          >
+            <ChevronLeft className="size-5" />
+          </button>
+          <button
+            type="button"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm"
+            aria-label={t("public.booking.share")}
+          >
+            <Share2 className="size-4.5" />
+          </button>
         </div>
       </div>
-      {selectedDayKey ? (
-        <div className="rounded-2xl bg-white p-6 shadow-lg">
-          <h3 className="mb-4 font-bold text-slate-900">{t("public.mobile.select.time")}</h3>
-          <div className="grid grid-cols-3 gap-2">
-            {visibleSlots.map((time) => {
-              const col = mobileDayColumns.find((c) => c.dateIso === selectedDayKey);
-              if (!col) {
-                return null;
-              }
-              const blocked = isCellBlocked(col, time);
-              const selected =
-                selectedSlot?.column.dateIso === col.dateIso && selectedSlot.time === time && selectedSlot.column.dayKey === col.dayKey;
-              return (
-                <button
-                  key={time}
-                  type="button"
-                  disabled={blocked}
-                  onClick={() => handlePickSlot(col, time)}
-                  className={`rounded-xl px-2 py-3 text-sm ${
-                    blocked
-                      ? "cursor-not-allowed bg-slate-100 text-slate-300"
-                      : selected
-                        ? "bg-blue-600 font-medium text-white"
-                        : "border-2 border-slate-200 bg-slate-50 hover:border-blue-300"
-                  }`}
-                >
-                  {time}
-                </button>
-              );
-            })}
+
+      <div className={mobileDrawerClassName}>
+        <div className="mx-auto mt-3 h-1.5 w-14 rounded-full bg-slate-200" />
+        <div className="flex-1 space-y-4 overflow-y-auto px-5 pb-4 pt-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="truncate text-2xl font-bold text-slate-900">{selectedService?.name ?? ""}</p>
+              <p className="mt-1 text-sm text-slate-500">{selectedService?.address ?? ""}</p>
+            </div>
+            <p className="shrink-0 text-2xl font-bold text-slate-900">{priceLabel}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1 justify-center rounded-xl"
+              onClick={() => setMobileMonthSelectOpen(true)}
+            >
+              {mobileMonthLabel}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1 justify-center rounded-xl"
+              onClick={() => setMobileYearSelectOpen(true)}
+            >
+              {mobileYearLabel}
+            </Button>
+          </div>
+          <div className="space-y-2">
+            {pickerAccordionDays.length === 0 ? (
+              <p className="text-sm text-slate-500">{t("public.booking.noEnabledDays")}</p>
+            ) : (
+              <Accordion
+                type="single"
+                value={mobilePickerOpenDayKey ?? undefined}
+                onValueChange={(value) => setMobilePickerOpenDayKey(value)}
+                collapsible
+                className="rounded-xl border border-slate-200"
+              >
+                {pickerAccordionDays.map((day) => (
+                  <AccordionItem key={day.column.dateIso} value={day.column.dateIso} className="px-3">
+                    <AccordionTrigger className="text-base font-semibold capitalize no-underline hover:no-underline">
+                      {day.label}
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      {day.slots.length === 0 ? (
+                        <p className="text-sm text-slate-500">{t("public.booking.noVisibleSlots")}</p>
+                      ) : (
+                        <div className="grid grid-cols-3 gap-2">
+                          {day.slots.map((time) => (
+                            <Button
+                              key={`${day.column.dateIso}-${time}`}
+                              type="button"
+                              variant={
+                                selectedSlot?.column.dateIso === day.column.dateIso &&
+                                selectedSlot.time === time &&
+                                selectedSlot.column.dayKey === day.column.dayKey
+                                  ? "default"
+                                  : "outline"
+                              }
+                              className="rounded-xl"
+                              onClick={() => {
+                                setSelectedSlot({ column: day.column, time });
+                              }}
+                            >
+                              {time}
+                            </Button>
+                          ))}
+                        </div>
+                      )}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            )}
           </div>
         </div>
-      ) : null}
-      {selectedSlot ? (
-        <Button type="button" className="w-full rounded-xl" onClick={() => setStep("details")}>
-          {t("public.booking.continueToDetails")}
-        </Button>
-      ) : null}
+        <div className="border-t border-slate-200 bg-white px-5 py-4">
+          <Button
+            type="button"
+            className="w-full rounded-2xl py-6 text-base font-semibold"
+            onClick={() => setStep("details")}
+            disabled={!selectedSlot}
+          >
+            {t("public.booking.continueToDetails")}
+          </Button>
+        </div>
+      </div>
+
+      <Dialog open={mobileMonthSelectOpen} onOpenChange={setMobileMonthSelectOpen}>
+        <DialogContent className="inset-0 flex h-[100dvh] w-screen max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-none border-0 p-0">
+          <DialogHeader className="border-b border-slate-200 px-4 py-2.5 text-left">
+            <DialogTitle>{t("public.mobile.select.month")}</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 space-y-2 overflow-y-auto px-3 pb-3 pt-3">
+            {mobileMonthOptions.map((monthOption) => (
+              <Button
+                key={monthOption.monthIndex}
+                type="button"
+                variant={monthOption.monthIndex === selectedMonthIndex ? "default" : "outline"}
+                className="h-14 w-full justify-start rounded-xl px-4 text-lg capitalize"
+                onClick={() => {
+                  const nextDate = new Date(mobilePickerMonthAnchor.getFullYear(), monthOption.monthIndex, 1);
+                  setMobilePickerMonthAnchor(nextDate);
+                  setWeekAnchor(nextDate);
+                  setSelectedSlot(null);
+                  setMobileMonthSelectOpen(false);
+                }}
+              >
+                {monthOption.label}
+              </Button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={mobileYearSelectOpen} onOpenChange={setMobileYearSelectOpen}>
+        <DialogContent className="inset-0 flex h-[100dvh] w-screen max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-none border-0 p-0">
+          <DialogHeader className="border-b border-slate-200 px-4 py-2.5 text-left">
+            <DialogTitle>{t("public.mobile.select.year")}</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 space-y-2 overflow-y-auto px-3 pb-3 pt-3">
+            {mobileYearOptions.map((yearOption) => (
+              <Button
+                key={yearOption}
+                type="button"
+                variant={yearOption === selectedYearValue ? "default" : "outline"}
+                className="h-14 w-full justify-start rounded-xl px-4 text-lg"
+                onClick={() => {
+                  const nextDate = new Date(yearOption, mobilePickerMonthAnchor.getMonth(), 1);
+                  setMobilePickerMonthAnchor(nextDate);
+                  setWeekAnchor(nextDate);
+                  setSelectedSlot(null);
+                  setMobileYearSelectOpen(false);
+                }}
+              >
+                {yearOption}
+              </Button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 
@@ -415,6 +635,12 @@ export default function BookingPage() {
         <p className="mb-6 text-sm text-slate-600">
           {selectedService.name} — {getDayShortLabel(selectedSlot.column.dayKey)} {getDayDateLabel(selectedSlot.column.fullDate)} ·{" "}
           {selectedSlot.time}
+        </p>
+      ) : null}
+      {selectedService?.address ? (
+        <p className="mb-6 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+          <MapPin className="size-4 text-slate-500" />
+          {selectedService.address}
         </p>
       ) : null}
       <Form {...form}>
@@ -495,10 +721,6 @@ export default function BookingPage() {
 
   const pickStepContent = (
     <>
-      {coachBannerPick}
-      <h2 className="mb-2 text-center text-3xl font-bold text-slate-900">{t("public.booking.calendarTitle")}</h2>
-      <p className="mb-2 text-center text-slate-600">{selectedService?.name ?? ""}</p>
-      {weekControls}
       {storefrontQuery.isLoading ? (
         loadingBlock
       ) : enabledColumns.length === 0 ? (
@@ -507,12 +729,148 @@ export default function BookingPage() {
         <p className="py-12 text-center text-slate-600">{t("public.booking.noVisibleSlots")}</p>
       ) : (
         <>
+          <div className="hidden lg:block">
+            {coachBannerPick}
+            <h2 className="mb-2 text-center text-3xl font-bold text-slate-900">{t("public.booking.calendarTitle")}</h2>
+            <p className="mb-2 text-center text-slate-600">{selectedService?.name ?? ""}</p>
+          </div>
           {desktopGrid}
           {mobileGrid}
         </>
       )}
     </>
   );
+
+  const serviceDetailsStep = selectedService ? (
+    <div className="mx-auto max-w-3xl">
+      <div className={`${mobileHeroClassName} md:hidden`}>
+        {mobileHeroImageCandidates[mobileHeroImageIndex] ? (
+          <img
+            src={mobileHeroImageCandidates[mobileHeroImageIndex]}
+            alt={selectedService.name}
+            className="h-full w-full object-cover object-bottom"
+            onError={() => {
+              setMobileHeroImageIndex((current) => {
+                if (current >= mobileHeroImageCandidates.length - 1) {
+                  return current;
+                }
+                return current + 1;
+              });
+            }}
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center bg-slate-200 px-4 text-center text-sm text-slate-600">
+            {selectedService.name}
+          </div>
+        )}
+        <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 pt-5">
+          <button
+            type="button"
+            onClick={() => setStep("pick")}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm"
+            aria-label={t("common.back")}
+          >
+            <ChevronLeft className="size-5" />
+          </button>
+          <button
+            type="button"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm"
+            aria-label={t("public.booking.share")}
+          >
+            <Share2 className="size-4.5" />
+          </button>
+        </div>
+      </div>
+
+      <div className={`${mobileDrawerClassName} md:hidden`}>
+        <div className="mx-auto mt-3 h-1.5 w-14 rounded-full bg-slate-200" />
+        <div className="flex-1 space-y-4 overflow-y-auto px-5 pb-4 pt-4">
+          {coach ? <PublicCoachBanner name={coach.name} bio={coach.bio} imageUrl={coach.imageUrl} /> : null}
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="truncate text-2xl font-bold text-slate-900">{selectedService.name}</p>
+              <p className="mt-1 text-sm text-slate-500">{selectedService.address}</p>
+            </div>
+            <p className="shrink-0 text-2xl font-bold text-slate-900">{priceLabel}</p>
+          </div>
+
+          <div className="flex flex-wrap gap-2 text-xs">
+            <span className="rounded-full bg-slate-100 px-3 py-1.5 text-slate-700">
+              {t("public.booking.durationLabel", { minutes: selectedService.durationMinutes })}
+            </span>
+          </div>
+
+          <p className="text-sm leading-relaxed text-slate-700">{selectedService.description}</p>
+
+          <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+            <iframe
+              title={t("public.booking.mapTitle")}
+              src={`https://www.google.com/maps?q=${encodeURIComponent(selectedService.address)}&output=embed`}
+              className="h-44 w-full border-0"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          </div>
+
+        </div>
+
+        <div className="border-t border-slate-200 bg-white px-5 py-4">
+          <Button type="button" className="w-full rounded-2xl py-6 text-base font-semibold" onClick={() => setStep("pick")}>
+            {t("public.booking.pickSlotCta")}
+          </Button>
+        </div>
+      </div>
+
+      <div className="hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-lg md:block md:p-8">
+        {coach ? <PublicCoachBanner name={coach.name} bio={coach.bio} imageUrl={coach.imageUrl} /> : null}
+        <h2 className="mb-6 text-3xl font-bold text-slate-900">{t("public.booking.serviceDetailsTitle")}</h2>
+        <div className="space-y-5">
+          <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+            {selectedService.imageUrl ? (
+              <img src={selectedService.imageUrl} alt={selectedService.name} className="h-52 w-full object-cover sm:h-64" />
+            ) : (
+              <div className="flex h-52 items-center justify-center px-4 text-center text-sm text-slate-500 sm:h-64">
+                {selectedService.name}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-2xl font-semibold text-slate-900">{selectedService.name}</h3>
+            <p className="text-slate-600">{selectedService.description}</p>
+
+            <div className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 sm:grid-cols-2">
+              <p className="inline-flex items-center gap-2">
+                <Clock className="size-4 text-slate-500" />
+                {t("public.booking.durationLabel", { minutes: selectedService.durationMinutes })}
+              </p>
+              <p className="inline-flex items-center gap-2">
+                <MapPin className="size-4 text-slate-500" />
+                {selectedService.address}
+              </p>
+            </div>
+
+            <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+              <iframe
+                title={t("public.booking.mapTitle")}
+                src={`https://www.google.com/maps?q=${encodeURIComponent(selectedService.address)}&output=embed`}
+                className="h-56 w-full border-0"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+
+            <p className="text-3xl font-bold text-blue-700">{priceLabel}</p>
+            <div className="flex gap-3 pt-2">
+              <Button type="button" className="flex-1" onClick={() => setStep("pick")}>
+                {t("public.booking.pickSlotCta")}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  ) : null;
 
   const servicesHref = `/${coachSlug}/services`;
 
@@ -533,6 +891,8 @@ export default function BookingPage() {
     </div>
   ) : step === "done" ? (
     doneBlock
+  ) : step === "service" ? (
+    serviceDetailsStep
   ) : step === "details" ? (
     detailsForm
   ) : (
@@ -541,12 +901,17 @@ export default function BookingPage() {
 
   return (
     <FrontOfficePageLayout
-      rootClassName="min-h-screen bg-slate-50 px-6 py-12"
+      rootClassName={
+        step === "service" || step === "pick"
+          ? "min-h-screen bg-black px-0 py-0 md:bg-slate-50 md:px-6 md:py-12"
+          : "min-h-screen bg-slate-50 px-6 py-12"
+      }
+      hideBrandOnMobile={step === "service" || step === "pick"}
       topAction={
-        step === "done" ? null : <BackButton label={t("common.back")} fallbackHref={servicesHref} />
+        step === "done" || step === "service" || step === "pick" ? null : <BackButton label={t("common.back")} fallbackHref={servicesHref} />
       }
     >
-      <div className="mx-auto max-w-5xl pt-8">{mainInner}</div>
+      <div className={step === "service" || step === "pick" ? "mx-auto max-w-5xl pt-0 md:pt-8" : "mx-auto max-w-5xl pt-8"}>{mainInner}</div>
     </FrontOfficePageLayout>
   );
 }

@@ -48,6 +48,7 @@ export type ServiceMinAggregateOutputType = {
   isFree: boolean | null
   packSize: number | null
   imageUrl: string | null
+  address: string | null
   requiresValidation: boolean | null
   allowsDirectPayment: boolean | null
   createdAt: Date | null
@@ -64,6 +65,7 @@ export type ServiceMaxAggregateOutputType = {
   isFree: boolean | null
   packSize: number | null
   imageUrl: string | null
+  address: string | null
   requiresValidation: boolean | null
   allowsDirectPayment: boolean | null
   createdAt: Date | null
@@ -80,6 +82,7 @@ export type ServiceCountAggregateOutputType = {
   isFree: number
   packSize: number
   imageUrl: number
+  address: number
   availableSlotKeys: number
   requiresValidation: number
   allowsDirectPayment: number
@@ -111,6 +114,7 @@ export type ServiceMinAggregateInputType = {
   isFree?: true
   packSize?: true
   imageUrl?: true
+  address?: true
   requiresValidation?: true
   allowsDirectPayment?: true
   createdAt?: true
@@ -127,6 +131,7 @@ export type ServiceMaxAggregateInputType = {
   isFree?: true
   packSize?: true
   imageUrl?: true
+  address?: true
   requiresValidation?: true
   allowsDirectPayment?: true
   createdAt?: true
@@ -143,6 +148,7 @@ export type ServiceCountAggregateInputType = {
   isFree?: true
   packSize?: true
   imageUrl?: true
+  address?: true
   availableSlotKeys?: true
   requiresValidation?: true
   allowsDirectPayment?: true
@@ -247,6 +253,7 @@ export type ServiceGroupByOutputType = {
   isFree: boolean
   packSize: number
   imageUrl: string | null
+  address: string
   availableSlotKeys: runtime.JsonValue
   requiresValidation: boolean
   allowsDirectPayment: boolean
@@ -287,6 +294,7 @@ export type ServiceWhereInput = {
   isFree?: Prisma.BoolFilter<"Service"> | boolean
   packSize?: Prisma.IntFilter<"Service"> | number
   imageUrl?: Prisma.StringNullableFilter<"Service"> | string | null
+  address?: Prisma.StringFilter<"Service"> | string
   availableSlotKeys?: Prisma.JsonFilter<"Service">
   requiresValidation?: Prisma.BoolFilter<"Service"> | boolean
   allowsDirectPayment?: Prisma.BoolFilter<"Service"> | boolean
@@ -306,6 +314,7 @@ export type ServiceOrderByWithRelationInput = {
   isFree?: Prisma.SortOrder
   packSize?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  address?: Prisma.SortOrder
   availableSlotKeys?: Prisma.SortOrder
   requiresValidation?: Prisma.SortOrder
   allowsDirectPayment?: Prisma.SortOrder
@@ -328,6 +337,7 @@ export type ServiceWhereUniqueInput = Prisma.AtLeast<{
   isFree?: Prisma.BoolFilter<"Service"> | boolean
   packSize?: Prisma.IntFilter<"Service"> | number
   imageUrl?: Prisma.StringNullableFilter<"Service"> | string | null
+  address?: Prisma.StringFilter<"Service"> | string
   availableSlotKeys?: Prisma.JsonFilter<"Service">
   requiresValidation?: Prisma.BoolFilter<"Service"> | boolean
   allowsDirectPayment?: Prisma.BoolFilter<"Service"> | boolean
@@ -347,6 +357,7 @@ export type ServiceOrderByWithAggregationInput = {
   isFree?: Prisma.SortOrder
   packSize?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  address?: Prisma.SortOrder
   availableSlotKeys?: Prisma.SortOrder
   requiresValidation?: Prisma.SortOrder
   allowsDirectPayment?: Prisma.SortOrder
@@ -372,6 +383,7 @@ export type ServiceScalarWhereWithAggregatesInput = {
   isFree?: Prisma.BoolWithAggregatesFilter<"Service"> | boolean
   packSize?: Prisma.IntWithAggregatesFilter<"Service"> | number
   imageUrl?: Prisma.StringNullableWithAggregatesFilter<"Service"> | string | null
+  address?: Prisma.StringWithAggregatesFilter<"Service"> | string
   availableSlotKeys?: Prisma.JsonWithAggregatesFilter<"Service">
   requiresValidation?: Prisma.BoolWithAggregatesFilter<"Service"> | boolean
   allowsDirectPayment?: Prisma.BoolWithAggregatesFilter<"Service"> | boolean
@@ -382,12 +394,13 @@ export type ServiceScalarWhereWithAggregatesInput = {
 export type ServiceCreateInput = {
   id?: string
   name: string
-  description?: string
+  description: string
   durationMinutes: number
   price?: number
   isFree?: boolean
   packSize?: number
   imageUrl?: string | null
+  address: string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   requiresValidation?: boolean
   allowsDirectPayment?: boolean
@@ -401,12 +414,13 @@ export type ServiceUncheckedCreateInput = {
   id?: string
   userId: string
   name: string
-  description?: string
+  description: string
   durationMinutes: number
   price?: number
   isFree?: boolean
   packSize?: number
   imageUrl?: string | null
+  address: string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   requiresValidation?: boolean
   allowsDirectPayment?: boolean
@@ -424,6 +438,7 @@ export type ServiceUpdateInput = {
   isFree?: Prisma.BoolFieldUpdateOperationsInput | boolean
   packSize?: Prisma.IntFieldUpdateOperationsInput | number
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.StringFieldUpdateOperationsInput | string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   requiresValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowsDirectPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -443,6 +458,7 @@ export type ServiceUncheckedUpdateInput = {
   isFree?: Prisma.BoolFieldUpdateOperationsInput | boolean
   packSize?: Prisma.IntFieldUpdateOperationsInput | number
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.StringFieldUpdateOperationsInput | string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   requiresValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowsDirectPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -455,12 +471,13 @@ export type ServiceCreateManyInput = {
   id?: string
   userId: string
   name: string
-  description?: string
+  description: string
   durationMinutes: number
   price?: number
   isFree?: boolean
   packSize?: number
   imageUrl?: string | null
+  address: string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   requiresValidation?: boolean
   allowsDirectPayment?: boolean
@@ -477,6 +494,7 @@ export type ServiceUpdateManyMutationInput = {
   isFree?: Prisma.BoolFieldUpdateOperationsInput | boolean
   packSize?: Prisma.IntFieldUpdateOperationsInput | number
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.StringFieldUpdateOperationsInput | string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   requiresValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowsDirectPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -494,6 +512,7 @@ export type ServiceUncheckedUpdateManyInput = {
   isFree?: Prisma.BoolFieldUpdateOperationsInput | boolean
   packSize?: Prisma.IntFieldUpdateOperationsInput | number
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.StringFieldUpdateOperationsInput | string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   requiresValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowsDirectPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -521,6 +540,7 @@ export type ServiceCountOrderByAggregateInput = {
   isFree?: Prisma.SortOrder
   packSize?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
+  address?: Prisma.SortOrder
   availableSlotKeys?: Prisma.SortOrder
   requiresValidation?: Prisma.SortOrder
   allowsDirectPayment?: Prisma.SortOrder
@@ -544,6 +564,7 @@ export type ServiceMaxOrderByAggregateInput = {
   isFree?: Prisma.SortOrder
   packSize?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
+  address?: Prisma.SortOrder
   requiresValidation?: Prisma.SortOrder
   allowsDirectPayment?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -560,6 +581,7 @@ export type ServiceMinOrderByAggregateInput = {
   isFree?: Prisma.SortOrder
   packSize?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
+  address?: Prisma.SortOrder
   requiresValidation?: Prisma.SortOrder
   allowsDirectPayment?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -619,14 +641,6 @@ export type ServiceUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.ServiceScalarWhereInput | Prisma.ServiceScalarWhereInput[]
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type FloatFieldUpdateOperationsInput = {
   set?: number
   increment?: number
@@ -652,12 +666,13 @@ export type ServiceUpdateOneRequiredWithoutBookingsNestedInput = {
 export type ServiceCreateWithoutUserInput = {
   id?: string
   name: string
-  description?: string
+  description: string
   durationMinutes: number
   price?: number
   isFree?: boolean
   packSize?: number
   imageUrl?: string | null
+  address: string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   requiresValidation?: boolean
   allowsDirectPayment?: boolean
@@ -669,12 +684,13 @@ export type ServiceCreateWithoutUserInput = {
 export type ServiceUncheckedCreateWithoutUserInput = {
   id?: string
   name: string
-  description?: string
+  description: string
   durationMinutes: number
   price?: number
   isFree?: boolean
   packSize?: number
   imageUrl?: string | null
+  address: string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   requiresValidation?: boolean
   allowsDirectPayment?: boolean
@@ -722,6 +738,7 @@ export type ServiceScalarWhereInput = {
   isFree?: Prisma.BoolFilter<"Service"> | boolean
   packSize?: Prisma.IntFilter<"Service"> | number
   imageUrl?: Prisma.StringNullableFilter<"Service"> | string | null
+  address?: Prisma.StringFilter<"Service"> | string
   availableSlotKeys?: Prisma.JsonFilter<"Service">
   requiresValidation?: Prisma.BoolFilter<"Service"> | boolean
   allowsDirectPayment?: Prisma.BoolFilter<"Service"> | boolean
@@ -732,12 +749,13 @@ export type ServiceScalarWhereInput = {
 export type ServiceCreateWithoutBookingsInput = {
   id?: string
   name: string
-  description?: string
+  description: string
   durationMinutes: number
   price?: number
   isFree?: boolean
   packSize?: number
   imageUrl?: string | null
+  address: string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   requiresValidation?: boolean
   allowsDirectPayment?: boolean
@@ -750,12 +768,13 @@ export type ServiceUncheckedCreateWithoutBookingsInput = {
   id?: string
   userId: string
   name: string
-  description?: string
+  description: string
   durationMinutes: number
   price?: number
   isFree?: boolean
   packSize?: number
   imageUrl?: string | null
+  address: string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   requiresValidation?: boolean
   allowsDirectPayment?: boolean
@@ -788,6 +807,7 @@ export type ServiceUpdateWithoutBookingsInput = {
   isFree?: Prisma.BoolFieldUpdateOperationsInput | boolean
   packSize?: Prisma.IntFieldUpdateOperationsInput | number
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.StringFieldUpdateOperationsInput | string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   requiresValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowsDirectPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -806,6 +826,7 @@ export type ServiceUncheckedUpdateWithoutBookingsInput = {
   isFree?: Prisma.BoolFieldUpdateOperationsInput | boolean
   packSize?: Prisma.IntFieldUpdateOperationsInput | number
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.StringFieldUpdateOperationsInput | string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   requiresValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowsDirectPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -816,12 +837,13 @@ export type ServiceUncheckedUpdateWithoutBookingsInput = {
 export type ServiceCreateManyUserInput = {
   id?: string
   name: string
-  description?: string
+  description: string
   durationMinutes: number
   price?: number
   isFree?: boolean
   packSize?: number
   imageUrl?: string | null
+  address: string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   requiresValidation?: boolean
   allowsDirectPayment?: boolean
@@ -838,6 +860,7 @@ export type ServiceUpdateWithoutUserInput = {
   isFree?: Prisma.BoolFieldUpdateOperationsInput | boolean
   packSize?: Prisma.IntFieldUpdateOperationsInput | number
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.StringFieldUpdateOperationsInput | string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   requiresValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowsDirectPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -855,6 +878,7 @@ export type ServiceUncheckedUpdateWithoutUserInput = {
   isFree?: Prisma.BoolFieldUpdateOperationsInput | boolean
   packSize?: Prisma.IntFieldUpdateOperationsInput | number
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.StringFieldUpdateOperationsInput | string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   requiresValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowsDirectPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -872,6 +896,7 @@ export type ServiceUncheckedUpdateManyWithoutUserInput = {
   isFree?: Prisma.BoolFieldUpdateOperationsInput | boolean
   packSize?: Prisma.IntFieldUpdateOperationsInput | number
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.StringFieldUpdateOperationsInput | string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   requiresValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowsDirectPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -920,6 +945,7 @@ export type ServiceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   isFree?: boolean
   packSize?: boolean
   imageUrl?: boolean
+  address?: boolean
   availableSlotKeys?: boolean
   requiresValidation?: boolean
   allowsDirectPayment?: boolean
@@ -940,6 +966,7 @@ export type ServiceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   isFree?: boolean
   packSize?: boolean
   imageUrl?: boolean
+  address?: boolean
   availableSlotKeys?: boolean
   requiresValidation?: boolean
   allowsDirectPayment?: boolean
@@ -958,6 +985,7 @@ export type ServiceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   isFree?: boolean
   packSize?: boolean
   imageUrl?: boolean
+  address?: boolean
   availableSlotKeys?: boolean
   requiresValidation?: boolean
   allowsDirectPayment?: boolean
@@ -976,6 +1004,7 @@ export type ServiceSelectScalar = {
   isFree?: boolean
   packSize?: boolean
   imageUrl?: boolean
+  address?: boolean
   availableSlotKeys?: boolean
   requiresValidation?: boolean
   allowsDirectPayment?: boolean
@@ -983,7 +1012,7 @@ export type ServiceSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ServiceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "name" | "description" | "durationMinutes" | "price" | "isFree" | "packSize" | "imageUrl" | "availableSlotKeys" | "requiresValidation" | "allowsDirectPayment" | "createdAt" | "updatedAt", ExtArgs["result"]["service"]>
+export type ServiceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "name" | "description" | "durationMinutes" | "price" | "isFree" | "packSize" | "imageUrl" | "address" | "availableSlotKeys" | "requiresValidation" | "allowsDirectPayment" | "createdAt" | "updatedAt", ExtArgs["result"]["service"]>
 export type ServiceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   bookings?: boolean | Prisma.Service$bookingsArgs<ExtArgs>
@@ -1012,6 +1041,7 @@ export type $ServicePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     isFree: boolean
     packSize: number
     imageUrl: string | null
+    address: string
     availableSlotKeys: runtime.JsonValue
     requiresValidation: boolean
     allowsDirectPayment: boolean
@@ -1451,6 +1481,7 @@ export interface ServiceFieldRefs {
   readonly isFree: Prisma.FieldRef<"Service", 'Boolean'>
   readonly packSize: Prisma.FieldRef<"Service", 'Int'>
   readonly imageUrl: Prisma.FieldRef<"Service", 'String'>
+  readonly address: Prisma.FieldRef<"Service", 'String'>
   readonly availableSlotKeys: Prisma.FieldRef<"Service", 'Json'>
   readonly requiresValidation: Prisma.FieldRef<"Service", 'Boolean'>
   readonly allowsDirectPayment: Prisma.FieldRef<"Service", 'Boolean'>

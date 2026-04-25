@@ -51,6 +51,8 @@ export type UpdateProfileAvatarInput = z.infer<typeof updateProfileAvatarInputSc
 export const publicBookingPresenceOutputSchema = z.object({
   publicBookingSlug: z.string().nullable(),
   image: z.string().nullable(),
+  defaultAddress: z.string().nullable(),
+  publicBookingMinNoticeHours: z.number().int().min(0).max(168),
 });
 
 export const updatePublicBookingPresenceInputSchema = z.object({
@@ -62,6 +64,8 @@ export type UpdatePublicBookingPresenceInput = z.infer<typeof updatePublicBookin
 export const updateProfileBasicsInputSchema = z.object({
   name: z.string().min(1).max(200),
   bio: z.string().max(4000).nullable().optional(),
+  defaultAddress: z.string().max(500).nullable().optional(),
+  publicBookingMinNoticeHours: z.number().int().min(0).max(168).optional(),
 });
 
 export type UpdateProfileBasicsInput = z.infer<typeof updateProfileBasicsInputSchema>;

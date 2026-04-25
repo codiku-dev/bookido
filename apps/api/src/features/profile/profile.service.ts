@@ -197,6 +197,8 @@ export class ProfileService {
         publicBookingSlug: true,
         image: true,
         name: true,
+        address: true,
+        publicBookingMinNoticeHours: true,
         userAvatar: { select: { imageData: true } },
       },
     });
@@ -209,6 +211,8 @@ export class ProfileService {
       return {
         publicBookingSlug: row.publicBookingSlug,
         image: displayImage,
+        defaultAddress: row.address,
+        publicBookingMinNoticeHours: row.publicBookingMinNoticeHours,
       };
     }
     const maxPersistAttempts = 5;
@@ -219,7 +223,12 @@ export class ProfileService {
           where: { id: userId },
           data: { publicBookingSlug: allocated },
         });
-        return { publicBookingSlug: allocated, image: displayImage };
+        return {
+          publicBookingSlug: allocated,
+          image: displayImage,
+          defaultAddress: row.address,
+          publicBookingMinNoticeHours: row.publicBookingMinNoticeHours,
+        };
       } catch (e) {
         if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
           continue;
@@ -272,9 +281,20 @@ export class ProfileService {
 
   async updateProfileBasics(userId: string, input: UpdateProfileBasicsInput) {
     const name = input.name.trim();
-    const data: { name: string; bio?: string | null } = { name };
+    const data: { name: string; bio?: string | null; address?: string | null; publicBookingMinNoticeHours?: number } = {
+      name,
+    };
     if (input.bio !== undefined) {
       data.bio = input.bio === null || input.bio.trim().length === 0 ? null : input.bio.trim();
+    }
+    if (input.defaultAddress !== undefined) {
+      data.address =
+        input.defaultAddress === null || input.defaultAddress.trim().length === 0
+          ? null
+          : input.defaultAddress.trim();
+    }
+    if (input.publicBookingMinNoticeHours !== undefined) {
+      data.publicBookingMinNoticeHours = input.publicBookingMinNoticeHours;
     }
     await this.db.user.update({
       where: { id: userId },

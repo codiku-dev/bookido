@@ -243,8 +243,11 @@
     },
     "mobile": {
       "select": {
+        "date": "Sélectionner une date",
         "day": "Sélectionner un jour",
-        "time": "Sélectionner l'heure"
+        "month": "Sélectionner un mois",
+        "time": "Sélectionner l'heure",
+        "year": "Sélectionner une année"
       }
     },
     "payment": {
@@ -269,8 +272,16 @@
       "submit": "Confirmer la réservation",
       "submitting": "Envoi…",
       "detailsTitle": "Vos coordonnées",
+      "serviceDetailsTitle": "Détail de la prestation",
       "continueToDetails": "Continuer",
+      "pickSlotCta": "Choisir un créneau",
+      "mapTitle": "Carte du lieu de la prestation",
+      "share": "Partager la prestation",
+      "professionalDetails": "Détails du professionnel",
+      "validationRequired": "Validation du professionnel requise avant confirmation",
+      "validationNotRequired": "Confirmation instantanée",
       "slotTaken": "Ce créneau n’est plus disponible. Choisissez un autre horaire.",
+      "slotTooSoon": "Ce créneau ne peut plus être réservé car le délai minimum avant réservation est dépassé.",
       "error": "La réservation n’a pas pu être enregistrée. Réessayez.",
       "noEnabledDays": "Aucun jour d’ouverture n’est configuré pour cette semaine.",
       "noVisibleSlots": "Aucun horaire réservable n’apparaît cette semaine pour ce coach.",
@@ -1009,6 +1020,10 @@
     },
     "email": "Email",
     "emailReadOnlyHelp": "L'e-mail ne peut pas être modifié depuis cet écran.",
+    "defaultAddress": {
+      "label": "Adresse des prestations",
+      "hint": "Appliquée à toutes vos prestations par défaut. Vous pouvez la surcharger sur chaque prestation."
+    },
     "full": {
       "name": "Nom complet"
     },
@@ -1075,6 +1090,10 @@
         "reserved": "Cette URL est réservée. Choisissez-en une autre.",
         "taken": "Cette URL est déjà utilisée.",
         "generic": "Impossible d’enregistrer l’URL."
+      },
+      "minNoticeHours": {
+        "label": "Délai minimum avant réservation (heures)",
+        "hint": "Les clients doivent réserver au moins ce nombre d’heures avant le début du créneau. 0 = aucune contrainte."
       }
     }
   },
@@ -1085,6 +1104,11 @@
     },
     "devFill": "Remplissage dev",
     "description": "Description",
+    "address": {
+      "label": "Adresse de la prestation",
+      "placeholder": "ex. 12 rue de la Paix, 75002 Paris",
+      "hint": "Obligatoire. Préremplie avec votre adresse profil par défaut, modifiable pour chaque prestation."
+    },
     "duration": "Durée",
     "free": "Gratuit",
     "freeService": "Service gratuit",
@@ -1181,6 +1205,7 @@
       "packSizePositive": "La taille du pack doit etre au moins 1.",
       "priceNumber": "Le prix doit etre un nombre valide.",
       "priceNonNegative": "Le prix doit etre superieur ou egal a 0.",
+      "addressRequired": "L'adresse est obligatoire.",
       "imageRequired": "Une image est obligatoire.",
       "imageInvalidType": "Veuillez uploader un fichier image valide.",
       "imageTooLarge": "L'image doit faire 5 Mo maximum."

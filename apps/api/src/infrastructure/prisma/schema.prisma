@@ -18,8 +18,11 @@ model User {
   emailVerified Boolean   @default(false)
   image         String?
   bio           String?
+  address       String?
   /// URL path segment for public booking, e.g. `jonathan-malro-coach` → /jonathan-malro-coach/services
   publicBookingSlug String? @unique
+  /// Minimum notice (hours) required before a public booking can start.
+  publicBookingMinNoticeHours Int @default(0)
   archivedAt    DateTime?
   /// Weekly opening hours (Mon–Sun) for the admin calendar grid.
   calendarWeekHours       Json?
@@ -79,12 +82,13 @@ model Service {
   userId             String
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name               String
-  description        String   @default("")
+  description        String
   durationMinutes    Int
   price              Float    @default(0)
   isFree             Boolean  @default(false)
   packSize           Int      @default(1)
   imageUrl           String?
+  address            String
   availableSlotKeys     Json     @default("[]")
   requiresValidation    Boolean  @default(false)
   allowsDirectPayment   Boolean  @default(false)

@@ -61,6 +61,7 @@ const timeSlots = [
 const buildServiceFormSchema = (p: {
   nameRequired: string;
   descriptionRequired: string;
+  addressRequired: string;
   durationNumber: string;
   durationPositive: string;
   packSizeNumber: string;
@@ -74,7 +75,7 @@ const buildServiceFormSchema = (p: {
 
   return z.object({
     name: z.string().min(1, p.nameRequired),
-    description: z.string().min(1, p.descriptionRequired),
+    description: z.string().trim().min(1, p.descriptionRequired),
     duration: normalizedNumeric
       .refine((value) => value.length > 0, p.durationNumber)
       .refine((value) => /^\d+$/.test(value), p.durationNumber)
@@ -92,6 +93,7 @@ const buildServiceFormSchema = (p: {
       .string()
       .min(1, p.imageRequired)
       .refine((value) => value.startsWith("data:image/"), p.imageInvalidType),
+    address: z.string().trim().min(1, p.addressRequired).max(500),
     requiresValidation: z.boolean(),
     allowsDirectPayment: z.boolean(),
     availableSlotKeys: z.array(z.string()),
@@ -110,6 +112,7 @@ function getServiceFormDefaults(): ServiceFormValues {
     price: "0",
     isFree: false,
     imageUrl: "",
+    address: "",
     requiresValidation: false,
     allowsDirectPayment: false,
     availableSlotKeys: [],
@@ -171,6 +174,7 @@ export default function ServicesManagement() {
       buildServiceFormSchema({
         nameRequired: t("services.validation.nameRequired"),
         descriptionRequired: t("services.validation.descriptionRequired"),
+        addressRequired: t("services.validation.addressRequired"),
         durationNumber: t("services.validation.durationNumber"),
         durationPositive: t("services.validation.durationPositive"),
         packSizeNumber: t("services.validation.packSizeNumber"),
@@ -185,6 +189,7 @@ export default function ServicesManagement() {
 
   const listQuery = trpc.services.list.useQuery(undefined, { retry: false });
   const availabilityQuery = trpc.profile.getCalendarAvailability.useQuery(undefined, { retry: false });
+  const profilePresenceQuery = trpc.profile.getPublicBookingPresence.useQuery(undefined, { retry: false });
   const createMutation = trpc.services.create.useMutation({
     onSuccess: async () => {
       setMutationError(null);
@@ -215,23 +220,31 @@ export default function ServicesManagement() {
     defaultValues: getServiceFormDefaults(),
   });
 
+  const getNewServiceFormDefaults = useCallback(
+    (): ServiceFormValues => ({
+      ...getServiceFormDefaults(),
+      address: profilePresenceQuery.data?.defaultAddress ?? "",
+    }),
+    [profilePresenceQuery.data?.defaultAddress],
+  );
+
   const resetFormUi = useCallback(() => {
-    form.reset(getServiceFormDefaults());
+    form.reset(getNewServiceFormDefaults());
     setIsAdding(false);
     setEditingId(null);
-  }, [form]);
+  }, [form, getNewServiceFormDefaults]);
 
   const openCreate = () => {
     setEditingId(null);
     setIsAdding(true);
-    form.reset(getServiceFormDefaults());
+    form.reset(getNewServiceFormDefaults());
   };
 
   const handleDevFill = () => {
     setEditingId(null);
     setIsAdding(true);
     form.reset({
-      ...getServiceFormDefaults(),
+      ...getNewServiceFormDefaults(),
       name: "Demo coaching",
       description: "Une breve demo",
       duration: "60",
@@ -239,6 +252,7 @@ export default function ServicesManagement() {
       price: "0",
       isFree: true,
       imageUrl: "https://example.com/image.jpg",
+      address: "123 Demo Street, Paris",
       requiresValidation: false,
       allowsDirectPayment: true,
     });
@@ -255,6 +269,7 @@ export default function ServicesManagement() {
       price: String(service.price),
       isFree: service.isFree,
       imageUrl: service.imageUrl ?? "",
+      address: service.address ?? "",
       requiresValidation: service.requiresValidation,
       allowsDirectPayment: service.allowsDirectPayment,
       availableSlotKeys: Array.isArray(service.availableSlotKeys) ? [...service.availableSlotKeys] : [],
@@ -275,6 +290,7 @@ export default function ServicesManagement() {
       price: service.price,
       isFree: service.isFree,
       imageUrl: service.imageUrl,
+      address: service.address,
       availableSlotKeys: Array.isArray(service.availableSlotKeys) ? [...service.availableSlotKeys] : [],
       requiresValidation: service.requiresValidation,
       allowsDirectPayment: service.allowsDirectPayment,
@@ -348,12 +364,13 @@ export default function ServicesManagement() {
     const parsedPrice = Number.parseFloat(values.price.replace(",", "."));
     const payload = {
       name: values.name.trim(),
-      description: values.description,
+      description: values.description.trim(),
       durationMinutes: parsedDuration,
       packSize: parsedPackSize,
       price: parsedPrice,
       isFree: parsedPrice === 0,
       imageUrl: trimmedImage.length > 0 ? trimmedImage : null,
+      address: values.address.trim(),
       availableSlotKeys: availabilityQuery.data?.closedSlotKeys ?? values.availableSlotKeys,
       requiresValidation: values.requiresValidation,
       allowsDirectPayment: values.allowsDirectPayment,
@@ -371,6 +388,7 @@ export default function ServicesManagement() {
   const formErrorMessages = [
     form.formState.errors.name?.message,
     form.formState.errors.description?.message,
+    form.formState.errors.address?.message,
     form.formState.errors.duration?.message,
     form.formState.errors.packSize?.message,
     form.formState.errors.price?.message,
@@ -378,12 +396,12 @@ export default function ServicesManagement() {
   ].filter((message): message is string => typeof message === "string" && message.length > 0);
 
   const renderHeader = () => (
-    <div className="flex items-center justify-between mb-8">
-      <div>
+    <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="min-w-0">
         <h1 className="text-3xl font-bold text-slate-900 mb-2">{t("services.title")}</h1>
-        <p className="text-slate-600">{t("services.subtitle")}</p>
+        <p className="max-w-2xl text-slate-600">{t("services.subtitle")}</p>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
         {showDevFill ? (
           <Button type="button" variant="outline" onClick={handleDevFill} className="h-11 px-4 rounded-xl">
             {t("services.devFill")}
@@ -530,7 +548,7 @@ export default function ServicesManagement() {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="bg-white rounded-2xl border border-slate-200 p-6 mb-6"
+          className="rounded-xl border border-slate-200 bg-slate-50/50 p-6 shadow-sm"
         >
           <h2 className="text-xl font-bold text-slate-900 mb-6">
             {isAdding ? t("services.form.title.create") : t("services.form.title.edit")}
@@ -579,6 +597,25 @@ export default function ServicesManagement() {
                       className="rounded-xl min-h-[96px]"
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem className="md:col-span-2">
+                  <FormLabel>{t("services.address.label")}</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder={t("services.address.placeholder")}
+                      className="rounded-xl h-11"
+                    />
+                  </FormControl>
+                  <p className="text-xs text-slate-500">{t("services.address.hint")}</p>
                   <FormMessage />
                 </FormItem>
               )}
@@ -837,21 +874,21 @@ export default function ServicesManagement() {
   };
 
   const servicesLoadingPanel = (
-    <div className="bg-white rounded-2xl border border-slate-200 px-6 py-16 text-center">
+    <div className="rounded-xl border border-slate-200 bg-white px-6 py-16 text-center shadow-sm">
       <Loader2 className="mx-auto size-10 animate-spin text-slate-300" aria-hidden />
       <p className="mt-4 text-sm text-slate-600">{t("services.loading")}</p>
     </div>
   );
 
   const servicesErrorPanel = (
-    <div className="bg-white rounded-2xl border border-slate-200 px-6 py-16 text-center">
+    <div className="rounded-xl border border-slate-200 bg-white px-6 py-16 text-center shadow-sm">
       <p className="text-sm text-red-600">{t("services.errors.load")}</p>
     </div>
   );
 
   const servicesEmptyPanel = (
-    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-      <div className="bg-slate-50/60 px-6 py-16 text-center">
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="bg-slate-50/70 px-6 py-16 text-center">
         <Package className="mx-auto size-12 text-slate-300" aria-hidden />
         <h3 className="mt-4 text-lg font-semibold text-slate-900">{t("services.emptyList.title")}</h3>
         <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-slate-600">{t("services.emptyList.description")}</p>
@@ -864,13 +901,15 @@ export default function ServicesManagement() {
   );
 
   const servicesCardsGrid = (
-    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {servicesRows.map((service) => renderServiceCard(service))}
     </div>
   );
 
+  const isFormMode = isAdding || editingId;
+
   const servicesListBody =
-    isAdding || editingId
+    isFormMode
       ? null
       : listQuery.isLoading
         ? servicesLoadingPanel
@@ -880,11 +919,20 @@ export default function ServicesManagement() {
             ? servicesEmptyPanel
             : servicesCardsGrid;
 
+  const mainWhitePanel = (
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg md:p-8">
+      {isFormMode ? (
+        renderForm()
+      ) : (
+        <div className="rounded-xl border border-slate-200/80 bg-slate-50/60 p-4 md:p-6">{servicesListBody}</div>
+      )}
+    </div>
+  );
+
   return (
-    <div className="p-8">
+    <div className="mx-auto w-full max-w-7xl p-8">
       {renderHeader()}
-      {renderForm()}
-      {servicesListBody}
+      {mainWhitePanel}
       {renderDeleteDialog()}
     </div>
   );

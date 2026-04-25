@@ -1049,7 +1049,9 @@ export const UserScalarFieldEnum = {
   emailVerified: 'emailVerified',
   image: 'image',
   bio: 'bio',
+  address: 'address',
   publicBookingSlug: 'publicBookingSlug',
+  publicBookingMinNoticeHours: 'publicBookingMinNoticeHours',
   archivedAt: 'archivedAt',
   calendarWeekHours: 'calendarWeekHours',
   calendarClosedSlotKeys: 'calendarClosedSlotKeys',
@@ -1099,6 +1101,7 @@ export const ServiceScalarFieldEnum = {
   isFree: 'isFree',
   packSize: 'packSize',
   imageUrl: 'imageUrl',
+  address: 'address',
   availableSlotKeys: 'availableSlotKeys',
   requiresValidation: 'requiresValidation',
   allowsDirectPayment: 'allowsDirectPayment',
@@ -1254,6 +1257,20 @@ export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
+ * Reference to a field of type 'Int'
+ */
+export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+/**
+ * Reference to a field of type 'Int[]'
+ */
+export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
  * Reference to a field of type 'DateTime'
  */
 export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
@@ -1278,20 +1295,6 @@ export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'J
  * Reference to a field of type 'QueryMode'
  */
 export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
-    
-
-
-/**
- * Reference to a field of type 'Int'
- */
-export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
-    
-
-
-/**
- * Reference to a field of type 'Int[]'
- */
-export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
     
 
 

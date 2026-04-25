@@ -243,8 +243,11 @@
     },
     "mobile": {
       "select": {
+        "date": "Select a Date",
         "day": "Select a Day",
-        "time": "Select Time"
+        "month": "Select a Month",
+        "time": "Select Time",
+        "year": "Select a Year"
       }
     },
     "payment": {
@@ -269,8 +272,16 @@
       "submit": "Confirm booking",
       "submitting": "Sending…",
       "detailsTitle": "Your details",
+      "serviceDetailsTitle": "Service details",
       "continueToDetails": "Continue",
+      "pickSlotCta": "Choose an appointment time",
+      "mapTitle": "Service location map",
+      "share": "Share service",
+      "professionalDetails": "Professional details",
+      "validationRequired": "Host validation required before confirmation",
+      "validationNotRequired": "Instant confirmation",
       "slotTaken": "This slot is no longer available. Please choose another time.",
+      "slotTooSoon": "This slot can no longer be booked because the minimum notice time has passed.",
       "error": "We could not complete your booking. Please try again.",
       "noEnabledDays": "No opening days are configured for this week.",
       "noVisibleSlots": "No bookable time appears in this week for this coach.",
@@ -1009,6 +1020,10 @@
     },
     "email": "Email",
     "emailReadOnlyHelp": "Email cannot be changed from this screen.",
+    "defaultAddress": {
+      "label": "Service address",
+      "hint": "Used for all services by default. You can override it on each service."
+    },
     "full": {
       "name": "Full name"
     },
@@ -1075,6 +1090,10 @@
         "reserved": "This URL is reserved. Choose another.",
         "taken": "This URL is already in use.",
         "generic": "Could not save the URL."
+      },
+      "minNoticeHours": {
+        "label": "Minimum booking notice (hours)",
+        "hint": "Clients must book at least this many hours before the slot starts. 0 means no extra notice."
       }
     }
   },
@@ -1085,6 +1104,11 @@
     },
     "devFill": "Dev fill",
     "description": "Description",
+    "address": {
+      "label": "Service address",
+      "placeholder": "e.g., 12 rue de la Paix, 75002 Paris",
+      "hint": "Required. Pre-filled from your default profile address, editable per service."
+    },
     "duration": "Duration",
     "free": "Free",
     "freeService": "Free service",
@@ -1181,6 +1205,7 @@
       "packSizePositive": "Pack size must be at least 1.",
       "priceNumber": "Price must be a valid number.",
       "priceNonNegative": "Price must be 0 or higher.",
+      "addressRequired": "Address is required.",
       "imageRequired": "An image is required.",
       "imageInvalidType": "Please upload a valid image file.",
       "imageTooLarge": "Image must be 5MB or less."
