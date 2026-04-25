@@ -30,6 +30,7 @@ export class ServicesService {
     imageUrl: string | null;
     address: string;
     availableSlotKeys: Prisma.JsonValue;
+    isPublished: boolean;
     requiresValidation: boolean;
     allowsDirectPayment: boolean;
     createdAt: Date;
@@ -47,6 +48,7 @@ export class ServicesService {
       imageUrl: row.imageUrl,
       address: row.address,
       availableSlotKeys: slotKeysFromJson(row.availableSlotKeys),
+      isPublished: row.isPublished,
       requiresValidation: row.requiresValidation,
       allowsDirectPayment: row.allowsDirectPayment,
       createdAt: row.createdAt,
@@ -75,6 +77,7 @@ export class ServicesService {
         imageUrl: input.imageUrl ?? null,
         address: input.address.trim(),
         availableSlotKeys: input.availableSlotKeys as Prisma.InputJsonValue,
+        isPublished: input.isPublished ?? true,
         requiresValidation: input.requiresValidation,
         allowsDirectPayment: input.allowsDirectPayment,
       },
@@ -110,6 +113,7 @@ export class ServicesService {
         ...(data.availableSlotKeys !== undefined && {
           availableSlotKeys: data.availableSlotKeys as Prisma.InputJsonValue,
         }),
+        ...(data.isPublished !== undefined && { isPublished: data.isPublished }),
         ...(data.isFree !== undefined && { isFree: data.isFree }),
         price: nextPrice,
       },

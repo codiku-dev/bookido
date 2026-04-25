@@ -10,7 +10,6 @@ import {
   type KeyboardEvent,
   type MouseEvent,
   type PointerEvent,
-  type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -44,8 +43,8 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "#/components/ui/context-menu";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "#/components/ui/hover-card";
 import { Popover, PopoverAnchor, PopoverContent } from "#/components/ui/popover";
+import { CalendarSlotHoverHint } from "#/components/calendar/WeeklyTimeGrid";
 import { trpc } from "@web/libs/trpc-client";
 import { bookingLocalDateKey, totalMinutesToTimeHm } from "#/utils/booking-dates";
 import { cn } from "@repo/ui/utils/cn";
@@ -121,6 +120,7 @@ type EnabledDayColumn = {
   shortLabel: string;
   date: string;
   fullDate: Date;
+  enabled: boolean;
 };
 
 type AvailabilityDragState = {
@@ -150,23 +150,6 @@ function dedupeCalendarBookingsById(bookings: CalendarCellBooking[]) {
     out.push(b);
   }
   return out;
-}
-
-function CalendarSlotHoverHint(p: { label: string; children: ReactNode }) {
-  return (
-    <HoverCard openDelay={200} closeDelay={50}>
-      <HoverCardTrigger asChild>
-        <span className="block h-8 w-full max-w-full md:h-8 outline-none">{p.children}</span>
-      </HoverCardTrigger>
-      <HoverCardContent
-        side="top"
-        sideOffset={6}
-        className="max-w-[min(280px,85vw)] p-3 text-sm leading-snug"
-      >
-        {p.label}
-      </HoverCardContent>
-    </HoverCard>
-  );
 }
 
 export type RescheduleSlotSelection = {
@@ -670,10 +653,6 @@ export default function CalendarView(p: CalendarViewProps = {}) {
   const weekdayI18nKey = (dayName: string) => `calendar.weekday.${dayName.toLowerCase()}`;
 
   const enabledDays: EnabledDayColumn[] = weekDates
-    .filter((date) => {
-      const dayName = dayNames[date.getDay()] as CalendarWeekdayName;
-      return weekHours[dayName]?.enabled;
-    })
     .map((date) => {
       const dayKey = getCalendarDayKeyFromDate(date);
       const weekdayName = dayNames[date.getDay()] as CalendarWeekdayName;
@@ -683,6 +662,7 @@ export default function CalendarView(p: CalendarViewProps = {}) {
         shortLabel: t(`public.time.days.${dayKey}.short`),
         date: formatDate(date),
         fullDate: date,
+        enabled: weekHours[weekdayName]?.enabled ?? false,
       };
     });
 
@@ -691,7 +671,7 @@ export default function CalendarView(p: CalendarViewProps = {}) {
       ? []
       : (() => {
           const rowHasOpenSlot = (time: string) =>
-            enabledDays.some((column) => !isSlotClosed(column, time)) ||
+            enabledDays.some((column) => column.enabled && !isSlotClosed(column, time)) ||
             enabledDays.some((column) => bookingBySlot.has(`${column.dayKey}-${time}`));
 
           let first = 0;
@@ -857,6 +837,12 @@ export default function CalendarView(p: CalendarViewProps = {}) {
     [clientsQuery.data],
   );
 
+  const calendarDayColumnTemplate = enabledDays
+    .map((column) => (column.enabled ? "minmax(108px, 1fr)" : "minmax(66px, 0.62fr)"))
+    .join(" ");
+
+  const calendarGridMinWidth = `${48 + enabledDays.reduce((sum, column) => sum + (column.enabled ? 108 : 66), 0)}px`;
+
   const calendarGrid = (
     <div
       className={cn(
@@ -867,10 +853,10 @@ export default function CalendarView(p: CalendarViewProps = {}) {
       )}
     >
       <div className="overflow-x-auto">
-        <div style={{ minWidth: `${enabledDays.length * 72 + 48}px` }}>
+        <div style={{ minWidth: calendarGridMinWidth }}>
           <div style={{
             display: "grid",
-            gridTemplateColumns: `48px repeat(${enabledDays.length}, 1fr)`,
+            gridTemplateColumns: `48px ${calendarDayColumnTemplate}`,
             gap: "1px",
             backgroundColor: "#e2e8f0",
             border: "1px solid #e2e8f0",
@@ -889,7 +875,9 @@ export default function CalendarView(p: CalendarViewProps = {}) {
                       : ""
                   }`}
                 >
-                  <div className="font-medium text-slate-900 text-xs md:text-sm">{day.shortLabel}</div>
+                  <div className={`font-medium text-xs md:text-sm ${day.enabled ? "text-slate-900" : "text-slate-500"}`}>
+                    {day.shortLabel}
+                  </div>
                   {!isAvailabilityMode && (
                     <div className="mt-0.5">
                       {isSameDay(day.fullDate, today) ? (

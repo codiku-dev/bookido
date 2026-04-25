@@ -151,7 +151,7 @@ export class PublicBookingService {
       weekHours: availability.weekHours,
       closedSlotKeys: availability.closedSlotKeys,
       minBookingNoticeHours: coach.publicBookingMinNoticeHours,
-      services: services.map((s) => ({
+      services: services.filter((s) => s.isPublished).map((s) => ({
         id: s.id,
         name: s.name,
         description: s.description,

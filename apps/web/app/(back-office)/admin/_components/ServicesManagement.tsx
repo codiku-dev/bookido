@@ -1,7 +1,8 @@
 "use client";
 
-import { Fragment, useCallback, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type Resolver } from "react-hook-form";
 import { z } from "zod";
@@ -11,6 +12,8 @@ import {
   CreditCard,
   Copy,
   Euro,
+  FileText,
+  Globe,
   Image as ImageIcon,
   Loader2,
   MoreHorizontal,
@@ -40,12 +43,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "#/components/ui/alert-dialog";
+import { Badge } from "#/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
+import { CalendarSlotHoverHint, WeeklyTimeGrid } from "#/components/calendar/WeeklyTimeGrid";
 import type { inferRouterOutputs } from "@trpc/server";
 import type { AppRouter } from "@repo/trpc/router";
 import { trpc } from "@web/libs/trpc-client";
@@ -96,6 +101,7 @@ const buildServiceFormSchema = (p: {
     address: z.string().trim().min(1, p.addressRequired).max(500),
     requiresValidation: z.boolean(),
     allowsDirectPayment: z.boolean(),
+    isPublished: z.boolean(),
     availableSlotKeys: z.array(z.string()),
   });
 };
@@ -115,6 +121,7 @@ function getServiceFormDefaults(): ServiceFormValues {
     address: "",
     requiresValidation: false,
     allowsDirectPayment: false,
+    isPublished: true,
     availableSlotKeys: [],
   };
 }
@@ -168,6 +175,15 @@ export default function ServicesManagement() {
   const [mutationError, setMutationError] = useState<string | null>(null);
   const showDevFill = process.env.NODE_ENV === "development";
   const imageUploadInputRef = useRef<HTMLInputElement | null>(null);
+  const availabilityDragRef = useRef<{
+    active: boolean;
+    mode: "close" | "open" | null;
+    keys: Set<string>;
+  }>({
+    active: false,
+    mode: null,
+    keys: new Set(),
+  });
 
   const serviceFormSchema = useMemo(
     () =>
@@ -193,6 +209,7 @@ export default function ServicesManagement() {
   const createMutation = trpc.services.create.useMutation({
     onSuccess: async () => {
       setMutationError(null);
+      toast.success(t("common.save"));
       await utils.services.list.invalidate();
       resetFormUi();
     },
@@ -201,6 +218,7 @@ export default function ServicesManagement() {
   const updateMutation = trpc.services.update.useMutation({
     onSuccess: async () => {
       setMutationError(null);
+      toast.success(t("common.save"));
       await utils.services.list.invalidate();
       resetFormUi();
     },
@@ -272,6 +290,7 @@ export default function ServicesManagement() {
       address: service.address ?? "",
       requiresValidation: service.requiresValidation,
       allowsDirectPayment: service.allowsDirectPayment,
+      isPublished: service.isPublished,
       availableSlotKeys: Array.isArray(service.availableSlotKeys) ? [...service.availableSlotKeys] : [],
     });
   };
@@ -294,6 +313,7 @@ export default function ServicesManagement() {
       availableSlotKeys: Array.isArray(service.availableSlotKeys) ? [...service.availableSlotKeys] : [],
       requiresValidation: service.requiresValidation,
       allowsDirectPayment: service.allowsDirectPayment,
+      isPublished: service.isPublished,
     });
   };
 
@@ -335,6 +355,69 @@ export default function ServicesManagement() {
     return isOutsideOpeningHours(dayKey, time) || planningClosedSlotKeys.has(slotKey);
   }, [isOutsideOpeningHours, planningClosedSlotKeys]);
 
+  const selectedServiceSlotKeys = form.watch("availableSlotKeys");
+  const selectedServiceClosedSet = useMemo(
+    () => new Set(selectedServiceSlotKeys ?? []),
+    [selectedServiceSlotKeys],
+  );
+
+  const isServiceSlotManuallyClosed = useCallback(
+    (dayKey: string, time: string) => selectedServiceClosedSet.has(getSlotKey(dayKey, time)),
+    [selectedServiceClosedSet],
+  );
+
+  const toggleServiceSlotAvailability = useCallback((dayKey: string, time: string) => {
+    if (isOutsideOpeningHours(dayKey, time)) {
+      return;
+    }
+    const slotKey = getSlotKey(dayKey, time);
+    const next = new Set(form.getValues("availableSlotKeys") ?? []);
+    if (next.has(slotKey)) {
+      next.delete(slotKey);
+    } else {
+      next.add(slotKey);
+    }
+    form.setValue("availableSlotKeys", [...next], {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true,
+    });
+  }, [form, isOutsideOpeningHours]);
+
+  const paintServiceSlotAvailability = useCallback((dayKey: string, time: string, shouldClose: boolean) => {
+    if (isOutsideOpeningHours(dayKey, time)) {
+      return;
+    }
+    const slotKey = getSlotKey(dayKey, time);
+    const next = new Set(form.getValues("availableSlotKeys") ?? []);
+    if (shouldClose) {
+      next.add(slotKey);
+    } else {
+      next.delete(slotKey);
+    }
+    form.setValue("availableSlotKeys", [...next], {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true,
+    });
+  }, [form, isOutsideOpeningHours]);
+
+  const resetAvailabilityDrag = useCallback(() => {
+    availabilityDragRef.current = { active: false, mode: null, keys: new Set() };
+  }, []);
+
+  useEffect(() => {
+    const onGlobalPointerUp = () => {
+      resetAvailabilityDrag();
+    };
+    window.addEventListener("pointerup", onGlobalPointerUp);
+    window.addEventListener("pointercancel", onGlobalPointerUp);
+    return () => {
+      window.removeEventListener("pointerup", onGlobalPointerUp);
+      window.removeEventListener("pointercancel", onGlobalPointerUp);
+    };
+  }, [resetAvailabilityDrag]);
+
   const handleImageUploadChange = (file: File | null) => {
     if (!file) return;
     if (!file.type.startsWith("image/")) {
@@ -371,9 +454,10 @@ export default function ServicesManagement() {
       isFree: parsedPrice === 0,
       imageUrl: trimmedImage.length > 0 ? trimmedImage : null,
       address: values.address.trim(),
-      availableSlotKeys: availabilityQuery.data?.closedSlotKeys ?? values.availableSlotKeys,
+      availableSlotKeys: values.availableSlotKeys,
       requiresValidation: values.requiresValidation,
       allowsDirectPayment: values.allowsDirectPayment,
+      isPublished: values.isPublished,
     };
     if (editingId) {
       updateMutation.mutate({ id: editingId, data: payload });
@@ -471,7 +555,12 @@ export default function ServicesManagement() {
       )}
 
       <div className="flex items-start justify-between mb-3">
-        <h3 className="text-lg font-bold text-slate-900">{service.name}</h3>
+        <div className="min-w-0">
+          <h3 className="text-lg font-bold text-slate-900">{service.name}</h3>
+          <Badge variant={service.isPublished ? "default" : "secondary"} className="mt-1">
+            {service.isPublished ? t("services.status.published") : t("services.status.draft")}
+          </Badge>
+        </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -494,6 +583,19 @@ export default function ServicesManagement() {
             >
               <Copy className="w-4 h-4" />
               {t("services.actions.duplicate")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onSelect={(event) => {
+                event.preventDefault();
+                updateMutation.mutate({
+                  id: service.id,
+                  data: { isPublished: !service.isPublished },
+                });
+              }}
+              disabled={updateMutation.isPending}
+            >
+              {service.isPublished ? <FileText className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
+              {service.isPublished ? t("services.actions.unpublish") : t("services.actions.publish")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -781,64 +883,125 @@ export default function ServicesManagement() {
               <Calendar className="w-5 h-5 text-slate-700" />
               <h3 className="text-lg font-bold text-slate-900">{t("services.availabilityTitle")}</h3>
             </div>
-            <p className="text-sm text-slate-600 mb-4">{t("services.availability.readOnlyInstructions")}</p>
+            <p className="text-sm text-slate-600 mb-4">{t("services.availability.instructions")}</p>
 
-            <div className="bg-slate-50 rounded-xl p-4 overflow-x-auto">
-              <div style={{ minWidth: "800px" }}>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: `80px repeat(7, 1fr)`,
-                    gap: "2px",
-                    backgroundColor: "#e2e8f0",
-                    borderRadius: "8px",
-                    overflow: "hidden",
-                  }}
-                >
-                  <div className="bg-slate-100" />
-                  {daysOfWeek.map((day) => (
-                    <div key={day.key} className="bg-slate-100 p-2 text-center">
-                      <div className="text-sm font-medium text-slate-900">{day.short}</div>
+            <div className="bg-slate-50 rounded-xl p-4">
+              <WeeklyTimeGrid
+                days={daysOfWeek.map((day) => ({ key: day.key, label: day.short }))}
+                timeSlots={timeSlots.filter((time) => daysOfWeek.some((day) => !isOutsideOpeningHours(day.key, time)))}
+                renderCell={({ day, time }) => {
+                  const slotKey = getSlotKey(day.key, time);
+                  const outsideOnly = isOutsideOpeningHours(day.key, time);
+                  const planningClosed = planningClosedSlotKeys.has(slotKey);
+                  const manualClosed = isServiceSlotManuallyClosed(day.key, time);
+                  const closed = outsideOnly || planningClosed || manualClosed;
+                  const isOutsideClosedCell = closed && outsideOnly;
+                  const isPlanningClosedCell = closed && !outsideOnly && planningClosed;
+                  const isManualClosedCell = closed && !outsideOnly && !planningClosed && manualClosed;
+                  const isReadOnlyClosedCell = isOutsideClosedCell || isPlanningClosedCell;
+                  const slotCellClassName = `group w-full p-1 h-8 md:h-8 box-border transition-all text-left relative ${
+                    closed
+                      ? isOutsideClosedCell
+                        ? "bg-slate-400 cursor-not-allowed hover:bg-slate-400"
+                        : isPlanningClosedCell
+                          ? "bg-slate-200 cursor-not-allowed hover:bg-slate-200"
+                          : "bg-slate-100 cursor-pointer hover:bg-slate-200"
+                      : "bg-white hover:bg-slate-50 cursor-pointer"
+                  }`;
+                  const slotCell = isReadOnlyClosedCell ? (
+                    <div className={slotCellClassName} style={{ userSelect: "none" }} />
+                  ) : (
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      className={slotCellClassName}
+                      onPointerDown={(event) => {
+                        if (event.button !== 0) return;
+                        event.preventDefault();
+                        const slotKey = getSlotKey(day.key, time);
+                        const currentlyClosed = selectedServiceClosedSet.has(slotKey);
+                        const mode: "close" | "open" = currentlyClosed ? "open" : "close";
+                        availabilityDragRef.current = {
+                          active: true,
+                          mode,
+                          keys: new Set([slotKey]),
+                        };
+                        paintServiceSlotAvailability(day.key, time, mode === "close");
+                      }}
+                      onMouseEnter={() => {
+                        const drag = availabilityDragRef.current;
+                        if (!drag.active || !drag.mode) return;
+                        const slotKey = getSlotKey(day.key, time);
+                        if (drag.keys.has(slotKey)) return;
+                        drag.keys.add(slotKey);
+                        paintServiceSlotAvailability(day.key, time, drag.mode === "close");
+                      }}
+                      onClick={() => toggleServiceSlotAvailability(day.key, time)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          toggleServiceSlotAvailability(day.key, time);
+                        }
+                      }}
+                      style={{ userSelect: "none" }}
+                    >
+                      {isManualClosedCell ? (
+                        <div
+                          className="absolute inset-0"
+                          style={{
+                            backgroundImage: `repeating-linear-gradient(
+                              45deg,
+                              transparent,
+                              transparent 10px,
+                              #cbd5e1 10px,
+                              #cbd5e1 11px
+                            )`,
+                            backgroundColor: "#f1f5f9",
+                          }}
+                        />
+                      ) : null}
                     </div>
-                  ))}
+                  );
 
-                  {timeSlots.map((time) => (
-                    <Fragment key={time}>
-                      <div className="bg-white p-2 flex items-center justify-end pr-2">
-                        <span className="text-xs text-slate-600">{time}</span>
-                      </div>
-                      {daysOfWeek.map((day) => {
-                        const closed = isSlotClosed(day.key, time);
-                        return (
+                  if (isOutsideClosedCell) {
+                    return (
+                      <CalendarSlotHoverHint label={t("calendar.hours.outsideSlotHint")}>
+                        {slotCell}
+                      </CalendarSlotHoverHint>
+                    );
+                  }
+                  if (isPlanningClosedCell) {
+                    return (
+                      <CalendarSlotHoverHint label={t("calendar.availability.manualClosedSlotHint")}>
+                        <div className="relative">
+                          {slotCell}
                           <div
-                            key={`${day.key}-${time}`}
-                            className={`relative select-none p-2 ${
-                              closed ? "bg-slate-100" : "bg-white"
-                            }`}
-                            style={{ userSelect: "none" }}
-                          >
-                            {closed ? (
-                              <div
-                                className="absolute inset-0"
-                                style={{
-                                  backgroundImage: `repeating-linear-gradient(
-                                    45deg,
-                                    transparent,
-                                    transparent 10px,
-                                    #cbd5e1 10px,
-                                    #cbd5e1 11px
-                                  )`,
-                                  backgroundColor: "#f1f5f9",
-                                }}
-                              />
-                            ) : null}
-                          </div>
-                        );
-                      })}
-                    </Fragment>
-                  ))}
-                </div>
-              </div>
+                            className="pointer-events-none absolute inset-0"
+                            style={{
+                              backgroundImage: `repeating-linear-gradient(
+                                45deg,
+                                transparent,
+                                transparent 10px,
+                                #94a3b8 10px,
+                                #94a3b8 11px
+                              )`,
+                              backgroundColor: "#e2e8f0",
+                            }}
+                          />
+                        </div>
+                      </CalendarSlotHoverHint>
+                    );
+                  }
+                  if (isManualClosedCell) {
+                    return (
+                      <CalendarSlotHoverHint label={t("calendar.availability.manualClosedSlotHint")}>
+                        {slotCell}
+                      </CalendarSlotHoverHint>
+                    );
+                  }
+                  return slotCell;
+                }}
+              />
             </div>
 
             <div className="mt-4 flex items-center gap-4 text-sm">
@@ -907,6 +1070,25 @@ export default function ServicesManagement() {
   );
 
   const isFormMode = isAdding || editingId;
+  const isPublished = form.watch("isPublished");
+
+  const visibilityTopBanner = isFormMode ? (
+    <div className="mb-5 rounded-2xl border-2 border-blue-300 bg-blue-100 px-5 py-4 shadow-sm">
+      <div className="flex items-start gap-3">
+        <Checkbox
+          checked={isPublished === true}
+          onCheckedChange={(value) => form.setValue("isPublished", value === true, { shouldDirty: true })}
+          aria-label={t("services.visibility.title")}
+        />
+        <div className="space-y-1">
+          <p className="text-base font-bold text-slate-900">{t("services.visibility.title")}</p>
+          <p className="text-sm text-slate-700">
+            {isPublished ? t("services.visibility.publishedHint") : t("services.visibility.draftHint")}
+          </p>
+        </div>
+      </div>
+    </div>
+  ) : null;
 
   const servicesListBody =
     isFormMode
@@ -932,6 +1114,7 @@ export default function ServicesManagement() {
   return (
     <div className="mx-auto w-full max-w-7xl p-8">
       {renderHeader()}
+      {visibilityTopBanner}
       {mainWhitePanel}
       {renderDeleteDialog()}
     </div>

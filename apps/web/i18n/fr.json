@@ -1099,7 +1099,7 @@
   },
   "services": {
     "availability": {
-      "instructions": "Cliquez ou glissez sur les créneaux pour définir vos disponibilités.",
+      "instructions": "Cliquez ou glissez sur les créneaux pour les rendre indisponibles ou disponibles pour ce service (dans vos heures d'ouverture).",
       "readOnlyInstructions": "Affiche selon votre planning et vos horaires d'ouverture. Modifiez-le dans les reglages Calendrier."
     },
     "devFill": "Remplissage dev",
@@ -1171,7 +1171,18 @@
     "save": "Enregistrer",
     "actions": {
       "openMenu": "Ouvrir le menu du service",
-      "duplicate": "Dupliquer"
+      "duplicate": "Dupliquer",
+      "publish": "Passer en publié",
+      "unpublish": "Dé-publier"
+    },
+    "status": {
+      "draft": "Brouillon",
+      "published": "Publié"
+    },
+    "visibility": {
+      "title": "Visibilité publique",
+      "publishedHint": "Ce service est publié et visible sur votre page de réservation publique.",
+      "draftHint": "Ce service est en brouillon et caché de votre page de réservation publique."
     },
     "sessions": "séances",
     "subtitle": "Créez et gérez vos prestations, tarifs et disponibilités",

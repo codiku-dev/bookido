@@ -138,6 +138,7 @@ export const ServiceScalarFieldEnum = {
   imageUrl: 'imageUrl',
   address: 'address',
   availableSlotKeys: 'availableSlotKeys',
+  isPublished: 'isPublished',
   requiresValidation: 'requiresValidation',
   allowsDirectPayment: 'allowsDirectPayment',
   createdAt: 'createdAt',

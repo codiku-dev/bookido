@@ -22,7 +22,7 @@ model User {
   /// URL path segment for public booking, e.g. `jonathan-malro-coach` → /jonathan-malro-coach/services
   publicBookingSlug String? @unique
   /// Minimum notice (hours) required before a public booking can start.
-  publicBookingMinNoticeHours Int @default(0)
+  publicBookingMinNoticeHours Int @default(24)
   archivedAt    DateTime?
   /// Weekly opening hours (Mon–Sun) for the admin calendar grid.
   calendarWeekHours       Json?
@@ -90,6 +90,7 @@ model Service {
   imageUrl           String?
   address            String
   availableSlotKeys     Json     @default("[]")
+  isPublished           Boolean  @default(true)
   requiresValidation    Boolean  @default(false)
   allowsDirectPayment   Boolean  @default(false)
   createdAt             DateTime @default(now())

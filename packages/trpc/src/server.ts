@@ -3,6 +3,12 @@ import { z } from "zod";
 
 const t = initTRPC.create();
 const publicProcedure = t.procedure;
+const publicBookingSlugSchema = z
+  .string()
+  .min(2)
+  .max(96)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "INVALID_SLUG_FORMAT");
+const PROFILE_AVATAR_DATA_URL_MAX_LEN = 8_388_608;
 
 const appRouter = t.router({
   app: t.router({
@@ -408,9 +414,7 @@ const appRouter = t.router({
       publicBookingMinNoticeHours: z.number().int().min(0).max(168),
     })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     updatePublicBookingPresence: publicProcedure.input(z.object({
-      publicBookingSlug: z
-        .union([z.string().min(2).max(96).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "INVALID_SLUG_FORMAT"), z.literal("")])
-        .optional(),
+      publicBookingSlug: z.union([publicBookingSlugSchema, z.literal("")]).optional(),
     })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     updateProfileBasics: publicProcedure.input(z.object({
       name: z.string().min(1).max(200),
@@ -421,7 +425,7 @@ const appRouter = t.router({
     updateProfileAvatar: publicProcedure.input(z.object({
       /** `null` or `""` removes the avatar; otherwise a `data:image/...` URL or short HTTPS URL. */
       image: z
-        .union([z.literal(""), z.string().min(1).max(8_388_608)])
+        .union([z.literal(""), z.string().min(1).max(PROFILE_AVATAR_DATA_URL_MAX_LEN)])
         .nullable(),
     })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     archiveAccount: publicProcedure.input(z.object({
@@ -442,6 +446,7 @@ const appRouter = t.router({
       imageUrl: z.string().nullable(),
       address: z.string(),
       availableSlotKeys: z.array(z.string()),
+      isPublished: z.boolean(),
       requiresValidation: z.boolean(),
       allowsDirectPayment: z.boolean(),
       createdAt: z.coerce.date(),
@@ -457,6 +462,7 @@ const appRouter = t.router({
       imageUrl: z.string().nullable().optional(),
       address: z.string().trim().min(1).max(500),
       availableSlotKeys: z.array(z.string()),
+      isPublished: z.boolean().optional(),
       requiresValidation: z.boolean(),
       allowsDirectPayment: z.boolean(),
     })).output(z.object({
@@ -471,6 +477,7 @@ const appRouter = t.router({
       imageUrl: z.string().nullable(),
       address: z.string(),
       availableSlotKeys: z.array(z.string()),
+      isPublished: z.boolean(),
       requiresValidation: z.boolean(),
       allowsDirectPayment: z.boolean(),
       createdAt: z.coerce.date(),
@@ -488,6 +495,7 @@ const appRouter = t.router({
         imageUrl: z.string().nullable().optional(),
         address: z.string().trim().min(1).max(500),
         availableSlotKeys: z.array(z.string()),
+        isPublished: z.boolean().optional(),
         requiresValidation: z.boolean(),
         allowsDirectPayment: z.boolean(),
       }).partial(),
@@ -503,6 +511,7 @@ const appRouter = t.router({
       imageUrl: z.string().nullable(),
       address: z.string(),
       availableSlotKeys: z.array(z.string()),
+      isPublished: z.boolean(),
       requiresValidation: z.boolean(),
       allowsDirectPayment: z.boolean(),
       createdAt: z.coerce.date(),

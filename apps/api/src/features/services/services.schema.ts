@@ -12,6 +12,7 @@ export const serviceSchema = z.object({
   imageUrl: z.string().nullable(),
   address: z.string(),
   availableSlotKeys: z.array(z.string()),
+  isPublished: z.boolean(),
   requiresValidation: z.boolean(),
   allowsDirectPayment: z.boolean(),
   createdAt: z.coerce.date(),
@@ -28,6 +29,7 @@ export const createServiceSchema = z.object({
   imageUrl: z.string().nullable().optional(),
   address: z.string().trim().min(1).max(500),
   availableSlotKeys: z.array(z.string()),
+  isPublished: z.boolean().optional(),
   requiresValidation: z.boolean(),
   allowsDirectPayment: z.boolean(),
 });

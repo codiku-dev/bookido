@@ -1099,7 +1099,7 @@
   },
   "services": {
     "availability": {
-      "instructions": "Click or drag over slots to set your availability.",
+      "instructions": "Click or drag slots to mark them unavailable or available for this service (within your opening hours).",
       "readOnlyInstructions": "Displayed from your planning and opening hours. Edit it in the Calendar settings."
     },
     "devFill": "Dev fill",
@@ -1171,7 +1171,18 @@
     "save": "Save",
     "actions": {
       "openMenu": "Open service menu",
-      "duplicate": "Dupliquer"
+      "duplicate": "Duplicate",
+      "publish": "Publish service",
+      "unpublish": "Move to draft"
+    },
+    "status": {
+      "draft": "Draft",
+      "published": "Published"
+    },
+    "visibility": {
+      "title": "Public visibility",
+      "publishedHint": "This service is published and visible on your public booking page.",
+      "draftHint": "This service is currently a draft and hidden from your public booking page."
     },
     "sessions": "sessions",
     "subtitle": "Create and manage your services, pricing, and availability",

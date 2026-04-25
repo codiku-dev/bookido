@@ -49,6 +49,7 @@ export type ServiceMinAggregateOutputType = {
   packSize: number | null
   imageUrl: string | null
   address: string | null
+  isPublished: boolean | null
   requiresValidation: boolean | null
   allowsDirectPayment: boolean | null
   createdAt: Date | null
@@ -66,6 +67,7 @@ export type ServiceMaxAggregateOutputType = {
   packSize: number | null
   imageUrl: string | null
   address: string | null
+  isPublished: boolean | null
   requiresValidation: boolean | null
   allowsDirectPayment: boolean | null
   createdAt: Date | null
@@ -84,6 +86,7 @@ export type ServiceCountAggregateOutputType = {
   imageUrl: number
   address: number
   availableSlotKeys: number
+  isPublished: number
   requiresValidation: number
   allowsDirectPayment: number
   createdAt: number
@@ -115,6 +118,7 @@ export type ServiceMinAggregateInputType = {
   packSize?: true
   imageUrl?: true
   address?: true
+  isPublished?: true
   requiresValidation?: true
   allowsDirectPayment?: true
   createdAt?: true
@@ -132,6 +136,7 @@ export type ServiceMaxAggregateInputType = {
   packSize?: true
   imageUrl?: true
   address?: true
+  isPublished?: true
   requiresValidation?: true
   allowsDirectPayment?: true
   createdAt?: true
@@ -150,6 +155,7 @@ export type ServiceCountAggregateInputType = {
   imageUrl?: true
   address?: true
   availableSlotKeys?: true
+  isPublished?: true
   requiresValidation?: true
   allowsDirectPayment?: true
   createdAt?: true
@@ -255,6 +261,7 @@ export type ServiceGroupByOutputType = {
   imageUrl: string | null
   address: string
   availableSlotKeys: runtime.JsonValue
+  isPublished: boolean
   requiresValidation: boolean
   allowsDirectPayment: boolean
   createdAt: Date
@@ -296,6 +303,7 @@ export type ServiceWhereInput = {
   imageUrl?: Prisma.StringNullableFilter<"Service"> | string | null
   address?: Prisma.StringFilter<"Service"> | string
   availableSlotKeys?: Prisma.JsonFilter<"Service">
+  isPublished?: Prisma.BoolFilter<"Service"> | boolean
   requiresValidation?: Prisma.BoolFilter<"Service"> | boolean
   allowsDirectPayment?: Prisma.BoolFilter<"Service"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Service"> | Date | string
@@ -316,6 +324,7 @@ export type ServiceOrderByWithRelationInput = {
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrder
   availableSlotKeys?: Prisma.SortOrder
+  isPublished?: Prisma.SortOrder
   requiresValidation?: Prisma.SortOrder
   allowsDirectPayment?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -339,6 +348,7 @@ export type ServiceWhereUniqueInput = Prisma.AtLeast<{
   imageUrl?: Prisma.StringNullableFilter<"Service"> | string | null
   address?: Prisma.StringFilter<"Service"> | string
   availableSlotKeys?: Prisma.JsonFilter<"Service">
+  isPublished?: Prisma.BoolFilter<"Service"> | boolean
   requiresValidation?: Prisma.BoolFilter<"Service"> | boolean
   allowsDirectPayment?: Prisma.BoolFilter<"Service"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Service"> | Date | string
@@ -359,6 +369,7 @@ export type ServiceOrderByWithAggregationInput = {
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrder
   availableSlotKeys?: Prisma.SortOrder
+  isPublished?: Prisma.SortOrder
   requiresValidation?: Prisma.SortOrder
   allowsDirectPayment?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -385,6 +396,7 @@ export type ServiceScalarWhereWithAggregatesInput = {
   imageUrl?: Prisma.StringNullableWithAggregatesFilter<"Service"> | string | null
   address?: Prisma.StringWithAggregatesFilter<"Service"> | string
   availableSlotKeys?: Prisma.JsonWithAggregatesFilter<"Service">
+  isPublished?: Prisma.BoolWithAggregatesFilter<"Service"> | boolean
   requiresValidation?: Prisma.BoolWithAggregatesFilter<"Service"> | boolean
   allowsDirectPayment?: Prisma.BoolWithAggregatesFilter<"Service"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Service"> | Date | string
@@ -402,6 +414,7 @@ export type ServiceCreateInput = {
   imageUrl?: string | null
   address: string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  isPublished?: boolean
   requiresValidation?: boolean
   allowsDirectPayment?: boolean
   createdAt?: Date | string
@@ -422,6 +435,7 @@ export type ServiceUncheckedCreateInput = {
   imageUrl?: string | null
   address: string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  isPublished?: boolean
   requiresValidation?: boolean
   allowsDirectPayment?: boolean
   createdAt?: Date | string
@@ -440,6 +454,7 @@ export type ServiceUpdateInput = {
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requiresValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowsDirectPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -460,6 +475,7 @@ export type ServiceUncheckedUpdateInput = {
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requiresValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowsDirectPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -479,6 +495,7 @@ export type ServiceCreateManyInput = {
   imageUrl?: string | null
   address: string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  isPublished?: boolean
   requiresValidation?: boolean
   allowsDirectPayment?: boolean
   createdAt?: Date | string
@@ -496,6 +513,7 @@ export type ServiceUpdateManyMutationInput = {
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requiresValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowsDirectPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -514,6 +532,7 @@ export type ServiceUncheckedUpdateManyInput = {
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requiresValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowsDirectPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -542,6 +561,7 @@ export type ServiceCountOrderByAggregateInput = {
   imageUrl?: Prisma.SortOrder
   address?: Prisma.SortOrder
   availableSlotKeys?: Prisma.SortOrder
+  isPublished?: Prisma.SortOrder
   requiresValidation?: Prisma.SortOrder
   allowsDirectPayment?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -565,6 +585,7 @@ export type ServiceMaxOrderByAggregateInput = {
   packSize?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   address?: Prisma.SortOrder
+  isPublished?: Prisma.SortOrder
   requiresValidation?: Prisma.SortOrder
   allowsDirectPayment?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -582,6 +603,7 @@ export type ServiceMinOrderByAggregateInput = {
   packSize?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   address?: Prisma.SortOrder
+  isPublished?: Prisma.SortOrder
   requiresValidation?: Prisma.SortOrder
   allowsDirectPayment?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -674,6 +696,7 @@ export type ServiceCreateWithoutUserInput = {
   imageUrl?: string | null
   address: string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  isPublished?: boolean
   requiresValidation?: boolean
   allowsDirectPayment?: boolean
   createdAt?: Date | string
@@ -692,6 +715,7 @@ export type ServiceUncheckedCreateWithoutUserInput = {
   imageUrl?: string | null
   address: string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  isPublished?: boolean
   requiresValidation?: boolean
   allowsDirectPayment?: boolean
   createdAt?: Date | string
@@ -740,6 +764,7 @@ export type ServiceScalarWhereInput = {
   imageUrl?: Prisma.StringNullableFilter<"Service"> | string | null
   address?: Prisma.StringFilter<"Service"> | string
   availableSlotKeys?: Prisma.JsonFilter<"Service">
+  isPublished?: Prisma.BoolFilter<"Service"> | boolean
   requiresValidation?: Prisma.BoolFilter<"Service"> | boolean
   allowsDirectPayment?: Prisma.BoolFilter<"Service"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Service"> | Date | string
@@ -757,6 +782,7 @@ export type ServiceCreateWithoutBookingsInput = {
   imageUrl?: string | null
   address: string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  isPublished?: boolean
   requiresValidation?: boolean
   allowsDirectPayment?: boolean
   createdAt?: Date | string
@@ -776,6 +802,7 @@ export type ServiceUncheckedCreateWithoutBookingsInput = {
   imageUrl?: string | null
   address: string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  isPublished?: boolean
   requiresValidation?: boolean
   allowsDirectPayment?: boolean
   createdAt?: Date | string
@@ -809,6 +836,7 @@ export type ServiceUpdateWithoutBookingsInput = {
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requiresValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowsDirectPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -828,6 +856,7 @@ export type ServiceUncheckedUpdateWithoutBookingsInput = {
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requiresValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowsDirectPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -845,6 +874,7 @@ export type ServiceCreateManyUserInput = {
   imageUrl?: string | null
   address: string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  isPublished?: boolean
   requiresValidation?: boolean
   allowsDirectPayment?: boolean
   createdAt?: Date | string
@@ -862,6 +892,7 @@ export type ServiceUpdateWithoutUserInput = {
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requiresValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowsDirectPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -880,6 +911,7 @@ export type ServiceUncheckedUpdateWithoutUserInput = {
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requiresValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowsDirectPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -898,6 +930,7 @@ export type ServiceUncheckedUpdateManyWithoutUserInput = {
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   availableSlotKeys?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  isPublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requiresValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowsDirectPayment?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -947,6 +980,7 @@ export type ServiceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   imageUrl?: boolean
   address?: boolean
   availableSlotKeys?: boolean
+  isPublished?: boolean
   requiresValidation?: boolean
   allowsDirectPayment?: boolean
   createdAt?: boolean
@@ -968,6 +1002,7 @@ export type ServiceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   imageUrl?: boolean
   address?: boolean
   availableSlotKeys?: boolean
+  isPublished?: boolean
   requiresValidation?: boolean
   allowsDirectPayment?: boolean
   createdAt?: boolean
@@ -987,6 +1022,7 @@ export type ServiceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   imageUrl?: boolean
   address?: boolean
   availableSlotKeys?: boolean
+  isPublished?: boolean
   requiresValidation?: boolean
   allowsDirectPayment?: boolean
   createdAt?: boolean
@@ -1006,13 +1042,14 @@ export type ServiceSelectScalar = {
   imageUrl?: boolean
   address?: boolean
   availableSlotKeys?: boolean
+  isPublished?: boolean
   requiresValidation?: boolean
   allowsDirectPayment?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ServiceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "name" | "description" | "durationMinutes" | "price" | "isFree" | "packSize" | "imageUrl" | "address" | "availableSlotKeys" | "requiresValidation" | "allowsDirectPayment" | "createdAt" | "updatedAt", ExtArgs["result"]["service"]>
+export type ServiceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "name" | "description" | "durationMinutes" | "price" | "isFree" | "packSize" | "imageUrl" | "address" | "availableSlotKeys" | "isPublished" | "requiresValidation" | "allowsDirectPayment" | "createdAt" | "updatedAt", ExtArgs["result"]["service"]>
 export type ServiceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   bookings?: boolean | Prisma.Service$bookingsArgs<ExtArgs>
@@ -1043,6 +1080,7 @@ export type $ServicePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     imageUrl: string | null
     address: string
     availableSlotKeys: runtime.JsonValue
+    isPublished: boolean
     requiresValidation: boolean
     allowsDirectPayment: boolean
     createdAt: Date
@@ -1483,6 +1521,7 @@ export interface ServiceFieldRefs {
   readonly imageUrl: Prisma.FieldRef<"Service", 'String'>
   readonly address: Prisma.FieldRef<"Service", 'String'>
   readonly availableSlotKeys: Prisma.FieldRef<"Service", 'Json'>
+  readonly isPublished: Prisma.FieldRef<"Service", 'Boolean'>
   readonly requiresValidation: Prisma.FieldRef<"Service", 'Boolean'>
   readonly allowsDirectPayment: Prisma.FieldRef<"Service", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Service", 'DateTime'>

@@ -1,0 +1,2 @@
+ALTER TABLE "service"
+ADD COLUMN "isPublished" BOOLEAN NOT NULL DEFAULT true;

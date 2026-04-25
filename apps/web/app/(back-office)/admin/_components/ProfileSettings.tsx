@@ -174,7 +174,7 @@ export default function ProfileSettings() {
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
-    defaultValues: { name: "", bio: "", defaultAddress: "", publicBookingMinNoticeHours: 0 },
+    defaultValues: { name: "", bio: "", defaultAddress: "", publicBookingMinNoticeHours: 24 },
   });
 
   useEffect(() => {
@@ -185,7 +185,7 @@ export default function ProfileSettings() {
       name: user.name ?? "",
       bio: user.bio ?? "",
       defaultAddress: presenceQuery.data?.defaultAddress ?? "",
-      publicBookingMinNoticeHours: presenceQuery.data?.publicBookingMinNoticeHours ?? 0,
+      publicBookingMinNoticeHours: presenceQuery.data?.publicBookingMinNoticeHours ?? 24,
     });
   }, [user?.id, user?.name, user?.bio, profileForm, presenceQuery.data?.defaultAddress, presenceQuery.data?.publicBookingMinNoticeHours]);
 
@@ -582,6 +582,12 @@ export default function ProfileSettings() {
       <CardContent>
         <Form {...profileForm}>
           <form onSubmit={onProfileSubmit} className="space-y-6">
+            <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+              {profileImageFieldBlock}
+              {saveImageButtonBlock}
+              {publicBookingBioFieldBlock}
+            </div>
+
             <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-2">
               <Label htmlFor="profile-name">{t("profile.full.name")}</Label>
               <FormField
@@ -650,9 +656,6 @@ export default function ProfileSettings() {
               {publicUrlPreviewBlock}
               {saveSlugButtonOutsideBlock}
               {publicBookingMinNoticeHoursFieldBlock}
-              {publicBookingBioFieldBlock}
-              {profileImageFieldBlock}
-              {saveImageButtonBlock}
             </div>
 
             <Button
