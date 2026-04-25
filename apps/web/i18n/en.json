@@ -297,7 +297,9 @@
       "new": "Make Another Booking"
     },
     "footer": {
-      "copyright": "© 2026 Sarah Johnson Coaching. Powered by Bookido. All rights reserved."
+      "copyright": "© 2026 Sarah Johnson Coaching. Powered by Bookido. All rights reserved.",
+      "privacyPolicy": "Privacy policy",
+      "termsOfService": "Terms of service"
     },
     "home": {
       "slugIntro": "Each professional has a public booking link. Open yours using the segment your coach shared with you, for example yourdomain.com/your-coach-name/services.",
@@ -395,8 +397,81 @@
       },
       "footer": {
         "tagline": "Book simply with a pro.",
-        "rights": "© 2026 Bookido"
+        "rights": "© 2026 Bookido",
+        "privacyPolicy": "Privacy policy",
+        "termsOfService": "Terms of service"
       }
+    }
+  },
+  "legal": {
+    "privacy": {
+      "shortTitle": "Privacy",
+      "title": "Privacy Policy",
+      "backHome": "Back to home",
+      "updatedAt": "Last updated: April 25, 2026",
+      "intro": "This policy explains how Bookido collects, uses, and protects personal data when you use the platform.",
+      "collect": {
+        "title": "Data We Collect",
+        "body": "We collect account details, booking details, and technical information required to provide scheduling and payment features."
+      },
+      "usage": {
+        "title": "How We Use Data",
+        "body": "We use data to operate your account, manage bookings, process payments through Stripe, improve service quality, and prevent abuse."
+      },
+      "retention": {
+        "title": "Data Retention",
+        "body": "We retain data only for as long as necessary to provide services, comply with legal obligations, and resolve disputes."
+      },
+      "rights": {
+        "title": "Your Rights",
+        "body": "You can request access, correction, or deletion of your personal data in accordance with applicable privacy laws."
+      },
+      "contact": {
+        "title": "Contact",
+        "body": "For privacy requests, contact support through your Bookido account."
+      }
+    },
+    "terms": {
+      "shortTitle": "Terms",
+      "title": "Terms of Service",
+      "backHome": "Back to home",
+      "updatedAt": "Last updated: April 25, 2026",
+      "intro": "These terms define the rules for using Bookido services as a professional or client.",
+      "service": {
+        "title": "Service Scope",
+        "body": "Bookido provides booking and scheduling tools, and connects payment flows through Stripe for eligible professional accounts."
+      },
+      "account": {
+        "title": "Account Responsibilities",
+        "body": "You are responsible for keeping account access secure and for the accuracy of profile, booking, and business information."
+      },
+      "payments": {
+        "title": "Payments",
+        "body": "Payments are processed by Stripe. Connected accounts must complete onboarding and comply with Stripe requirements."
+      },
+      "liability": {
+        "title": "Liability",
+        "body": "Bookido provides the platform as-is and is not liable for losses caused by external payment providers or user misuse."
+      },
+      "contact": {
+        "title": "Contact",
+        "body": "For legal questions, contact support through your Bookido account."
+      }
+    }
+  },
+  "storefront": {
+    "title": "Connected account storefront",
+    "accountCaption": "Storefront for account: {accountId}",
+    "accountHint": "For production, use a friendly slug instead of exposing the raw account ID in the URL.",
+    "loadProducts": "Load products",
+    "loading": "Loading...",
+    "buy": "Buy with Stripe Checkout",
+    "redirecting": "Redirecting...",
+    "noPrice": "No default price configured",
+    "errors": {
+      "missingApiBaseUrl": "Missing NEXT_PUBLIC_API_BASE_URL configuration.",
+      "loadProducts": "Could not load products for this account.",
+      "checkout": "Could not create checkout session."
     }
   },
   "ClientForm": {
@@ -948,6 +1023,54 @@
       "card": {
         "expires": "Expires 08/2028"
       },
+      "connect": {
+        "title": "Receive payments",
+        "status": {
+          "loading": "Loading your Stripe setup…",
+          "notStarted": "Connect a Stripe account to receive client payments.",
+          "ready": "Your Stripe account is ready to receive payments.",
+          "profileComplete": "Your Stripe profile is complete. Payments activate as soon as Stripe finishes review.",
+          "notReady": "Finish the remaining Stripe steps to receive client payments."
+        },
+        "actions": {
+          "loading": "Loading…",
+          "activate": "Activate payments",
+          "complete": "Complete setup",
+          "ready": "Payments enabled",
+          "updateDetails": "Update Stripe details"
+        },
+        "manageAccount": "Manage Stripe account",
+        "preparingStripeRedirect": "Preparing Stripe onboarding…",
+        "pendingRedirect": "Redirecting to Stripe…",
+        "embeddedReady": "Stripe account session created. Plug this client secret into embedded components.",
+        "products": {
+          "title": "Services et vitrine",
+          "subtitle": "La creation des services se fait depuis la page Services. La devise est geree la-bas (EUR par defaut).",
+          "name": "Product name",
+          "description": "Description",
+          "price": "Price (in cents)",
+          "currency": "Currency (ISO code)",
+          "create": "Gerer mes services",
+          "openStorefront": "Open storefront",
+          "toastCreated": "Stripe product created.",
+          "errors": {
+            "generic": "Unable to create Stripe product.",
+            "noAccount": "Create or connect a Stripe account first."
+          }
+        },
+        "errors": {
+          "generic": "Unable to open Stripe onboarding. Please try again."
+        },
+        "payout": {
+          "title": "Payout details (Stripe Connect)",
+          "hint": "Update the bank account or card Stripe uses to pay out your sales. You will complete this on a secure Stripe page.",
+          "noAccount": "Create your Stripe Connect account above first, then you can update payout details here.",
+          "cta": "Update payout details on Stripe",
+          "errors": {
+            "generic": "Unable to open Stripe. Please try again."
+          }
+        }
+      },
       "due": {
         "on": "Due on"
       },
@@ -958,10 +1081,18 @@
           "invoice": "Invoice",
           "status": "Status"
         },
+        "loading": "Loading payment history…",
+        "loadError": "We could not load your Stripe invoices. Try again in a moment.",
+        "noCustomer": "No Stripe billing customer is linked yet. After you subscribe through Bookido, invoices appear here. You can also set Customer metadata bookido_user_id to your user id, or use a single Stripe customer with this email address.",
+        "empty": "No invoices found for your account yet.",
         "download": "Download invoice",
         "status": {
           "paid": "Paid",
-          "upcoming": "Upcoming"
+          "upcoming": "Upcoming",
+          "open": "Open",
+          "draft": "Draft",
+          "uncollectible": "Uncollectible",
+          "void": "Void"
         },
         "title": "Payments"
       },

@@ -596,6 +596,14 @@ export default function PublicCoachPage() {
               <div className="text-xl font-bold text-white">Bookido</div>
             </div>
             <p className="text-sm text-center">{t("public.footer.copyright")}</p>
+            <div className="mt-3 flex items-center justify-center gap-4 text-sm">
+              <a href="/privacy-policy" className="hover:text-white hover:underline">
+                {t("public.footer.privacyPolicy")}
+              </a>
+              <a href="/terms-of-service" className="hover:text-white hover:underline">
+                {t("public.footer.termsOfService")}
+              </a>
+            </div>
           </div>
         </footer>
       )}

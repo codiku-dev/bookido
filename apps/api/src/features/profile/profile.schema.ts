@@ -55,6 +55,31 @@ export const publicBookingPresenceOutputSchema = z.object({
   publicBookingMinNoticeHours: z.number().int().min(0).max(168),
 });
 
+export const stripeConnectStatusOutputSchema = z.object({
+  stripeAccountId: z.string().nullable(),
+  stripeOnboardingComplete: z.boolean(),
+  stripeChargesEnabled: z.boolean(),
+  stripePayoutsEnabled: z.boolean(),
+});
+
+export const platformBillingHistoryRowSchema = z.object({
+  id: z.string(),
+  kind: z.enum(["upcoming", "invoice"]),
+  dateIso: z.string(),
+  amountCents: z.number().int(),
+  currency: z.string(),
+  statusKey: z.enum(["upcoming", "paid", "open", "draft", "uncollectible", "void"]),
+  invoicePdf: z.string().nullable(),
+  hostedInvoiceUrl: z.string().nullable(),
+});
+
+export const platformBillingHistoryOutputSchema = z.object({
+  billingCustomerLinked: z.boolean(),
+  rows: z.array(platformBillingHistoryRowSchema),
+});
+
+export type PlatformBillingHistoryOutput = z.infer<typeof platformBillingHistoryOutputSchema>;
+
 export const updatePublicBookingPresenceInputSchema = z.object({
   publicBookingSlug: z.union([publicBookingSlugSchema, z.literal("")]).optional(),
 });

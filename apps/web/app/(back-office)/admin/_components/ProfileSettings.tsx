@@ -71,6 +71,11 @@ type AuthUser = {
   image?: string | null;
 };
 
+type StripeHostedRedirectPhase = "idle" | "fetching" | "navigating";
+
+/** Re-enable when platform subscription / plan UI is wired. */
+const SHOW_BILLING_PLAN_CARD = false;
+
 const ARCHIVE_ERROR_CODES = new Set([
   "CONFIRM_EMAIL_MISMATCH",
   "PASSWORD_REQUIRED",
@@ -105,6 +110,8 @@ export default function ProfileSettings() {
   const [publicSlugDraft, setPublicSlugDraft] = useState("");
   const [profileImageDraft, setProfileImageDraft] = useState("");
   const [profileImageSaving, setProfileImageSaving] = useState(false);
+  const [stripeOnboardingPhase, setStripeOnboardingPhase] = useState<StripeHostedRedirectPhase>("idle");
+  const [stripePayoutUpdatePhase, setStripePayoutUpdatePhase] = useState<StripeHostedRedirectPhase>("idle");
   const [publicUrlOrigin, setPublicUrlOrigin] = useState("");
   const profileImageFileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -123,6 +130,16 @@ export default function ProfileSettings() {
   });
 
   const updateProfileAvatarMutation = trpc.profile.updateProfileAvatar.useMutation();
+  const stripeConnectStatusQuery = trpc.profile.getStripeConnectStatus.useQuery(undefined, {
+    enabled: Boolean(user?.id),
+  });
+  const billingHistoryQuery = trpc.profile.getPlatformBillingHistory.useQuery(undefined, {
+    enabled: Boolean(user?.id),
+  });
+  const createStripeOnboardingLinkMutation = trpc.profile.createStripeOnboardingLink.useMutation();
+  const createStripeConnectAccountUpdateLinkMutation =
+    trpc.profile.createStripeConnectAccountUpdateLink.useMutation();
+  const createStripeEmbeddedAccountSessionMutation = trpc.profile.createStripeEmbeddedAccountSession.useMutation();
 
   const slugMutation = trpc.profile.updatePublicBookingPresence.useMutation({
     onSuccess: () => {
@@ -251,6 +268,42 @@ export default function ProfileSettings() {
     }
   });
 
+  const handleStripeOnboardingRedirect = async () => {
+    setStripeOnboardingPhase("fetching");
+    try {
+      const result = await createStripeOnboardingLinkMutation.mutateAsync({});
+      const url = result.url?.trim() ?? "";
+      if (typeof window !== "undefined" && url.length > 0) {
+        setStripeOnboardingPhase("navigating");
+        window.location.assign(url);
+        return;
+      }
+      setStripeOnboardingPhase("idle");
+      toast.error(t("profile.billing.connect.errors.generic"));
+    } catch {
+      setStripeOnboardingPhase("idle");
+      toast.error(t("profile.billing.connect.errors.generic"));
+    }
+  };
+
+  const handleStripeConnectPayoutUpdateRedirect = async () => {
+    setStripePayoutUpdatePhase("fetching");
+    try {
+      const result = await createStripeConnectAccountUpdateLinkMutation.mutateAsync({});
+      const url = result.url?.trim() ?? "";
+      if (typeof window !== "undefined" && url.length > 0) {
+        setStripePayoutUpdatePhase("navigating");
+        window.location.assign(url);
+        return;
+      }
+      setStripePayoutUpdatePhase("idle");
+      toast.error(t("profile.billing.connect.payout.errors.generic"));
+    } catch {
+      setStripePayoutUpdatePhase("idle");
+      toast.error(t("profile.billing.connect.payout.errors.generic"));
+    }
+  };
+
   const handleSavePublicSlug = async () => {
     const raw = publicSlugDraft.trim().toLowerCase();
     await slugMutation.mutateAsync({ publicBookingSlug: raw.length === 0 ? "" : raw });
@@ -319,47 +372,251 @@ export default function ProfileSettings() {
     }
   };
 
-  const upcomingInvoice = useMemo(
-    () => ({
-      amount: "$49.00",
-      date: locale === "fr" ? "28 avril 2026" : "April 28, 2026",
-      plan: t("profile.billing.plan.name"),
-    }),
-    [locale, t],
+  const billingStatusBadge = (
+    <Badge variant="secondary" className="capitalize">
+      {t("profile.billing.status.active")}
+    </Badge>
   );
 
-  const paymentHistory = useMemo(
-    () => [
-      {
-        id: "next_payment",
-        amount: upcomingInvoice.amount,
-        date: upcomingInvoice.date,
-        statusKey: "upcoming",
-        isUpcoming: true,
-      },
-      {
-        id: "inv_2026_04",
-        amount: "$49.00",
-        date: locale === "fr" ? "28 mars 2026" : "March 28, 2026",
-        statusKey: "paid",
-        isUpcoming: false,
-      },
-      {
-        id: "inv_2026_03",
-        amount: "$49.00",
-        date: locale === "fr" ? "28 février 2026" : "February 28, 2026",
-        statusKey: "paid",
-        isUpcoming: false,
-      },
-      {
-        id: "inv_2026_02",
-        amount: "$49.00",
-        date: locale === "fr" ? "28 janvier 2026" : "January 28, 2026",
-        statusKey: "paid",
-        isUpcoming: false,
-      },
-    ],
-    [locale, upcomingInvoice.amount, upcomingInvoice.date],
+  const stripeConnectStatus = stripeConnectStatusQuery.data;
+  const isStripeStatusLoading =
+    stripeConnectStatusQuery.isLoading || (stripeConnectStatusQuery.isFetching && !stripeConnectStatus);
+  const hasStripeAccount = Boolean(stripeConnectStatus?.stripeAccountId);
+  const isStripeOnboardingComplete = Boolean(stripeConnectStatus?.stripeOnboardingComplete);
+  const isStripePaymentsLive = Boolean(
+    stripeConnectStatus?.stripeChargesEnabled && stripeConnectStatus?.stripePayoutsEnabled,
+  );
+  const stripeConnectPrimaryCta = !hasStripeAccount || !isStripeOnboardingComplete;
+
+  const stripeConnectStatusMessage = isStripeStatusLoading
+    ? t("profile.billing.connect.status.loading")
+    : !hasStripeAccount
+      ? t("profile.billing.connect.status.notStarted")
+      : isStripePaymentsLive
+        ? t("profile.billing.connect.status.ready")
+        : isStripeOnboardingComplete
+          ? t("profile.billing.connect.status.profileComplete")
+          : t("profile.billing.connect.status.notReady");
+
+  const stripeConnectButtonLabel = isStripeStatusLoading
+    ? t("profile.billing.connect.actions.loading")
+    : !hasStripeAccount
+      ? t("profile.billing.connect.actions.activate")
+      : !isStripeOnboardingComplete
+        ? t("profile.billing.connect.actions.complete")
+        : t("profile.billing.connect.actions.updateDetails");
+  const isStripeOnboardingBusy = stripeOnboardingPhase !== "idle";
+  const stripeConnectPendingLabel =
+    stripeOnboardingPhase === "navigating"
+      ? t("profile.billing.connect.pendingRedirect")
+      : t("profile.billing.connect.preparingStripeRedirect");
+  const isStripeConnectActionDisabled =
+    isStripeStatusLoading ||
+    createStripeOnboardingLinkMutation.isPending ||
+    isStripeOnboardingBusy;
+
+  const isStripePayoutUpdateBusy = stripePayoutUpdatePhase !== "idle";
+  const stripePayoutUpdatePendingLabel =
+    stripePayoutUpdatePhase === "navigating"
+      ? t("profile.billing.connect.pendingRedirect")
+      : t("profile.billing.connect.preparingStripeRedirect");
+  const isStripePayoutUpdateDisabled =
+    isStripeStatusLoading ||
+    !hasStripeAccount ||
+    createStripeConnectAccountUpdateLinkMutation.isPending ||
+    isStripePayoutUpdateBusy;
+
+  const stripeConnectPayoutDetailsCard = (
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+      <p className="text-sm text-slate-500">{t("profile.billing.connect.payout.title")}</p>
+      <p className="mt-2 text-sm font-medium text-slate-900">{t("profile.billing.connect.payout.hint")}</p>
+      {!hasStripeAccount && !isStripeStatusLoading ? (
+        <p className="mt-2 text-sm text-amber-800">{t("profile.billing.connect.payout.noAccount")}</p>
+      ) : null}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="mt-3"
+        disabled={isStripePayoutUpdateDisabled}
+        pending={createStripeConnectAccountUpdateLinkMutation.isPending || isStripePayoutUpdateBusy}
+        pendingChildren={stripePayoutUpdatePendingLabel}
+        onClick={() => {
+          void handleStripeConnectPayoutUpdateRedirect();
+        }}
+      >
+        {t("profile.billing.connect.payout.cta")}
+      </Button>
+    </div>
+  );
+
+  const stripePayoutSection = (
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-slate-900">{t("profile.billing.connect.title")}</p>
+          <p className="text-sm text-slate-600">{stripeConnectStatusMessage}</p>
+        </div>
+        <Button
+          type="button"
+          variant={stripeConnectPrimaryCta ? "default" : "tertiary"}
+          disabled={isStripeConnectActionDisabled}
+          pending={createStripeOnboardingLinkMutation.isPending || isStripeOnboardingBusy}
+          pendingChildren={stripeConnectPendingLabel}
+          onClick={() => {
+            void handleStripeOnboardingRedirect();
+          }}
+        >
+          {stripeConnectButtonLabel}
+        </Button>
+      </div>
+      {isStripeOnboardingComplete && hasStripeAccount && !isStripeStatusLoading ? (
+        <div className="mt-3">
+          <Button
+            type="button"
+            variant="ghost"
+            className="px-0 text-blue-700"
+            disabled={createStripeEmbeddedAccountSessionMutation.isPending}
+            onClick={async () => {
+              try {
+                await createStripeEmbeddedAccountSessionMutation.mutateAsync({});
+                toast.success(t("profile.billing.connect.embeddedReady"));
+              } catch {
+                toast.error(t("profile.billing.connect.errors.generic"));
+              }
+            }}
+          >
+            {t("profile.billing.connect.manageAccount")}
+          </Button>
+        </div>
+      ) : null}
+    </div>
+  );
+
+  const billingHistoryRows = billingHistoryQuery.data?.rows ?? [];
+  const billingCustomerLinked = billingHistoryQuery.data?.billingCustomerLinked ?? false;
+  const isBillingHistoryLoading =
+    billingHistoryQuery.isLoading ||
+    (billingHistoryQuery.isFetching && billingHistoryQuery.data === undefined);
+
+  const formatBillingHistoryDate = (dateIso: string) =>
+    new Intl.DateTimeFormat(locale, { dateStyle: "long", timeZone: "UTC" }).format(new Date(dateIso));
+
+  const formatBillingHistoryAmount = (amountCents: number, currency: string) =>
+    new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: currency.toUpperCase(),
+      minimumFractionDigits: 2,
+    }).format(amountCents / 100);
+
+  type BillingHistoryStatusKey =
+    | "upcoming"
+    | "paid"
+    | "open"
+    | "draft"
+    | "uncollectible"
+    | "void";
+
+  const resolveBillingHistoryStatusLabel = (statusKey: BillingHistoryStatusKey) => {
+    switch (statusKey) {
+      case "upcoming":
+        return t("profile.billing.history.status.upcoming");
+      case "paid":
+        return t("profile.billing.history.status.paid");
+      case "open":
+        return t("profile.billing.history.status.open");
+      case "draft":
+        return t("profile.billing.history.status.draft");
+      case "uncollectible":
+        return t("profile.billing.history.status.uncollectible");
+      case "void":
+        return t("profile.billing.history.status.void");
+    }
+  };
+
+  const resolveBillingHistoryBadgeVariant = (
+    statusKey: BillingHistoryStatusKey,
+  ): "secondary" | "outline" | "destructive" => {
+    if (statusKey === "upcoming") {
+      return "secondary";
+    }
+    if (statusKey === "paid") {
+      return "outline";
+    }
+    if (statusKey === "uncollectible") {
+      return "destructive";
+    }
+    return "secondary";
+  };
+
+  const resolveBillingInvoiceHref = (row: { invoicePdf: string | null; hostedInvoiceUrl: string | null }) => {
+    const pdf = row.invoicePdf?.trim();
+    if (pdf && pdf.length > 0) {
+      return pdf;
+    }
+    const hosted = row.hostedInvoiceUrl?.trim();
+    if (hosted && hosted.length > 0) {
+      return hosted;
+    }
+    return null;
+  };
+
+  const billingHistoryTableHeader = (
+    <thead>
+      <tr className="border-b border-slate-200 bg-slate-50 text-left">
+        <th className="px-4 py-2.5 font-medium text-slate-600">{t("profile.billing.history.columns.date")}</th>
+        <th className="px-4 py-2.5 font-medium text-slate-600">{t("profile.billing.history.columns.amount")}</th>
+        <th className="px-4 py-2.5 font-medium text-slate-600">{t("profile.billing.history.columns.status")}</th>
+        <th className="px-4 py-2.5 text-right font-medium text-slate-600">
+          {t("profile.billing.history.columns.invoice")}
+        </th>
+      </tr>
+    </thead>
+  );
+
+  const billingHistoryTableBody = (
+    <tbody>
+      {billingHistoryRows.map((row) => {
+        const statusKey = row.statusKey as BillingHistoryStatusKey;
+        const isUpcoming = row.kind === "upcoming";
+        const href = resolveBillingInvoiceHref(row);
+        const downloadCell = isUpcoming ? (
+          <span className="text-slate-400">-</span>
+        ) : href ? (
+          <Button variant="link" size="sm" className="h-auto p-0 text-blue-600" asChild>
+            <a href={href} target="_blank" rel="noopener noreferrer">
+              {t("profile.billing.history.download")}
+            </a>
+          </Button>
+        ) : (
+          <span className="text-slate-400">-</span>
+        );
+
+        return (
+          <tr key={row.id} className="border-b border-slate-100 last:border-b-0">
+            <td className="px-4 py-3 text-slate-700">{formatBillingHistoryDate(row.dateIso)}</td>
+            <td className="px-4 py-3 font-medium text-slate-900">
+              {formatBillingHistoryAmount(row.amountCents, row.currency)}
+            </td>
+            <td className="px-4 py-3">
+              <Badge variant={resolveBillingHistoryBadgeVariant(statusKey)}>
+                {resolveBillingHistoryStatusLabel(statusKey)}
+              </Badge>
+            </td>
+            <td className="px-4 py-3 text-right">{downloadCell}</td>
+          </tr>
+        );
+      })}
+    </tbody>
+  );
+
+  const billingHistoryTable = (
+    <div className="overflow-x-auto rounded-lg border border-slate-200">
+      <table className="w-full text-sm">
+        {billingHistoryTableHeader}
+        {billingHistoryTableBody}
+      </table>
+    </div>
   );
 
   const billingPaymentHistorySection = (
@@ -368,58 +625,18 @@ export default function ProfileSettings() {
         <Receipt className="h-5 w-5 text-slate-600" />
         <h3 className="text-lg font-semibold text-slate-900">{t("profile.billing.history.title")}</h3>
       </div>
-
-      <div className="overflow-x-auto rounded-lg border border-slate-200">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-slate-200 bg-slate-50 text-left">
-              <th className="px-4 py-2.5 font-medium text-slate-600">
-                {t("profile.billing.history.columns.date")}
-              </th>
-              <th className="px-4 py-2.5 font-medium text-slate-600">
-                {t("profile.billing.history.columns.amount")}
-              </th>
-              <th className="px-4 py-2.5 font-medium text-slate-600">
-                {t("profile.billing.history.columns.status")}
-              </th>
-              <th className="px-4 py-2.5 text-right font-medium text-slate-600">
-                {t("profile.billing.history.columns.invoice")}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {paymentHistory.map((payment) => {
-              const statusLabel = t(`profile.billing.history.status.${payment.statusKey}`);
-
-              return (
-                <tr key={payment.id} className="border-b border-slate-100 last:border-b-0">
-                  <td className="px-4 py-3 text-slate-700">{payment.date}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900">{payment.amount}</td>
-                  <td className="px-4 py-3">
-                    <Badge variant={payment.isUpcoming ? "secondary" : "outline"}>{statusLabel}</Badge>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    {payment.isUpcoming ? (
-                      <span className="text-slate-400">-</span>
-                    ) : (
-                      <Button variant="link" size="sm" className="h-auto p-0 text-blue-600">
-                        {t("profile.billing.history.download")}
-                      </Button>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      {isBillingHistoryLoading ? (
+        <p className="text-sm text-slate-500">{t("profile.billing.history.loading")}</p>
+      ) : billingHistoryQuery.isError ? (
+        <p className="text-sm text-red-600">{t("profile.billing.history.loadError")}</p>
+      ) : !billingCustomerLinked ? (
+        <p className="text-sm text-slate-600">{t("profile.billing.history.noCustomer")}</p>
+      ) : billingHistoryRows.length === 0 ? (
+        <p className="text-sm text-slate-600">{t("profile.billing.history.empty")}</p>
+      ) : (
+        billingHistoryTable
+      )}
     </div>
-  );
-
-  const billingStatusBadge = (
-    <Badge variant="secondary" className="capitalize">
-      {t("profile.billing.status.active")}
-    </Badge>
   );
 
   const billingOverview = (
@@ -441,26 +658,26 @@ export default function ProfileSettings() {
         {billingStatusBadge}
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-sm text-slate-500">{t("profile.billing.plan.label")}</p>
-            <p className="mt-2 text-lg font-semibold text-slate-900">
-              {t("profile.billing.plan.name")}
-            </p>
-            <p className="text-sm text-slate-600">{t("profile.billing.plan.description")}</p>
-            <Button variant="outline" size="sm" className="mt-3">
-              {t("profile.billing.plan.change")}
-            </Button>
-          </div>
+        {stripePayoutSection}
+        <div
+          className={
+            SHOW_BILLING_PLAN_CARD ? "grid gap-4 md:grid-cols-2" : "grid gap-4"
+          }
+        >
+          {SHOW_BILLING_PLAN_CARD ? (
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-sm text-slate-500">{t("profile.billing.plan.label")}</p>
+              <p className="mt-2 text-lg font-semibold text-slate-900">
+                {t("profile.billing.plan.name")}
+              </p>
+              <p className="text-sm text-slate-600">{t("profile.billing.plan.description")}</p>
+              <Button variant="outline" size="sm" className="mt-3">
+                {t("profile.billing.plan.change")}
+              </Button>
+            </div>
+          ) : null}
 
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-sm text-slate-500">{t("profile.billing.payment.method")}</p>
-            <p className="mt-2 text-lg font-semibold text-slate-900">Visa •••• 4242</p>
-            <p className="text-sm text-slate-600">{t("profile.billing.card.expires")}</p>
-            <Button variant="outline" size="sm" className="mt-3">
-              {t("profile.billing.payment.change")}
-            </Button>
-          </div>
+          {stripeConnectPayoutDetailsCard}
         </div>
 
         {billingPaymentHistorySection}

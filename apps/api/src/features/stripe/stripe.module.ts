@@ -1,0 +1,13 @@
+import { Module } from "@nestjs/common";
+
+import { PrismaModule } from "@api/src/infrastructure/prisma/prisma.module";
+import { StripeController } from "./stripe.controller";
+import { StripeService } from "./stripe.service";
+
+@Module({
+  imports: [PrismaModule],
+  controllers: [StripeController],
+  providers: [StripeService],
+  exports: [StripeService],
+})
+export class StripeModule { }

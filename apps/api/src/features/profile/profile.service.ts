@@ -9,6 +9,7 @@ import {
 } from "@api/src/common/default-calendar-availability";
 import { RESERVED_PUBLIC_BOOKING_SLUGS } from "@api/src/common/reserved-public-booking-slugs";
 import { PrismaService } from "@api/src/infrastructure/prisma/prisma.service";
+import { StripeService } from "@api/src/features/stripe/stripe.service";
 
 import type {
   UpdateProfileAvatarInput,
@@ -107,7 +108,10 @@ function parseClosedSlotKeys(value: Prisma.JsonValue | null | undefined): string
 
 @Injectable()
 export class ProfileService {
-  constructor(private readonly db: PrismaService) { }
+  constructor(
+    private readonly db: PrismaService,
+    private readonly stripeService: StripeService,
+  ) { }
 
   private async isPublicBookingSlugTakenByOtherUser(p: { slug: string; userId: string }): Promise<boolean> {
     const row = await this.db.user.findFirst({
@@ -240,6 +244,26 @@ export class ProfileService {
       code: "CONFLICT",
       message: "PUBLIC_BOOKING_SLUG_PERSIST_FAILED",
     });
+  }
+
+  async getStripeConnectStatus(userId: string) {
+    return this.stripeService.getConnectStatus(userId);
+  }
+
+  async getPlatformBillingHistory(userId: string) {
+    return this.stripeService.getPlatformBillingHistory(userId);
+  }
+
+  async createStripeOnboardingLink(userId: string) {
+    return this.stripeService.createOrRefreshOnboardingLink({ userId });
+  }
+
+  async createStripeConnectAccountUpdateLink(userId: string) {
+    return this.stripeService.createConnectAccountUpdateLink({ userId });
+  }
+
+  async createStripeEmbeddedAccountSession(userId: string) {
+    return this.stripeService.createEmbeddedAccountSession({ userId });
   }
 
   async updateProfileAvatar(userId: string, input: UpdateProfileAvatarInput) {

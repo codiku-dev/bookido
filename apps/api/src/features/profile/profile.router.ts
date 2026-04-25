@@ -7,6 +7,8 @@ import { AuthGuard } from "@api/src/infrastructure/decorators/auth/auth-guard.de
 import {
   calendarAvailabilityOutputSchema,
   publicBookingPresenceOutputSchema,
+  platformBillingHistoryOutputSchema,
+  stripeConnectStatusOutputSchema,
   updateCalendarAvailabilityInputSchema,
   updateProfileAvatarInputSchema,
   updateProfileBasicsInputSchema,
@@ -36,6 +38,22 @@ export class ProfileRouter {
   async getCalendarAvailability(@Ctx() ctx: BaseUserSession) {
     const { id } = this.requireUser(ctx);
     return this.profileService.getCalendarAvailability(id);
+  }
+
+  @Query({
+    output: stripeConnectStatusOutputSchema,
+  })
+  getStripeConnectStatus(@Ctx() ctx: BaseUserSession) {
+    const { id } = this.requireUser(ctx);
+    return this.profileService.getStripeConnectStatus(id);
+  }
+
+  @Query({
+    output: platformBillingHistoryOutputSchema,
+  })
+  getPlatformBillingHistory(@Ctx() ctx: BaseUserSession) {
+    const { id } = this.requireUser(ctx);
+    return this.profileService.getPlatformBillingHistory(id);
   }
 
   @Mutation({
@@ -83,6 +101,33 @@ export class ProfileRouter {
   updateProfileAvatar(@Ctx() ctx: BaseUserSession, @Input() input: UpdateProfileAvatarInput) {
     const { id } = this.requireUser(ctx);
     return this.profileService.updateProfileAvatar(id, input);
+  }
+
+  @Mutation({
+    input: z.object({}),
+    output: z.object({ url: z.string().url() }),
+  })
+  createStripeOnboardingLink(@Ctx() ctx: BaseUserSession) {
+    const { id } = this.requireUser(ctx);
+    return this.profileService.createStripeOnboardingLink(id);
+  }
+
+  @Mutation({
+    input: z.object({}),
+    output: z.object({ url: z.string().url() }),
+  })
+  createStripeConnectAccountUpdateLink(@Ctx() ctx: BaseUserSession) {
+    const { id } = this.requireUser(ctx);
+    return this.profileService.createStripeConnectAccountUpdateLink(id);
+  }
+
+  @Mutation({
+    input: z.object({}),
+    output: z.object({ clientSecret: z.string() }),
+  })
+  createStripeEmbeddedAccountSession(@Ctx() ctx: BaseUserSession) {
+    const { id } = this.requireUser(ctx);
+    return this.profileService.createStripeEmbeddedAccountSession(id);
   }
 
   @Mutation({

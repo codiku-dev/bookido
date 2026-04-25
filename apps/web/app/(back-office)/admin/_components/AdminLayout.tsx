@@ -162,7 +162,17 @@ export default function AdminLayout(p: { children: ReactNode }) {
           </div>
         </nav>
 
-        <div className="p-4 border-t border-slate-200">{logoutConfirmDialog}</div>
+        <div className="border-t border-slate-200 p-4">
+          <div className="mb-3 flex items-center gap-4 text-xs text-slate-500">
+            <Link href="/privacy-policy" className="hover:text-slate-700 hover:underline">
+              {t("legal.privacy.shortTitle")}
+            </Link>
+            <Link href="/terms-of-service" className="hover:text-slate-700 hover:underline">
+              {t("legal.terms.shortTitle")}
+            </Link>
+          </div>
+          {logoutConfirmDialog}
+        </div>
       </aside>
 
       {/* Main Content */}

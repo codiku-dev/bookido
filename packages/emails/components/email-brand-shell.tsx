@@ -1,4 +1,4 @@
-import { Container, Hr, Section, Text } from "@react-email/components";
+import { Container, Hr, Img, Section, Text } from "@react-email/components";
 import type { ReactElement, ReactNode } from "react";
 
 import { type EmailLocale } from "../i18n/messages";
@@ -9,6 +9,8 @@ type EmailBrandShellProps = {
   children: ReactNode;
   footer: ReactNode;
   locale: EmailLocale;
+  /** When set (e.g. `cid:…` from a nodemailer attachment), avoids inline SVG — many clients strip SVG. */
+  brandLogoSrc?: string;
 };
 
 export function EmailBrandShell(p: EmailBrandShellProps): ReactElement {
@@ -48,7 +50,17 @@ export function EmailBrandShell(p: EmailBrandShellProps): ReactElement {
                         borderRadius: 16,
                       }}
                     >
-                      <BookidoLogoMark width={52} height={44} />
+                      {typeof p.brandLogoSrc === "string" && p.brandLogoSrc.length > 0 ? (
+                        <Img
+                          src={p.brandLogoSrc}
+                          width={52}
+                          height={44}
+                          alt=""
+                          style={{ display: "block", margin: "0 auto" }}
+                        />
+                      ) : (
+                        <BookidoLogoMark width={52} height={44} />
+                      )}
                     </td>
                   </tr>
                 </tbody>

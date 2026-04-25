@@ -1,14 +1,15 @@
 import { initTRPC } from "@trpc/server";
 import { z } from "zod";
 
-const t = initTRPC.create();
-const publicProcedure = t.procedure;
+const PROFILE_AVATAR_DATA_URL_MAX_LEN = 8_388_608;
 const publicBookingSlugSchema = z
   .string()
   .min(2)
   .max(96)
-  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "INVALID_SLUG_FORMAT");
-const PROFILE_AVATAR_DATA_URL_MAX_LEN = 8_388_608;
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+
+const t = initTRPC.create();
+const publicProcedure = t.procedure;
 
 const appRouter = t.router({
   app: t.router({
@@ -367,6 +368,25 @@ const appRouter = t.router({
       }),
       closedSlotKeys: z.array(z.string().regex(/^(sun|mon|tue|wed|thu|fri|sat)-\d{2}:\d{2}$/)),
     })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    getStripeConnectStatus: publicProcedure.output(z.object({
+      stripeAccountId: z.string().nullable(),
+      stripeOnboardingComplete: z.boolean(),
+      stripeChargesEnabled: z.boolean(),
+      stripePayoutsEnabled: z.boolean(),
+    })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    getPlatformBillingHistory: publicProcedure.output(z.object({
+      billingCustomerLinked: z.boolean(),
+      rows: z.array(z.object({
+        id: z.string(),
+        kind: z.enum(["upcoming", "invoice"]),
+        dateIso: z.string(),
+        amountCents: z.number().int(),
+        currency: z.string(),
+        statusKey: z.enum(["upcoming", "paid", "open", "draft", "uncollectible", "void"]),
+        invoicePdf: z.string().nullable(),
+        hostedInvoiceUrl: z.string().nullable(),
+      })),
+    })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     updateCalendarAvailability: publicProcedure.input(z.object({
       weekHours: z.object({
         Monday: z.object({
@@ -428,6 +448,9 @@ const appRouter = t.router({
         .union([z.literal(""), z.string().min(1).max(PROFILE_AVATAR_DATA_URL_MAX_LEN)])
         .nullable(),
     })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    createStripeOnboardingLink: publicProcedure.input(z.object({})).output(z.object({ url: z.string().url() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    createStripeConnectAccountUpdateLink: publicProcedure.input(z.object({})).output(z.object({ url: z.string().url() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    createStripeEmbeddedAccountSession: publicProcedure.input(z.object({})).output(z.object({ clientSecret: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     archiveAccount: publicProcedure.input(z.object({
       confirmEmail: z.string().email(),
       password: z.string().optional(),

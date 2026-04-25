@@ -19,6 +19,7 @@ export type ResetPasswordProps = {
   name: string | null;
   url: string;
   locale: EmailLocale;
+  brandLogoSrc?: string;
 };
 
 export default function ResetPassword(p: ResetPasswordProps): ReactElement {
@@ -92,7 +93,11 @@ export default function ResetPassword(p: ResetPasswordProps): ReactElement {
       <Preview>{previewText}</Preview>
       <Tailwind>
         <Body className="font-sans">
-          <EmailBrandShell footer={footerNote} locale={p.locale}>
+          <EmailBrandShell
+            footer={footerNote}
+            locale={p.locale}
+            brandLogoSrc={p.brandLogoSrc}
+          >
             {mainContent}
           </EmailBrandShell>
         </Body>

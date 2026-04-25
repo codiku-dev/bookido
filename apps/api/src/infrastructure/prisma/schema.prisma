@@ -30,6 +30,12 @@ model User {
   calendarClosedSlotKeys  Json?
   /// When the host last opened the admin bookings list; used for “new client booking” nav badge.
   bookingsLastViewedAt    DateTime?
+  stripeAccountId         String?   @unique
+  /// Platform Stripe Customer id (Bookido subscription / SaaS billing), not Connect.
+  stripeBillingCustomerId String?
+  stripeOnboardingComplete Boolean  @default(false)
+  stripeChargesEnabled    Boolean   @default(false)
+  stripePayoutsEnabled    Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   role          String?

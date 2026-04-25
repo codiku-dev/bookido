@@ -1063,7 +1063,17 @@ export default function Page() {
             <p className="text-sm text-slate-500">{t("footer.tagline")}</p>
           </div>
         </div>
-        <p className="text-sm text-slate-500">{t("footer.rights")}</p>
+        <div className="flex flex-col items-center gap-2 sm:items-end">
+          <p className="text-sm text-slate-500">{t("footer.rights")}</p>
+          <div className="flex items-center gap-4 text-sm text-slate-600">
+            <Link href="/privacy-policy" className="hover:text-slate-900 hover:underline">
+              {t("footer.privacyPolicy")}
+            </Link>
+            <Link href="/terms-of-service" className="hover:text-slate-900 hover:underline">
+              {t("footer.termsOfService")}
+            </Link>
+          </div>
+        </div>
       </div>
     </footer>
   );

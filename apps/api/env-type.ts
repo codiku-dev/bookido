@@ -30,7 +30,8 @@ export const envSchema = z.object({
   EMAIL_SMTP_USER: z.string(),
   APP_NAME: z.string(),
   STRIPE_PUBLISHABLE_KEY:z.string(),
-  STRIPE_SECRET_KEY:z.string()
+  STRIPE_SECRET_KEY:z.string(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
 
 });
 

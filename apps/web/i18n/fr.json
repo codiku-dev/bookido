@@ -297,7 +297,9 @@
       "new": "Faire une nouvelle réservation"
     },
     "footer": {
-      "copyright": "© 2026 Sarah Johnson Coaching. Propulsé par Bookido. Tous droits réservés."
+      "copyright": "© 2026 Sarah Johnson Coaching. Propulsé par Bookido. Tous droits réservés.",
+      "privacyPolicy": "Politique de confidentialité",
+      "termsOfService": "Conditions d’utilisation"
     },
     "home": {
       "slugIntro": "Chaque professionnel a un lien de réservation public. Ouvrez le vôtre avec le segment que votre coach vous a communiqué, par exemple votredomaine.com/nom-du-coach/services.",
@@ -395,8 +397,81 @@
       },
       "footer": {
         "tagline": "Bookez simplement avec un pro.",
-        "rights": "© 2026 Bookido"
+        "rights": "© 2026 Bookido",
+        "privacyPolicy": "Politique de confidentialité",
+        "termsOfService": "Conditions d’utilisation"
       }
+    }
+  },
+  "legal": {
+    "privacy": {
+      "shortTitle": "Confidentialité",
+      "title": "Politique de confidentialité",
+      "backHome": "Retour à l’accueil",
+      "updatedAt": "Dernière mise à jour : 25 avril 2026",
+      "intro": "Cette politique explique comment Bookido collecte, utilise et protège les données personnelles lorsque vous utilisez la plateforme.",
+      "collect": {
+        "title": "Données collectées",
+        "body": "Nous collectons les informations de compte, les informations de réservation et les données techniques nécessaires pour fournir les fonctions de planification et de paiement."
+      },
+      "usage": {
+        "title": "Utilisation des données",
+        "body": "Nous utilisons les données pour gérer votre compte, vos réservations, traiter les paiements via Stripe, améliorer le service et prévenir les abus."
+      },
+      "retention": {
+        "title": "Conservation des données",
+        "body": "Nous conservons les données uniquement pendant la durée nécessaire à la fourniture du service, au respect des obligations légales et à la gestion des litiges."
+      },
+      "rights": {
+        "title": "Vos droits",
+        "body": "Vous pouvez demander l’accès, la rectification ou la suppression de vos données personnelles conformément aux lois applicables."
+      },
+      "contact": {
+        "title": "Contact",
+        "body": "Pour toute demande liée à la confidentialité, contactez le support depuis votre compte Bookido."
+      }
+    },
+    "terms": {
+      "shortTitle": "Conditions",
+      "title": "Conditions d’utilisation",
+      "backHome": "Retour à l’accueil",
+      "updatedAt": "Dernière mise à jour : 25 avril 2026",
+      "intro": "Ces conditions définissent les règles d’utilisation de Bookido pour les professionnels et les clients.",
+      "service": {
+        "title": "Périmètre du service",
+        "body": "Bookido fournit des outils de réservation et de planification, et connecte les flux de paiement via Stripe pour les comptes professionnels éligibles."
+      },
+      "account": {
+        "title": "Responsabilités du compte",
+        "body": "Vous êtes responsable de la sécurité d’accès à votre compte et de l’exactitude des informations de profil, de réservation et d’activité."
+      },
+      "payments": {
+        "title": "Paiements",
+        "body": "Les paiements sont traités par Stripe. Les comptes connectés doivent terminer l’onboarding et respecter les exigences Stripe."
+      },
+      "liability": {
+        "title": "Responsabilité",
+        "body": "Bookido fournit la plateforme en l’état et n’est pas responsable des pertes causées par des prestataires de paiement externes ou par un mauvais usage."
+      },
+      "contact": {
+        "title": "Contact",
+        "body": "Pour toute question juridique, contactez le support depuis votre compte Bookido."
+      }
+    }
+  },
+  "storefront": {
+    "title": "Vitrine du compte connecté",
+    "accountCaption": "Vitrine pour le compte : {accountId}",
+    "accountHint": "En production, utilisez un slug lisible au lieu d'exposer l'identifiant brut du compte dans l'URL.",
+    "loadProducts": "Charger les produits",
+    "loading": "Chargement...",
+    "buy": "Acheter avec Stripe Checkout",
+    "redirecting": "Redirection...",
+    "noPrice": "Aucun prix par défaut configuré",
+    "errors": {
+      "missingApiBaseUrl": "Configuration NEXT_PUBLIC_API_BASE_URL manquante.",
+      "loadProducts": "Impossible de charger les produits pour ce compte.",
+      "checkout": "Impossible de créer la session de checkout."
     }
   },
   "ClientForm": {
@@ -948,6 +1023,54 @@
       "card": {
         "expires": "Expire en 08/2028"
       },
+      "connect": {
+        "title": "Recevoir des paiements",
+        "status": {
+          "loading": "Chargement de votre configuration Stripe…",
+          "notStarted": "Connectez un compte Stripe pour recevoir les paiements clients.",
+          "ready": "Votre compte Stripe est prêt à recevoir des paiements.",
+          "profileComplete": "Votre profil Stripe est complet. Les paiements s’activeront dès la fin du contrôle Stripe.",
+          "notReady": "Terminez les étapes Stripe restantes pour recevoir les paiements clients."
+        },
+        "actions": {
+          "loading": "Chargement…",
+          "activate": "Activer les paiements",
+          "complete": "Terminer la configuration",
+          "ready": "Paiements activés",
+          "updateDetails": "Modifier mes informations Stripe"
+        },
+        "manageAccount": "Gérer le compte Stripe",
+        "preparingStripeRedirect": "Préparation de l’accès Stripe…",
+        "pendingRedirect": "Redirection vers Stripe…",
+        "embeddedReady": "Session Stripe créée. Branchez ce client secret dans les composants embarqués.",
+        "products": {
+          "title": "Services et vitrine",
+          "subtitle": "La creation des services se fait depuis la page Services. La devise est geree la-bas (EUR par defaut).",
+          "name": "Nom du produit",
+          "description": "Description",
+          "price": "Prix (en centimes)",
+          "currency": "Devise (code ISO)",
+          "create": "Gerer mes services",
+          "openStorefront": "Ouvrir la vitrine",
+          "toastCreated": "Produit Stripe créé.",
+          "errors": {
+            "generic": "Impossible de créer le produit Stripe.",
+            "noAccount": "Créez ou connectez d'abord un compte Stripe."
+          }
+        },
+        "errors": {
+          "generic": "Impossible d’ouvrir l’onboarding Stripe. Veuillez réessayer."
+        },
+        "payout": {
+          "title": "Versements (Stripe Connect)",
+          "hint": "Mettez à jour le compte bancaire ou la carte utilisés par Stripe pour vos versements. La suite se fait sur une page Stripe sécurisée.",
+          "noAccount": "Créez d’abord votre compte Stripe Connect ci-dessus, puis vous pourrez mettre à jour les informations de versement ici.",
+          "cta": "Mettre à jour les versements sur Stripe",
+          "errors": {
+            "generic": "Impossible d’ouvrir Stripe. Veuillez réessayer."
+          }
+        }
+      },
       "due": {
         "on": "Prévu le"
       },
@@ -958,10 +1081,18 @@
           "invoice": "Facture",
           "status": "Statut"
         },
+        "loading": "Chargement de l’historique des paiements…",
+        "loadError": "Impossible de charger vos factures Stripe. Réessayez dans un instant.",
+        "noCustomer": "Aucun client Stripe de facturation n’est encore lié. Après un abonnement via Bookido, les factures s’affichent ici. Vous pouvez aussi renseigner la métadonnée bookido_user_id sur le client Stripe, ou un seul client Stripe avec cette adresse e-mail.",
+        "empty": "Aucune facture trouvée pour votre compte pour le moment.",
         "download": "Télécharger la facture",
         "status": {
           "paid": "Payé",
-          "upcoming": "À venir"
+          "upcoming": "À venir",
+          "open": "Ouverte",
+          "draft": "Brouillon",
+          "uncollectible": "Irrécouvrable",
+          "void": "Annulée"
         },
         "title": "Paiements"
       },

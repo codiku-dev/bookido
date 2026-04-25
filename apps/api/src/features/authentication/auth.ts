@@ -7,7 +7,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { admin } from "better-auth/plugins"
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { sendEmail } from "@api/src/libs/email-libs";
-import { ConfirmSignup, ResetPassword } from "@repo/emails";
+import { ConfirmSignup, ResetPassword, emailBookidoLogoCidSrc } from "@repo/emails";
 import { getLangFromRequest, t } from "@api/src/i18n/i18n-utils";
 import {
   DEFAULT_USER_CALENDAR_CLOSED_SLOT_KEYS_JSON,
@@ -152,7 +152,12 @@ export const auth = betterAuth({
                     lang,
                     key: "auth.reset_password.subject",
                 }),
-                component: ResetPassword({ name: user.name, url, locale: lang }),
+                component: ResetPassword({
+                    name: user.name,
+                    url,
+                    locale: lang,
+                    brandLogoSrc: emailBookidoLogoCidSrc(),
+                }),
             });
         },
         onPasswordReset: async ({ user }, request) => {
@@ -175,7 +180,12 @@ export const auth = betterAuth({
                     lang,
                     key: "auth.signup_email.subject",
                 }),
-                component: ConfirmSignup({ name: user.name, url, locale: lang }),
+                component: ConfirmSignup({
+                    name: user.name,
+                    url,
+                    locale: lang,
+                    brandLogoSrc: emailBookidoLogoCidSrc(),
+                }),
             });
         },
     },

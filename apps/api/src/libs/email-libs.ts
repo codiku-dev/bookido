@@ -1,7 +1,10 @@
 import type { ReactElement } from 'react';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { Logger } from '@nestjs/common';
 import nodemailer from 'nodemailer';
 import { render } from '@react-email/render';
+import { EMAIL_BOOKIDO_LOGO_CID } from '@repo/emails';
 
 const logger = new Logger('Email');
 
@@ -62,6 +65,25 @@ function formatRecipients(to: string | string[]): string {
   return Array.isArray(to) ? to.join(', ') : to;
 }
 
+function getInlineBookidoLogoAttachment():
+  | { filename: string; path: string; cid: string }
+  | undefined {
+  const fromCompiled = join(__dirname, '..', '..', 'assets', 'email', 'bookido-mark.png');
+  const fromSourceTree = join(__dirname, '..', 'assets', 'email', 'bookido-mark.png');
+  const logoPath = existsSync(fromCompiled) ? fromCompiled : fromSourceTree;
+  if (!existsSync(logoPath)) {
+    logger.warn(
+      `Email logo asset missing (tried ${fromCompiled} and ${fromSourceTree})`,
+    );
+    return undefined;
+  }
+  return {
+    filename: 'bookido-mark.png',
+    path: logoPath,
+    cid: EMAIL_BOOKIDO_LOGO_CID,
+  };
+}
+
 export async function sendEmail(p: SendEmailParams) {
   const toLabel = formatRecipients(p.to);
   const fromPreview = p.from ?? `${process.env.APP_NAME} <${process.env.EMAIL_SMTP_USER}>`;
@@ -76,6 +98,8 @@ export async function sendEmail(p: SendEmailParams) {
 
     const from = fromPreview;
 
+    const logoAttachment = getInlineBookidoLogoAttachment();
+
     const result = await transporter.sendMail({
       from,
       to: p.to,
@@ -86,6 +110,7 @@ export async function sendEmail(p: SendEmailParams) {
       cc: p.cc,
       bcc: p.bcc,
       headers: p.headers,
+      attachments: logoAttachment ? [logoAttachment] : undefined,
     });
 
     logger.log(

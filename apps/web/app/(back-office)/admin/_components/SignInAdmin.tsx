@@ -47,6 +47,7 @@ export default function SignInAdmin() {
   const t = useTranslations();
   const { data: sessionPayload, isPending: sessionPending } = useSession();
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [isRedirectingAfterSignIn, setIsRedirectingAfterSignIn] = useState(false);
 
   const redirectParam = searchParams.get("redirect");
   const redirectTo = redirectParam?.startsWith("/admin") ? redirectParam : "/admin";
@@ -73,9 +74,12 @@ export default function SignInAdmin() {
     if (!user) {
       return;
     }
+    setIsRedirectingAfterSignIn(true);
     setAdminAuthBridgeCookie();
     router.replace(redirectTo);
   }, [sessionPending, sessionPayload, router, redirectTo]);
+
+  const isSubmittingSignin = form.formState.isSubmitting || isRedirectingAfterSignIn;
 
   const onSubmit = async (values: SignInFormValues) => {
     form.clearErrors("root");
@@ -94,6 +98,7 @@ export default function SignInAdmin() {
     });
 
     if (res.error) {
+      setIsRedirectingAfterSignIn(false);
       if (process.env.NODE_ENV === "development") {
         console.error("[SignInAdmin] signIn.email error", {
           email: values.email,
@@ -105,6 +110,7 @@ export default function SignInAdmin() {
       return;
     }
 
+    setIsRedirectingAfterSignIn(true);
     setAdminAuthBridgeCookie();
     router.push(redirectTo);
   };
@@ -170,7 +176,7 @@ export default function SignInAdmin() {
       type="button"
       variant="outline"
       onClick={handleGoogleSignIn}
-      disabled={form.formState.isSubmitting}
+      disabled={isSubmittingSignin}
       className="w-full h-auto min-h-12 px-6 py-3 rounded-xl border-2 border-slate-300 text-slate-700 text-base font-medium hover:bg-slate-50 flex items-center justify-center gap-3"
     >
       <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" aria-hidden>
@@ -254,6 +260,7 @@ export default function SignInAdmin() {
                       className={fieldClass(fieldState.invalid)}
                       placeholder={t("login.emailPlaceholder")}
                       aria-invalid={fieldState.invalid}
+                      disabled={isSubmittingSignin}
                     />
                   </FormControl>
                   {fieldErrorAlert(fieldState.error?.message)}
@@ -272,6 +279,7 @@ export default function SignInAdmin() {
                     size="icon"
                     className="absolute right-1 top-1/2 size-9 -translate-y-1/2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                     onClick={() => setPasswordVisible((v) => !v)}
+                    disabled={isSubmittingSignin}
                     aria-label={passwordVisible ? t("login.hidePassword") : t("login.showPassword")}
                     aria-pressed={passwordVisible}
                   >
@@ -288,6 +296,7 @@ export default function SignInAdmin() {
                       className={cn(fieldClass(fieldState.invalid), "pr-11")}
                       placeholder="••••••••"
                       aria-invalid={fieldState.invalid}
+                      disabled={isSubmittingSignin}
                     />
                     {passwordToggle}
                   </div>
@@ -310,6 +319,12 @@ export default function SignInAdmin() {
               <Link
                 href="/admin/forgot-password"
                 className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline"
+                aria-disabled={isSubmittingSignin}
+                onClick={(event) => {
+                  if (isSubmittingSignin) {
+                    event.preventDefault();
+                  }
+                }}
               >
                 {t("login.forgotPasswordLink")}
               </Link>
@@ -317,7 +332,7 @@ export default function SignInAdmin() {
 
             <Button
               type="submit"
-              pending={form.formState.isSubmitting}
+              pending={isSubmittingSignin}
               pendingChildren={t("login.buttonPending")}
               className="w-full h-auto min-h-12 px-6 py-3 rounded-xl bg-blue-600 text-base text-white font-medium hover:bg-blue-700"
             >

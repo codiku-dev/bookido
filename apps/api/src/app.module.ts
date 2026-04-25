@@ -9,6 +9,7 @@ import { ServicesModule } from "@api/src/features/services/services.module";
 import { BookingsModule } from "@api/src/features/bookings/bookings.module";
 import { DashboardModule } from "@api/src/features/dashboard/dashboard.module";
 import { PublicBookingModule } from "@api/src/features/public-booking/public-booking.module";
+import { StripeModule } from "@api/src/features/stripe/stripe.module";
 import { PrismaModule } from "@api/src/infrastructure/prisma/prisma.module";
 
 import { AppService } from "@api/src/app.service";
@@ -49,6 +50,7 @@ import { AppContext } from "./infrastructure/trpc/app-context";
     BookingsModule,
     DashboardModule,
     PublicBookingModule,
+    StripeModule,
     TrpcMiddlewaresModule,
     TRPCModule.forRoot({
       autoSchemaFile: path.resolve(__dirname, "../../../../packages/trpc/src"),
