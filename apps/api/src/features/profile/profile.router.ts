@@ -10,6 +10,7 @@ import {
   platformBillingHistoryOutputSchema,
   stripeConnectStatusOutputSchema,
   updateCalendarAvailabilityInputSchema,
+  adminOnboardingStatusOutputSchema,
   updateProfileAvatarInputSchema,
   updateProfileBasicsInputSchema,
   updatePublicBookingPresenceInputSchema,
@@ -30,6 +31,23 @@ export class ProfileRouter {
       throw new TRPCError({ code: "UNAUTHORIZED", message: "UNAUTHORIZED" });
     }
     return { id: user.id };
+  }
+
+  @Query({
+    output: adminOnboardingStatusOutputSchema,
+  })
+  getAdminOnboardingStatus(@Ctx() ctx: BaseUserSession) {
+    const { id } = this.requireUser(ctx);
+    return this.profileService.getAdminOnboardingStatus(id);
+  }
+
+  @Mutation({
+    input: z.object({}),
+    output: z.object({ ok: z.literal(true) }),
+  })
+  completeAdminOnboarding(@Ctx() ctx: BaseUserSession) {
+    const { id } = this.requireUser(ctx);
+    return this.profileService.completeAdminOnboarding(id);
   }
 
   @Query({

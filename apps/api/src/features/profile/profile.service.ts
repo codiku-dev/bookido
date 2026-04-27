@@ -180,6 +180,25 @@ export class ProfileService {
     });
   }
 
+  async getAdminOnboardingStatus(userId: string) {
+    const row = await this.db.user.findUnique({
+      where: { id: userId },
+      select: { adminOnboardingCompletedAt: true, bio: true },
+    });
+    if (!row) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "USER_NOT_FOUND" });
+    }
+    return { needsOnboarding: row.adminOnboardingCompletedAt === null, bio: row.bio };
+  }
+
+  async completeAdminOnboarding(userId: string) {
+    await this.db.user.update({
+      where: { id: userId },
+      data: { adminOnboardingCompletedAt: new Date() },
+    });
+    return { ok: true as const };
+  }
+
   async getCalendarAvailability(userId: string) {
     const row = await this.db.user.findUnique({
       where: { id: userId },

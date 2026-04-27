@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Calendar,
@@ -42,6 +42,7 @@ const navItems = [
 
 export default function AdminLayout(p: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const t = useTranslations();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { data: sessionPayload, isPending: sessionPending } = useSession();
@@ -60,6 +61,29 @@ export default function AdminLayout(p: { children: ReactNode }) {
     refetchOnWindowFocus: true,
   });
   const clientBookingBadgeCount = clientBookingBadgeQuery.data ?? 0;
+
+  const onboardingStatusQuery = trpc.profile.getAdminOnboardingStatus.useQuery(undefined, {
+    enabled: sessionReady && pathname !== "/admin/onboarding",
+    retry: false,
+    staleTime: 30_000,
+  });
+
+  useEffect(() => {
+    if (!sessionReady || pathname === "/admin/onboarding") {
+      return;
+    }
+    if (onboardingStatusQuery.isPending) {
+      return;
+    }
+    if (onboardingStatusQuery.data?.needsOnboarding) {
+      router.replace("/admin/onboarding");
+    }
+  }, [sessionReady, pathname, onboardingStatusQuery.isPending, onboardingStatusQuery.data?.needsOnboarding, router]);
+
+  const onboardingGateBlocking =
+    sessionReady &&
+    pathname !== "/admin/onboarding" &&
+    (onboardingStatusQuery.isPending || onboardingStatusQuery.data?.needsOnboarding === true);
 
   const handleLogout = async () => {
     try {
@@ -108,6 +132,17 @@ export default function AdminLayout(p: { children: ReactNode }) {
     </AlertDialog>
   );
 
+  const onboardingGateOverlay = onboardingGateBlocking ? (
+    <div
+      className="fixed inset-0 z-[150] flex flex-col items-center justify-center gap-3 bg-slate-50"
+      aria-busy
+      aria-live="polite"
+    >
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-300 border-t-blue-600" />
+      <p className="text-sm font-medium text-slate-700">{t("onboarding.gateLoading")}</p>
+    </div>
+  ) : null;
+
   const logoutBlockingOverlay = isLoggingOut ? (
     <div
       className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-3 bg-background/85 backdrop-blur-sm"
@@ -118,6 +153,10 @@ export default function AdminLayout(p: { children: ReactNode }) {
       <p className="text-sm font-medium text-slate-700">{t("nav.logoutDialog.inProgress")}</p>
     </div>
   ) : null;
+
+  if (onboardingGateBlocking) {
+    return onboardingGateOverlay;
+  }
 
   return (
     <div className="relative flex h-screen bg-slate-50">

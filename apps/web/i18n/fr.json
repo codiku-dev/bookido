@@ -190,6 +190,7 @@
       "loadError": "Impossible de charger les services. Réessayez plus tard.",
       "empty": "Aucun service n’est encore disponible pour la réservation en ligne.",
       "durationMinutes": "{minutes} min",
+      "packSessions": "{count, plural, one {# séance} other {# séances}}",
       "items": {
         "personalTraining": {
           "name": "Coaching sportif individuel",
@@ -258,12 +259,18 @@
       "coachSectionLabel": "Votre professionnel",
       "coachBioFallback": "Aucune bio n’a encore été ajoutée.",
       "calendarTitle": "Choisissez un horaire",
-      "pickSlotSubtitle": "Choisissez l’heure de début de votre séance. Les créneaux indisponibles correspondent au calendrier du coach.",
+      "pickSlotSubtitle": "Choisissez l’heure de début pour chaque séance de cette prestation. Les créneaux indisponibles correspondent au calendrier du coach.",
+      "sessionsProgress": "{current} / {total} séances planifiées",
+      "sessionNumber": "Séance {n}",
+      "noSlotsChosenYet": "Aucun créneau sélectionné pour l’instant.",
+      "confirmDisabledHint": "Sélectionnez un horaire pour chaque séance avant de confirmer.",
       "invalidSlugTitle": "Ce lien de réservation n’est pas valide.",
       "coachNotFoundTitle": "Nous n’avons trouvé aucun coach à cette adresse.",
       "coachNotFoundHint": "Vérifiez le lien envoyé par votre coach ou demandez-lui son URL publique de réservation.",
       "weekPrev": "Semaine précédente",
       "weekNext": "Semaine suivante",
+      "selectMonth": "Mois",
+      "selectYear": "Année",
       "durationLabel": "{minutes} min",
       "free": "Gratuit",
       "clientName": "Nom complet",
@@ -318,7 +325,7 @@
         "badge": "La planification pour les indépendants",
         "titleBefore": "Transformez le temps libre en",
         "titleAccent": "temps réservé",
-        "subtitle": "La façon simple de recevoir des réservations et vos paiements. (Pour les indépendants)",
+        "subtitle": "La façon simple pour les indépendants de vendre leurs services.",
         "ctaScroll": "Essayer maintenant",
         "urlHint": "bookido.com/marc-dupont",
         "mockDateEyebrow": "Choisir une date",
@@ -354,11 +361,11 @@
         "heading": "Comment ça marche",
         "one": {
           "title": "Partagez le lien",
-          "body": "Une URL claire : vos clients arrivent sur vos offres et réservent en quelques clics."
+          "body": "Partagez votre lien unique pour recevoir des réservations en 3 clics"
         },
         "two": {
           "title": "Recevez vos paiements",
-          "body": "Encaissez au fil des confirmations, sans perdre le fil entre devis et séance."
+          "body": "Encaissez automatiquement au fil des réservations"
         },
         "three": {
           "title": "Suivez vos réservations",
@@ -376,7 +383,8 @@
           "desc": "Pour les indépendants qui lancent la réservation en ligne.",
           "f1": "Page publique de réservation",
           "f2": "Services & calendrier",
-          "f3": "Confirmations par e-mail"
+          "f3": "Confirmations par e-mail",
+          "f4": "1,5 % de frais sur les ventes"
         },
         "pro": {
           "badge": "Le plus choisi",
@@ -384,10 +392,15 @@
           "price": "29 €",
           "per": "/ mois",
           "desc": "Quand vous voulez tout le flux, sans plafond artificiel.",
-          "f1": "Acceptez les paiements en direct",
-          "f2": "Historique des réservations",
-          "f3": "Dashboard admin : clients, services, calendrier",
-          "f4": "Accès à l’app mobile de suivi en temps réel"
+          "f1": "0 frais sur les transactions",
+          "f2": "Page publique de réservation",
+          "f3": "Services & calendrier",
+          "f4": "Confirmations par e-mail",
+          "f5": "Acceptez les paiements en direct",
+          "f6": "Historique des réservations",
+          "f7": "Dashboard admin : clients, services, calendrier",
+          "f8": "Accès à l’app mobile de suivi en temps réel",
+          "f9": "Rappel par SMS pour les clients"
         }
       },
       "ctaBand": {
@@ -937,8 +950,8 @@
     }
   },
   "signup": {
-    "title": "Bookido Admin",
-    "subtitle": "Créez votre compte administrateur",
+    "title": "Bookido - Inscription",
+    "subtitle": "Créer un compte et commencez à vendre",
     "name": "Nom complet",
     "namePlaceholder": "Marie Dupont",
     "email": "Email",
@@ -1039,10 +1052,8 @@
           "ready": "Paiements activés",
           "updateDetails": "Modifier mes informations Stripe"
         },
-        "manageAccount": "Gérer le compte Stripe",
         "preparingStripeRedirect": "Préparation de l’accès Stripe…",
         "pendingRedirect": "Redirection vers Stripe…",
-        "embeddedReady": "Session Stripe créée. Branchez ce client secret dans les composants embarqués.",
         "products": {
           "title": "Services et vitrine",
           "subtitle": "La creation des services se fait depuis la page Services. La devise est geree la-bas (EUR par defaut).",
@@ -1060,15 +1071,6 @@
         },
         "errors": {
           "generic": "Impossible d’ouvrir l’onboarding Stripe. Veuillez réessayer."
-        },
-        "payout": {
-          "title": "Versements (Stripe Connect)",
-          "hint": "Mettez à jour le compte bancaire ou la carte utilisés par Stripe pour vos versements. La suite se fait sur une page Stripe sécurisée.",
-          "noAccount": "Créez d’abord votre compte Stripe Connect ci-dessus, puis vous pourrez mettre à jour les informations de versement ici.",
-          "cta": "Mettre à jour les versements sur Stripe",
-          "errors": {
-            "generic": "Impossible d’ouvrir Stripe. Veuillez réessayer."
-          }
         }
       },
       "due": {
@@ -1228,6 +1230,90 @@
       }
     }
   },
+  "onboarding": {
+    "gateLoading": "Préparation de votre espace…",
+    "progressLabel": "Étape {current} sur {total}",
+    "skipLater": "Plus tard",
+    "next": "Suivant",
+    "validation": {
+      "nameMin": "Au moins 2 caractères.",
+      "nameMissing": "Votre nom est requis pour continuer."
+    },
+    "errors": {
+      "complete": "Impossible de terminer l’onboarding. Réessayez."
+    },
+    "name": {
+      "title": "Comment tu t’appelles ?",
+      "subtitle": "Ce nom apparaît dans l’admin et sur ta page publique.",
+      "fieldLabel": "Ton nom"
+    },
+    "bio": {
+      "title": "Une petite description de ce que tu fais",
+      "subtitle": "Elle sera visible publiquement sur ta page de réservation.",
+      "fieldLabel": "Description publique",
+      "placeholder": "Exemple : coach sportif spécialisé dans le renforcement musculaire, avec plus de 4 ans d’expérience. Crossfit, fitness, marathon — je propose tous types d’entraînement."
+    },
+    "avatar": {
+      "title": "Une petite photo pour ton avatar ?",
+      "subtitle": "Optionnel. Sinon, on affiche tes initiales sur ta page publique.",
+      "choose": "Choisir une photo"
+    },
+    "hours": {
+      "title": "Tu es ouvert de quelle heure à quelle heure ?",
+      "subtitle": "Les horaires par défaut viennent de ton profil ; ajuste-les pour ta semaine type.",
+      "openingTitle": "Heures d’ouverture",
+      "loadError": "Impossible de charger le calendrier. Tu peux continuer et corriger plus tard dans Calendrier."
+    },
+    "address": {
+      "title": "À quelle adresse ?",
+      "subtitle": "Laisse vide si c’est toi qui te déplaces. Tu pourras mettre une adresse précise pour chaque service plus tard.",
+      "note": "Si l’adresse diffère selon le service, tu pourras la renseigner sur chaque fiche service.",
+      "fieldLabel": "Adresse par défaut",
+      "placeholder": "ex. 12 rue de la Paix, 75002 Paris"
+    },
+    "unavailable": {
+      "title": "Tu es indisponible quand ?",
+      "subtitle": "Touche les créneaux pour marquer des pauses (ex. déjeuner). Par défaut : 12h–14h.",
+      "hint": "Les créneaux hachurés sont indisponibles. Les créneaux blancs sont disponibles dans tes heures d’ouverture."
+    },
+    "service": {
+      "title": "Crée ton premier service",
+      "subtitle": "Les clients réservent un service (type de séance). Tu pourras en ajouter d’autres dans Services.",
+      "alreadyHave": "Tu as déjà un service — tu peux passer ou en ajouter un autre.",
+      "nameLabel": "Nom du service",
+      "descriptionLabel": "Description",
+      "addressLabel": "Lieu pour ce service",
+      "fallbackAddress": "Sur rendez-vous",
+      "validation": {
+        "name": "Indique un nom de service.",
+        "description": "Ajoute une courte description.",
+        "address": "Indique un lieu ou utilise ton adresse par défaut.",
+        "pricePaid": "Indique un prix supérieur à 0 ou active « Service gratuit »."
+      },
+      "optionalImageHint": "Image d’illustration (optionnelle, max. 5 Mo).",
+      "switchPublished": "Publier sur ma page publique de réservation",
+      "switchPublishedHint": "Si tu désactives, le service reste en brouillon.",
+      "chooseImage": "Choisir une image"
+    },
+    "slug": {
+      "title": "Quelle sera l’URL de ton Bookido ?",
+      "subtitle": "Choisis la fin de ton lien public. Lettres minuscules, chiffres et tirets uniquement.",
+      "fieldLabel": "Identifiant dans l’URL",
+      "invalidFormat": "2 à 96 caractères : lettres minuscules, chiffres et un tiret entre les mots."
+    },
+    "stripe": {
+      "title": "Configure Stripe pour recevoir des paiements",
+      "subtitle": "Connecte Stripe pour encaisser en ligne. Tu pourras terminer plus tard depuis ton profil.",
+      "publishBlocked": "Tant que Stripe n’est pas configuré et que les paiements ne sont pas activés, tu ne pourras pas publier les réservations payantes par carte sur ton site public.",
+      "ready": "Stripe semble prêt — tu peux tout de même ouvrir le tableau de bord pour vérifier.",
+      "cta": "Ouvrir la configuration Stripe"
+    },
+    "done": {
+      "title": "Bravo, c’est terminé",
+      "subtitle": "Ton tableau de bord est prêt. Tu peux affiner services, calendrier et paiements à tout moment.",
+      "cta": "Aller au tableau de bord"
+    }
+  },
   "services": {
     "availability": {
       "instructions": "Cliquez ou glissez sur les créneaux pour les rendre indisponibles ou disponibles pour ce service (dans vos heures d'ouverture).",
@@ -1241,6 +1327,8 @@
       "hint": "Obligatoire. Préremplie avec votre adresse profil par défaut, modifiable pour chaque prestation."
     },
     "duration": "Durée",
+    "durationPlaceholder": "60",
+    "durationHint": "Multiples de 30 minutes uniquement (30, 60, 90…). Minimum 30.",
     "free": "Gratuit",
     "freeService": "Service gratuit",
     "form": {
@@ -1321,6 +1409,27 @@
     "availabilityTitle": "Disponibilité",
     "durationValue": "{minutes} min",
     "loading": "Chargement des services…",
+    "filters": {
+      "searchLabel": "Recherche",
+      "searchPlaceholder": "Rechercher par nom ou description…",
+      "searchClearAria": "Effacer la recherche",
+      "published": "Visibilité",
+      "publishedAll": "Tous",
+      "publishedYes": "Publié",
+      "publishedNo": "Brouillon",
+      "priceMin": "Prix min (€)",
+      "priceMax": "Prix max (€)",
+      "payment": "Paiement",
+      "paymentAll": "Tous",
+      "paymentCard": "Carte (en ligne)",
+      "paymentDirect": "Sur place / direct",
+      "duration": "Durée",
+      "durationAll": "Toutes les durées",
+      "clear": "Effacer les filtres",
+      "noResultsTitle": "Aucun service ne correspond",
+      "noResultsDescription": "Modifiez ou réinitialisez vos filtres.",
+      "noResultsClear": "Effacer les filtres"
+    },
     "emptyList": {
       "title": "Aucun service pour le moment",
       "description": "Créez une prestation avec tarif, durée, visuel et créneaux de disponibilité pour la réservation en ligne.",
@@ -1341,8 +1450,9 @@
       "summaryTitle": "Veuillez corriger les champs suivants :",
       "nameRequired": "Le nom est obligatoire.",
       "descriptionRequired": "La description est obligatoire.",
-      "durationNumber": "La duree doit etre un nombre valide.",
-      "durationPositive": "La duree doit etre superieure a 0.",
+      "durationNumber": "La durée doit être un nombre valide.",
+      "durationMin30": "La durée doit être d’au moins 30 minutes.",
+      "durationMultipleOf30": "La durée doit être un multiple de 30 minutes (30, 60, 90…).",
       "packSizeNumber": "La taille du pack doit etre un nombre valide.",
       "packSizePositive": "La taille du pack doit etre au moins 1.",
       "priceNumber": "Le prix doit etre un nombre valide.",

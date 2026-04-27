@@ -91,6 +91,7 @@ export const UserScalarFieldEnum = {
   calendarWeekHours: 'calendarWeekHours',
   calendarClosedSlotKeys: 'calendarClosedSlotKeys',
   bookingsLastViewedAt: 'bookingsLastViewedAt',
+  adminOnboardingCompletedAt: 'adminOnboardingCompletedAt',
   stripeAccountId: 'stripeAccountId',
   stripeBillingCustomerId: 'stripeBillingCustomerId',
   stripeOnboardingComplete: 'stripeOnboardingComplete',

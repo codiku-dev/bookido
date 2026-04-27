@@ -24,6 +24,7 @@ export const publicServiceCardSchema = z.object({
   imageUrl: z.string().nullable(),
   address: z.string(),
   durationMinutes: z.number().int(),
+  packSize: z.number().int().min(1),
   price: z.number(),
   isFree: z.boolean(),
   requiresValidation: z.boolean(),
@@ -47,7 +48,8 @@ export const publicBookingGetStorefrontOutputSchema = z.object({
 export const publicBookingRequestInputSchema = z.object({
   coachSlug: publicBookingSlugSchema,
   serviceId: z.string().uuid(),
-  startsAt: z.string().datetime(),
+  /** One ISO start per session; length must match the service `packSize`. */
+  sessionsStartsAt: z.array(z.string().datetime()).min(1).max(32),
   clientName: z.string().min(1).max(200),
   clientEmail: z.string().email().max(320),
   clientPhone: z.string().max(80).optional(),

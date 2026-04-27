@@ -1,10 +1,10 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useParams, useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
-import { Check, ChevronLeft, Clock, MapPin, Share2 } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Clock, MapPin, Package, Share2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -17,6 +17,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "#/components/ui/accordion";
+import { WeeklyTimeGrid } from "#/components/calendar/WeeklyTimeGrid";
 import { Button } from "#/components/ui/button";
 import {
   Dialog,
@@ -24,23 +25,36 @@ import {
   DialogHeader,
   DialogTitle,
 } from "#/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "#/components/ui/select";
 import { trpc } from "@web/libs/trpc-client";
 import { DEFAULT_CALENDAR_WEEK_HOURS, type WeekHours } from "#/utils/calendar-availability";
 import {
   BOOKING_PAGE_GRID_SLOTS,
   buildEnabledDayColumns,
   buildOccupiedSlotKeySet,
+  collectDateIsoOccupiedHalfHours,
   computeVisibleTimeSlots,
   getCalendarWeekDates,
   isSlotSelectableForService,
   type BookingPageDayColumn,
 } from "#/utils/booking-page-calendar";
 import { buildCalendarSlotKey } from "#/utils/calendar-availability";
+import { bookingLocalDateKey } from "#/utils/booking-dates";
 
 type SelectedSlot = {
   column: BookingPageDayColumn;
   time: string;
 };
+
+function isSameSelectedSlot(s: SelectedSlot, column: BookingPageDayColumn, time: string) {
+  return s.column.dateIso === column.dateIso && s.time === time;
+}
 
 function slugLooksValid(slug: string) {
   return slug.length >= 2 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(slug);
@@ -69,12 +83,13 @@ export default function BookingPage() {
   const coachSlug = typeof params["coachSlug"] === "string" ? params["coachSlug"] : "";
   const coachSlugKey = coachSlug.toLowerCase();
   const slugOk = slugLooksValid(coachSlug);
+  const servicesHref = `/${coachSlug}/services`;
 
   const serviceIdParam = searchParams.get("service")?.trim() ?? "";
 
   const [weekAnchor, setWeekAnchor] = useState(() => new Date());
   const [step, setStep] = useState<"service" | "pick" | "done">("service");
-  const [selectedSlot, setSelectedSlot] = useState<SelectedSlot | null>(null);
+  const [selectedSlots, setSelectedSlots] = useState<SelectedSlot[]>([]);
   const [mobileHeroImageIndex, setMobileHeroImageIndex] = useState(0);
   const [mobilePickerMonthAnchor, setMobilePickerMonthAnchor] = useState(() => new Date());
   const [mobileMonthSelectOpen, setMobileMonthSelectOpen] = useState(false);
@@ -84,12 +99,19 @@ export default function BookingPage() {
   const weekDates = useMemo(() => getCalendarWeekDates(weekAnchor), [weekAnchor]);
 
   const rangeInput = useMemo(() => {
-    const from = new Date(mobilePickerMonthAnchor.getFullYear(), mobilePickerMonthAnchor.getMonth(), 1);
-    from.setHours(0, 0, 0, 0);
-    const to = new Date(mobilePickerMonthAnchor.getFullYear(), mobilePickerMonthAnchor.getMonth() + 1, 0);
-    to.setHours(23, 59, 59, 999);
+    const weekMonday = weekDates[0]!;
+    const weekSunday = weekDates[6]!;
+    const wFrom = new Date(weekMonday.getFullYear(), weekMonday.getMonth(), weekMonday.getDate(), 0, 0, 0, 0);
+    const wTo = new Date(weekSunday.getFullYear(), weekSunday.getMonth(), weekSunday.getDate(), 23, 59, 59, 999);
+
+    const m = mobilePickerMonthAnchor;
+    const mFrom = new Date(m.getFullYear(), m.getMonth(), 1, 0, 0, 0, 0);
+    const mTo = new Date(m.getFullYear(), m.getMonth() + 1, 0, 23, 59, 59, 999);
+
+    const from = wFrom.getTime() < mFrom.getTime() ? wFrom : mFrom;
+    const to = wTo.getTime() > mTo.getTime() ? wTo : mTo;
     return { rangeFrom: from.toISOString(), rangeTo: to.toISOString() };
-  }, [mobilePickerMonthAnchor]);
+  }, [weekDates, mobilePickerMonthAnchor]);
 
   const storefrontQuery = trpc.publicBooking.getStorefront.useQuery(
     {
@@ -107,7 +129,34 @@ export default function BookingPage() {
   const bookingSegments = storefrontQuery.data?.bookingSegments ?? [];
   const coach = storefrontQuery.data?.coach ?? null;
   const minBookingNoticeHours = storefrontQuery.data?.minBookingNoticeHours ?? 0;
-  const minStartDateMs = useMemo(() => Date.now() + minBookingNoticeHours * 60 * 60 * 1000, [minBookingNoticeHours]);
+
+  const initialBookingWeekSyncedRef = useRef(false);
+
+  useEffect(() => {
+    if (!storefrontQuery.data || initialBookingWeekSyncedRef.current) {
+      return;
+    }
+    const hours = storefrontQuery.data.minBookingNoticeHours ?? 0;
+    const thresholdMs = Date.now() + hours * 60 * 60 * 1000;
+    const dates = getCalendarWeekDates(weekAnchor);
+    const cols = buildEnabledDayColumns(dates, storefrontQuery.data.weekHours as WeekHours);
+    if (cols.length === 0) {
+      initialBookingWeekSyncedRef.current = true;
+      return;
+    }
+    const hasBookableDay = cols.some((col) => {
+      const endOfDay = new Date(col.fullDate);
+      endOfDay.setHours(23, 59, 59, 999);
+      return endOfDay.getTime() >= thresholdMs;
+    });
+    if (!hasBookableDay) {
+      const nextAnchor = new Date(thresholdMs);
+      setWeekAnchor(nextAnchor);
+      setMobilePickerMonthAnchor(new Date(nextAnchor.getFullYear(), nextAnchor.getMonth(), 1));
+      setSelectedSlots([]);
+    }
+    initialBookingWeekSyncedRef.current = true;
+  }, [storefrontQuery.data, weekAnchor]);
 
   const selectedService = useMemo(() => {
     if (services.length === 0) {
@@ -116,6 +165,10 @@ export default function BookingPage() {
     const byParam = serviceIdParam ? services.find((s) => s.id === serviceIdParam) : undefined;
     return byParam ?? services[0] ?? null;
   }, [services, serviceIdParam]);
+
+  useEffect(() => {
+    setSelectedSlots([]);
+  }, [selectedService?.id]);
 
   const mobileHeroImageCandidates = useMemo(
     () =>
@@ -167,7 +220,36 @@ export default function BookingPage() {
     [enabledColumns, weekHours, closedSet, occupiedKeys],
   );
 
+  const calendarYearOptions = useMemo(() => {
+    const y = new Date().getFullYear();
+    return Array.from({ length: 6 }, (_, idx) => y + idx);
+  }, []);
+
   const dateFormatter = useMemo(() => new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" }), [locale]);
+  const monthLabelFormatter = useMemo(() => new Intl.DateTimeFormat(locale, { month: "long" }), [locale]);
+  const weekRangeLabel = useMemo(() => {
+    const from = weekDates[0];
+    const to = weekDates[6];
+    if (!from || !to) {
+      return "";
+    }
+    const sameMonth = from.getMonth() === to.getMonth() && from.getFullYear() === to.getFullYear();
+    const fromPart = sameMonth
+      ? new Intl.DateTimeFormat(locale, { day: "numeric" }).format(from)
+      : new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" }).format(from);
+    const toPart = new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", year: "numeric" }).format(to);
+    return `${fromPart} – ${toPart}`;
+  }, [weekDates, locale]);
+
+  const weeklyGridDays = useMemo(() => {
+    const today = bookingLocalDateKey(new Date());
+    return enabledColumns.map((col) => ({
+      key: col.dateIso,
+      label: t(`public.time.days.${col.dayKey}.short`),
+      subLabel: dateFormatter.format(col.fullDate),
+      isToday: col.dateIso === today,
+    }));
+  }, [enabledColumns, t, dateFormatter]);
   const priceFormatter = useMemo(
     () => new Intl.NumberFormat(locale, { style: "currency", currency: "EUR" }),
     [locale],
@@ -191,51 +273,94 @@ export default function BookingPage() {
     },
   });
 
-  const isCellBlocked = (column: BookingPageDayColumn, time: string, occupiedSlotKeys: Set<string>) => {
+  const isCellBlocked = useCallback(
+    (column: BookingPageDayColumn, time: string, occupiedSlotKeys: Set<string>) => {
+      if (!selectedService) {
+        return true;
+      }
+      const startsAt = toSlotStartDate(column, time);
+      const minStartMs = Date.now() + minBookingNoticeHours * 60 * 60 * 1000;
+      if (startsAt.getTime() < minStartMs) {
+        return true;
+      }
+      const key = buildCalendarSlotKey(column.dayKey, time);
+      if (occupiedSlotKeys.has(key)) {
+        return true;
+      }
+      const slotBlockedPredicate = (slotTime: string) => {
+        const comp = `${column.dateIso}|${slotTime}`;
+        for (const s of selectedSlots) {
+          const span = collectDateIsoOccupiedHalfHours({
+            dateIso: s.column.dateIso,
+            startTimeHm: s.time,
+            durationMinutes: selectedService.durationMinutes,
+          });
+          if (!span.has(comp)) {
+            continue;
+          }
+          if (s.column.dateIso === column.dateIso && s.time === time && slotTime === time) {
+            continue;
+          }
+          return true;
+        }
+        return false;
+      };
+      if (
+        !isSlotSelectableForService({
+          column,
+          startTime: time,
+          serviceDurationMinutes: selectedService.durationMinutes,
+          allTimeSlots: BOOKING_PAGE_GRID_SLOTS,
+          weekHours,
+          closedSlotKeys: closedSet,
+          occupiedSlotKeys,
+          slotBlockedPredicate,
+        })
+      ) {
+        return true;
+      }
+      return false;
+    },
+    [selectedService, minBookingNoticeHours, weekHours, closedSet, selectedSlots],
+  );
+
+  const requiredSessionCount = selectedService ? Math.max(1, selectedService.packSize) : 0;
+  const allSessionsSelected = Boolean(selectedService && selectedSlots.length === requiredSessionCount);
+
+  const handlePickSlotWithOccupied = (column: BookingPageDayColumn, time: string, occ: Set<string>) => {
     if (!selectedService) {
-      return true;
+      return;
     }
-    const startsAt = toSlotStartDate(column, time);
-    if (startsAt.getTime() < minStartDateMs) {
-      return true;
+    const existingIdx = selectedSlots.findIndex((s) => isSameSelectedSlot(s, column, time));
+    if (existingIdx >= 0) {
+      setSelectedSlots((prev) => prev.filter((_, i) => i !== existingIdx));
+      return;
     }
-    const key = buildCalendarSlotKey(column.dayKey, time);
-    if (occupiedSlotKeys.has(key)) {
-      return true;
+    if (selectedSlots.length >= requiredSessionCount) {
+      return;
     }
-    if (
-      !isSlotSelectableForService({
-        column,
-        startTime: time,
-        serviceDurationMinutes: selectedService.durationMinutes,
-        allTimeSlots: BOOKING_PAGE_GRID_SLOTS,
-        weekHours,
-        closedSlotKeys: closedSet,
-        occupiedSlotKeys,
-      })
-    ) {
-      return true;
+    if (isCellBlocked(column, time, occ)) {
+      return;
     }
-    return false;
+    setSelectedSlots((prev) => [...prev, { column, time }]);
   };
 
   const handlePickSlot = (column: BookingPageDayColumn, time: string) => {
-    if (isCellBlocked(column, time, occupiedKeys)) {
-      return;
-    }
-    setSelectedSlot({ column, time });
+    handlePickSlotWithOccupied(column, time, occupiedKeys);
   };
 
   const submitBookingRequest = () => {
-    if (!slugOk || !selectedService || !selectedSlot) {
+    if (!slugOk || !selectedService || !allSessionsSelected) {
       return;
     }
-    const startsAt = new Date(`${selectedSlot.column.dateIso}T${selectedSlot.time}:00`).toISOString();
+    const sessionsStartsAt = selectedSlots.map((s) =>
+      new Date(`${s.column.dateIso}T${s.time}:00`).toISOString(),
+    );
     const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     requestMutation.mutate({
       coachSlug: coachSlugKey,
       serviceId: selectedService.id,
-      startsAt,
+      sessionsStartsAt,
       clientName: "Client public",
       clientEmail: `public-booking-${uniqueSuffix}@bookido.local`,
     });
@@ -247,6 +372,10 @@ export default function BookingPage() {
       : selectedService
         ? priceFormatter.format(selectedService.price)
         : "";
+
+  const servicePackSessionsLabel = selectedService
+    ? t("public.services.packSessions", { count: selectedService.packSize })
+    : "";
 
   const invalidSlugBlock = (
     <div className="mx-auto max-w-lg rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center text-amber-950">
@@ -273,86 +402,182 @@ export default function BookingPage() {
     </div>
   );
 
-  const desktopGrid = (
-    <div className="hidden gap-6 lg:grid lg:grid-cols-[1fr_280px]">
-      <div className="overflow-x-auto rounded-2xl bg-white p-6 shadow-lg">
-        <div style={{ minWidth: `${enabledColumns.length * 72 + 56}px` }}>
-          <div
-            className="grid gap-px overflow-hidden rounded-xl border border-slate-200 bg-slate-200"
-            style={{
-              gridTemplateColumns: `56px repeat(${enabledColumns.length}, minmax(0, 1fr))`,
-            }}
+  const applyWeekAnchor = (next: Date) => {
+    const mon = getCalendarWeekDates(next)[0]!;
+    setWeekAnchor(next);
+    setMobilePickerMonthAnchor(new Date(mon.getFullYear(), mon.getMonth(), 1));
+  };
+
+  const shiftWeek = (deltaWeeks: number) => {
+    const next = new Date(weekAnchor);
+    next.setDate(weekAnchor.getDate() + deltaWeeks * 7);
+    applyWeekAnchor(next);
+  };
+
+  const weekMonday = weekDates[0]!;
+  const desktopMonthIndex = weekMonday.getMonth();
+  const desktopYear = weekMonday.getFullYear();
+
+  const desktopWeekToolbar = (
+    <div className="mb-3 rounded-xl bg-slate-50 p-3">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+        <div className="flex min-w-0 flex-1 items-center justify-center gap-2 sm:justify-start">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            className="shrink-0 rounded-lg hover:bg-slate-200"
+            onClick={() => shiftWeek(-1)}
+            aria-label={t("public.booking.weekPrev")}
           >
-            <div className="bg-slate-50" />
-            {enabledColumns.map((col) => (
-              <div key={col.dateIso} className="bg-slate-50 p-3 text-center">
-                <div className="text-sm font-medium text-slate-900">{getDayShortLabel(col.dayKey)}</div>
-                <div className="text-xs text-slate-500">{getDayDateLabel(col.fullDate)}</div>
-              </div>
-            ))}
-            {visibleSlots.map((time) => (
-              <Fragment key={time}>
-                <div className="flex items-center justify-end bg-white px-2 py-2">
-                  <span className="text-xs text-slate-600">{time}</span>
-                </div>
-                {enabledColumns.map((col) => {
-                  const blocked = isCellBlocked(col, time, occupiedKeys);
-                  const selected =
-                    selectedSlot?.column.dateIso === col.dateIso && selectedSlot.time === time && selectedSlot.column.dayKey === col.dayKey;
-                  return (
-                    <button
-                      key={`${col.dateIso}-${time}`}
-                      type="button"
-                      disabled={blocked}
-                      onClick={() => handlePickSlot(col, time)}
-                      className={`min-h-10 p-2 transition-colors ${
-                        blocked
-                          ? "cursor-not-allowed bg-slate-100 opacity-50"
-                          : selected
-                            ? "bg-blue-600 text-white"
-                            : "bg-white hover:bg-blue-50"
-                      }`}
-                    >
-                      {!blocked && selected ? <Check className="mx-auto size-4" /> : null}
-                    </button>
-                  );
-                })}
-              </Fragment>
-            ))}
+            <ChevronLeft className="size-5 text-slate-800" />
+          </Button>
+          <div className="min-w-0 flex-1 truncate text-center text-sm font-medium text-slate-900 sm:min-w-[180px] sm:flex-none sm:text-left">
+            {weekRangeLabel}
           </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            className="shrink-0 rounded-lg hover:bg-slate-200"
+            onClick={() => shiftWeek(1)}
+            aria-label={t("public.booking.weekNext")}
+          >
+            <ChevronRight className="size-5 text-slate-800" />
+          </Button>
+        </div>
+        <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto sm:flex-1 sm:justify-end">
+          <Select
+            value={String(desktopMonthIndex)}
+            onValueChange={(value) => applyWeekAnchor(new Date(desktopYear, Number(value), 1))}
+          >
+            <SelectTrigger className="min-w-0 flex-1 rounded-xl sm:max-w-[160px] sm:flex-none" aria-label={t("public.booking.selectMonth")}>
+              <SelectValue placeholder={t("public.booking.selectMonth")} />
+            </SelectTrigger>
+            <SelectContent>
+              {Array.from({ length: 12 }, (_, idx) => (
+                <SelectItem key={idx} value={String(idx)}>
+                  {monthLabelFormatter.format(new Date(2000, idx, 1))}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={String(desktopYear)}
+            onValueChange={(value) => applyWeekAnchor(new Date(Number(value), desktopMonthIndex, 1))}
+          >
+            <SelectTrigger className="w-[min(100%,100px)] shrink-0 rounded-xl" aria-label={t("public.booking.selectYear")}>
+              <SelectValue placeholder={t("public.booking.selectYear")} />
+            </SelectTrigger>
+            <SelectContent>
+              {calendarYearOptions.map((y) => (
+                <SelectItem key={y} value={String(y)}>
+                  {y}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
+    </div>
+  );
 
-      <div className="rounded-2xl bg-white p-6 shadow-lg">
-        <h3 className="mb-2 font-bold text-slate-900">{t("public.payment.slots")}</h3>
-        {selectedService ? (
-          <p className="mb-4 text-sm text-slate-600">
-            {selectedService.name} · {t("public.booking.durationLabel", { minutes: selectedService.durationMinutes })} · {priceLabel}
-          </p>
-        ) : null}
-        {!selectedSlot ? (
-          <p className="py-8 text-center text-sm text-slate-500">{t("public.booking.pickSlotSubtitle")}</p>
-        ) : (
-          <>
-            <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-slate-800">
-              <div className="font-medium">{getDayShortLabel(selectedSlot.column.dayKey)}</div>
-              <div className="text-slate-600">
-                {getDayDateLabel(selectedSlot.column.fullDate)} · {selectedSlot.time}
-              </div>
-            </div>
-            <Button
+  const desktopSchedulePanel = (
+    <div className="overflow-x-auto rounded-2xl bg-white px-2 py-3 shadow-lg sm:px-3 sm:py-4">
+      {desktopWeekToolbar}
+      <WeeklyTimeGrid
+        compact
+        days={weeklyGridDays}
+        timeSlots={[...visibleSlots]}
+        renderCell={({ day, time }) => {
+          const column = enabledColumns.find((c) => c.dateIso === day.key);
+          if (!column) {
+            return <div className="h-full min-h-8 w-full bg-slate-100" />;
+          }
+          const blockedRaw = isCellBlocked(column, time, occupiedKeys);
+          const selectedHere = selectedSlots.some((s) => isSameSelectedSlot(s, column, time));
+          const blocked = blockedRaw && !selectedHere;
+          return (
+            <button
               type="button"
-              className="w-full rounded-xl"
-              onClick={submitBookingRequest}
-              disabled={requestMutation.isPending}
-              pending={requestMutation.isPending}
-              pendingChildren={t("public.booking.submitting")}
+              disabled={blocked}
+              onClick={() => handlePickSlot(column, time)}
+              className={`h-full min-h-8 w-full px-0.5 py-0 text-[10px] transition-colors md:text-xs ${
+                blocked
+                  ? "cursor-not-allowed bg-slate-100 text-slate-400 opacity-60"
+                  : selectedHere
+                    ? "bg-blue-600 text-white"
+                    : "bg-white text-slate-800 hover:bg-blue-50"
+              }`}
             >
-              {t("public.booking.submit")}
-            </Button>
-          </>
-        )}
-      </div>
+              {!blocked && selectedHere ? <Check className="mx-auto size-3.5" /> : null}
+            </button>
+          );
+        }}
+      />
+    </div>
+  );
+
+  const orderedSelectedSlots = useMemo(() => {
+    return [...selectedSlots].sort(
+      (a, b) =>
+        a.column.dateIso.localeCompare(b.column.dateIso) ||
+        a.time.localeCompare(b.time),
+    );
+  }, [selectedSlots]);
+
+  const desktopSlotsSidebar = (
+    <div className="rounded-2xl bg-white p-4 shadow-lg sm:p-5">
+      <h3 className="mb-2 font-bold text-slate-900">{t("public.payment.slots")}</h3>
+      {selectedService ? (
+        <p className="mb-3 text-sm text-slate-600">
+          {selectedService.name} · {t("public.booking.durationLabel", { minutes: selectedService.durationMinutes })} ·{" "}
+          {servicePackSessionsLabel} · {priceLabel}
+        </p>
+      ) : null}
+      <p className="mb-3 text-sm font-medium text-slate-800">
+        {t("public.booking.sessionsProgress", { current: selectedSlots.length, total: requiredSessionCount })}
+      </p>
+      <p className="mb-4 text-sm text-slate-600">{t("public.booking.pickSlotSubtitle")}</p>
+      {orderedSelectedSlots.length === 0 ? (
+        <p className="py-4 text-center text-sm text-slate-500">{t("public.booking.noSlotsChosenYet")}</p>
+      ) : (
+        <ul className="mb-4 max-h-48 space-y-2 overflow-y-auto">
+          {orderedSelectedSlots.map((slot, idx) => (
+            <li
+              key={`${slot.column.dateIso}-${slot.time}-${idx}`}
+              className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-slate-800"
+            >
+              <div className="font-medium">
+                {t("public.booking.sessionNumber", { n: idx + 1 })} · {getDayShortLabel(slot.column.dayKey)}
+              </div>
+              <div className="text-slate-600">
+                {getDayDateLabel(slot.column.fullDate)} · {slot.time}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      {!allSessionsSelected ? (
+        <p className="mb-3 text-xs text-amber-800">{t("public.booking.confirmDisabledHint")}</p>
+      ) : null}
+      <Button
+        type="button"
+        className="w-full rounded-xl"
+        onClick={submitBookingRequest}
+        disabled={!allSessionsSelected || requestMutation.isPending}
+        pending={requestMutation.isPending}
+        pendingChildren={t("public.booking.submitting")}
+      >
+        {t("public.booking.submit")}
+      </Button>
+    </div>
+  );
+
+  const desktopGrid = (
+    <div className="hidden gap-4 lg:grid lg:grid-cols-[1fr_240px] xl:grid-cols-[1fr_260px]">
+      {desktopSchedulePanel}
+      {desktopSlotsSidebar}
     </div>
   );
 
@@ -367,10 +592,6 @@ export default function BookingPage() {
   );
   const mobileHeroClassName = "relative h-[30vh] min-h-56 overflow-hidden bg-slate-100";
   const mobileDrawerClassName = "fixed inset-x-0 bottom-0 z-40 flex h-[70vh] -translate-y-5 flex-col rounded-t-[28px] bg-white";
-  const monthLabelFormatter = useMemo(
-    () => new Intl.DateTimeFormat(locale, { month: "long" }),
-    [locale],
-  );
   const now = useMemo(() => new Date(), []);
   const currentYear = now.getFullYear();
   const currentMonthIndex = now.getMonth();
@@ -384,7 +605,7 @@ export default function BookingPage() {
   const mobileMonthOptions = useMemo(
     () =>
       Array.from({ length: 12 }, (_, idx) => {
-        const monthDate = new Date(2026, idx, 1);
+        const monthDate = new Date(selectedYearValue, idx, 1);
         return {
           monthIndex: idx,
           label: monthLabelFormatter.format(monthDate),
@@ -406,10 +627,15 @@ export default function BookingPage() {
       mobileDayColumns.map((column) => ({
         column,
         label: fullDateFormatter.format(column.fullDate),
-        slots: BOOKING_PAGE_GRID_SLOTS.filter((time) => !isCellBlocked(column, time, mobileOccupiedKeys)),
+        slots: BOOKING_PAGE_GRID_SLOTS.filter((time) => {
+          if (selectedSlots.some((s) => isSameSelectedSlot(s, column, time))) {
+            return true;
+          }
+          return !isCellBlocked(column, time, mobileOccupiedKeys);
+        }),
       }))
       .filter((day) => day.slots.length > 0),
-    [mobileDayColumns, fullDateFormatter, mobileOccupiedKeys],
+    [mobileDayColumns, fullDateFormatter, mobileOccupiedKeys, isCellBlocked, selectedSlots],
   );
 
   useEffect(() => {
@@ -468,11 +694,34 @@ export default function BookingPage() {
             </div>
             <p className="shrink-0 text-2xl font-bold text-slate-900">{priceLabel}</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 p-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              className="shrink-0 rounded-lg hover:bg-slate-200"
+              onClick={() => shiftWeek(-1)}
+              aria-label={t("public.booking.weekPrev")}
+            >
+              <ChevronLeft className="size-5 text-slate-800" />
+            </Button>
+            <span className="min-w-0 flex-[1_1_140px] truncate text-center text-xs font-medium text-slate-900">
+              {weekRangeLabel}
+            </span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              className="shrink-0 rounded-lg hover:bg-slate-200"
+              onClick={() => shiftWeek(1)}
+              aria-label={t("public.booking.weekNext")}
+            >
+              <ChevronRight className="size-5 text-slate-800" />
+            </Button>
             <Button
               type="button"
               variant="outline"
-              className="flex-1 justify-center rounded-xl"
+              className="min-w-0 flex-1 justify-center rounded-xl"
               onClick={() => setMobileMonthSelectOpen(true)}
             >
               {mobileMonthLabel}
@@ -480,12 +729,15 @@ export default function BookingPage() {
             <Button
               type="button"
               variant="outline"
-              className="flex-1 justify-center rounded-xl"
+              className="min-w-0 flex-1 justify-center rounded-xl"
               onClick={() => setMobileYearSelectOpen(true)}
             >
               {mobileYearLabel}
             </Button>
           </div>
+          <p className="text-sm font-medium text-slate-800">
+            {t("public.booking.sessionsProgress", { current: selectedSlots.length, total: requiredSessionCount })}
+          </p>
           <div className="space-y-2">
             {pickerAccordionDays.length === 0 ? (
               <p className="text-sm text-slate-500">{t("public.booking.noEnabledDays")}</p>
@@ -512,15 +764,13 @@ export default function BookingPage() {
                               key={`${day.column.dateIso}-${time}`}
                               type="button"
                               variant={
-                                selectedSlot?.column.dateIso === day.column.dateIso &&
-                                selectedSlot.time === time &&
-                                selectedSlot.column.dayKey === day.column.dayKey
+                                selectedSlots.some((s) => isSameSelectedSlot(s, day.column, time))
                                   ? "default"
                                   : "outline"
                               }
                               className="rounded-xl"
                               onClick={() => {
-                                setSelectedSlot({ column: day.column, time });
+                                handlePickSlotWithOccupied(day.column, time, mobileOccupiedKeys);
                               }}
                             >
                               {time}
@@ -540,7 +790,7 @@ export default function BookingPage() {
             type="button"
             className="w-full rounded-2xl py-6 text-base font-semibold"
             onClick={submitBookingRequest}
-            disabled={!selectedSlot || requestMutation.isPending}
+            disabled={!allSessionsSelected || requestMutation.isPending}
             pending={requestMutation.isPending}
             pendingChildren={t("public.booking.submitting")}
           >
@@ -565,7 +815,7 @@ export default function BookingPage() {
                   const nextDate = new Date(mobilePickerMonthAnchor.getFullYear(), monthOption.monthIndex, 1);
                   setMobilePickerMonthAnchor(nextDate);
                   setWeekAnchor(nextDate);
-                  setSelectedSlot(null);
+                  setSelectedSlots([]);
                   setMobileMonthSelectOpen(false);
                 }}
               >
@@ -592,7 +842,7 @@ export default function BookingPage() {
                   const nextDate = new Date(yearOption, mobilePickerMonthAnchor.getMonth(), 1);
                   setMobilePickerMonthAnchor(nextDate);
                   setWeekAnchor(nextDate);
-                  setSelectedSlot(null);
+                  setSelectedSlots([]);
                   setMobileYearSelectOpen(false);
                 }}
               >
@@ -674,14 +924,13 @@ export default function BookingPage() {
           </div>
         )}
         <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 pt-5">
-          <button
-            type="button"
-            onClick={() => setStep("pick")}
+          <Link
+            href={servicesHref}
             className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm"
             aria-label={t("common.back")}
           >
             <ChevronLeft className="size-5" />
-          </button>
+          </Link>
           <button
             type="button"
             className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm"
@@ -707,6 +956,10 @@ export default function BookingPage() {
           <div className="flex flex-wrap gap-2 text-xs">
             <span className="rounded-full bg-slate-100 px-3 py-1.5 text-slate-700">
               {t("public.booking.durationLabel", { minutes: selectedService.durationMinutes })}
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-slate-700">
+              <Package className="size-3.5 shrink-0 text-slate-500" />
+              {servicePackSessionsLabel}
             </span>
           </div>
 
@@ -755,7 +1008,11 @@ export default function BookingPage() {
                 {t("public.booking.durationLabel", { minutes: selectedService.durationMinutes })}
               </p>
               <p className="inline-flex items-center gap-2">
-                <MapPin className="size-4 text-slate-500" />
+                <Package className="size-4 text-slate-500" />
+                {servicePackSessionsLabel}
+              </p>
+              <p className="inline-flex items-start gap-2 sm:col-span-2">
+                <MapPin className="mt-0.5 size-4 shrink-0 text-slate-500" />
                 {selectedService.address}
               </p>
             </div>
@@ -781,8 +1038,6 @@ export default function BookingPage() {
       </div>
     </div>
   ) : null;
-
-  const servicesHref = `/${coachSlug}/services`;
 
   const mainInner = !slugOk ? (
     invalidSlugBlock
@@ -811,7 +1066,7 @@ export default function BookingPage() {
     <FrontOfficePageLayout
       rootClassName={
         step === "service" || step === "pick"
-          ? "min-h-screen bg-black px-0 py-0 md:bg-slate-50 md:px-6 md:py-12"
+          ? "min-h-screen bg-black px-0 py-0 md:bg-slate-50 md:px-2 md:py-8 lg:px-3"
           : "min-h-screen bg-slate-50 px-6 py-12"
       }
       hideBrandOnMobile={step === "service" || step === "pick"}
@@ -819,7 +1074,15 @@ export default function BookingPage() {
         step === "done" || step === "service" || step === "pick" ? null : <BackButton label={t("common.back")} fallbackHref={servicesHref} />
       }
     >
-      <div className={step === "service" || step === "pick" ? "mx-auto max-w-5xl pt-0 md:pt-8" : "mx-auto max-w-5xl pt-8"}>{mainInner}</div>
+      <div
+        className={
+          step === "service" || step === "pick"
+            ? "mx-auto w-full max-w-[1600px] pt-0 md:pt-6"
+            : "mx-auto max-w-5xl pt-8"
+        }
+      >
+        {mainInner}
+      </div>
     </FrontOfficePageLayout>
   );
 }

@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { motion } from "motion/react";
 import { z } from "zod";
-import { Eye, EyeOff, Mail, Lock, User, MailCheck, CircleAlert } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, MailCheck, CircleAlert } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@repo/ui/utils/cn";
 import BookidoLogo from "#/components/BookidoLogo";
@@ -18,10 +18,15 @@ import { authClient, signIn, signUp } from "@web/libs/auth-client";
 import { isSignupUserAlreadyExistsError, translateSignupAuthError } from "@web/utils/translate-signup-auth-error";
 
 type SignUpFormValues = {
-  name: string;
   email: string;
   password: string;
 };
+
+function provisionalDisplayNameFromEmail(email: string): string {
+  const local = email.trim().split("@")[0] ?? "";
+  const spaced = local.replace(/[.+_]+/g, " ").trim();
+  return spaced.length > 0 ? spaced : "User";
+}
 
 /** Remettre à `true` pour réafficher le séparateur + le bouton Google. */
 const ADMIN_GOOGLE_AUTH_UI_ENABLED = false;
@@ -45,7 +50,6 @@ export default function SignUpAdmin() {
   const signupSchema = useMemo(
     () =>
       z.object({
-        name: z.string().min(2, { message: t("signup.validation.nameMin") }),
         email: z.string().email({ message: t("signup.validation.emailInvalid") }),
         password: z.string().min(8, { message: t("signup.validation.passwordMin") }),
       }),
@@ -54,7 +58,7 @@ export default function SignUpAdmin() {
 
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signupSchema),
-    defaultValues: { name: "", email: "", password: "" },
+    defaultValues: { email: "", password: "" },
   });
 
   const onSubmit = async (values: SignUpFormValues) => {
@@ -63,7 +67,7 @@ export default function SignUpAdmin() {
 
     const callbackURL = getEmailCallbackURL();
     const res = await signUp.email({
-      name: values.name,
+      name: provisionalDisplayNameFromEmail(values.email),
       email: values.email,
       password: values.password,
       callbackURL: callbackURL || undefined,
@@ -80,7 +84,7 @@ export default function SignUpAdmin() {
           return;
         }
         setEmailSent(true);
-        form.reset({ name: "", email: "", password: "" });
+        form.reset({ email: "", password: "" });
         return;
       }
       form.setError("root", { message: translateSignupAuthError({ error: res.error, t }) });
@@ -88,7 +92,7 @@ export default function SignUpAdmin() {
     }
 
     setEmailSent(true);
-    form.reset({ name: "", email: "", password: "" });
+    form.reset({ email: "", password: "" });
   };
 
   const handleGoogleSignUp = () => {
@@ -208,29 +212,6 @@ export default function SignUpAdmin() {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <FormLabel className="text-slate-700">
-                    <User className="w-4 h-4" />
-                    {t("signup.name")}
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      autoComplete="name"
-                      className={fieldClass(fieldState.invalid)}
-                      placeholder={t("signup.namePlaceholder")}
-                      aria-invalid={fieldState.invalid}
-                    />
-                  </FormControl>
-                  {fieldErrorAlert(fieldState.error?.message)}
-                </FormItem>
-              )}
-            />
-
             <FormField
               control={form.control}
               name="email"

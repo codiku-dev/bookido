@@ -200,6 +200,10 @@ function LandingHeroBrowserMock() {
   const prefersReducedMotion = useReducedMotion();
   const [slide, setSlide] = useState(0);
   const activeSlide = prefersReducedMotion ? 0 : slide;
+  /** Cursor + cell motion only after slide enter; avoids first paint already “clicked” before the cursor moves. */
+  const [calendarStepPlay, setCalendarStepPlay] = useState(Boolean(prefersReducedMotion));
+  const activeSlideRef = useRef(activeSlide);
+  activeSlideRef.current = activeSlide;
 
   useEffect(() => {
     if (prefersReducedMotion) return;
@@ -209,6 +213,16 @@ function LandingHeroBrowserMock() {
     }, stepMs);
     return () => window.clearInterval(id);
   }, [prefersReducedMotion]);
+
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      setCalendarStepPlay(true);
+      return;
+    }
+    if (activeSlide !== 0) {
+      setCalendarStepPlay(false);
+    }
+  }, [activeSlide, prefersReducedMotion]);
 
   const calendarContainerRef = useRef<HTMLDivElement>(null);
   const calendarTargetRef = useRef<HTMLDivElement>(null);
@@ -261,7 +275,8 @@ function LandingHeroBrowserMock() {
       />
     );
 
-    const cellFill = isCursorTarget && p.markerRef ? animatedTargetFill : staticFill;
+    const cellFill =
+      isCursorTarget && p.markerRef ? (calendarStepPlay ? animatedTargetFill : staticFill) : staticFill;
 
     return (
       <div key={p.index} ref={p.markerRef} className="relative w-full min-w-0">
@@ -618,9 +633,14 @@ function LandingHeroBrowserMock() {
                 exit={{ opacity: 0, x: -18 }}
                 transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
                 className="space-y-4"
+                onAnimationComplete={() => {
+                  if (prefersReducedMotion) return;
+                  if (activeSlideRef.current !== 0) return;
+                  setCalendarStepPlay(true);
+                }}
               >
                 <div ref={calendarContainerRef} className="relative space-y-4 overflow-visible">
-                  {!prefersReducedMotion ? (
+                  {!prefersReducedMotion && calendarStepPlay ? (
                     <HeroMockCursor containerRef={calendarContainerRef} targetRef={calendarTargetRef} />
                   ) : null}
                   {slideHeader({
@@ -959,6 +979,7 @@ export default function Page() {
             {pricingBullet(t("pricing.starter.f1"))}
             {pricingBullet(t("pricing.starter.f2"))}
             {pricingBullet(t("pricing.starter.f3"))}
+            {pricingBullet(t("pricing.starter.f4"))}
           </ul>
           <Button variant="outline" className="mt-8 w-full rounded-xl border-slate-300" asChild>
             <Link href="/admin/signup">{t("nav.try")}</Link>
@@ -993,6 +1014,11 @@ export default function Page() {
             {pricingBullet(t("pricing.pro.f2"))}
             {pricingBullet(t("pricing.pro.f3"))}
             {pricingBullet(t("pricing.pro.f4"))}
+            {pricingBullet(t("pricing.pro.f5"))}
+            {pricingBullet(t("pricing.pro.f6"))}
+            {pricingBullet(t("pricing.pro.f7"))}
+            {pricingBullet(t("pricing.pro.f8"))}
+            {pricingBullet(t("pricing.pro.f9"))}
           </ul>
           <Button className="mt-8 w-full rounded-xl shadow-md shadow-blue-600/20" asChild>
             <Link href="/admin/signup">{t("nav.try")}</Link>

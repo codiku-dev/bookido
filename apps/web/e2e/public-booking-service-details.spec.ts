@@ -25,6 +25,7 @@ const storefrontPayload = {
       imageUrl: null,
       address: "12 rue de la Paix, 75002 Paris",
       durationMinutes: 60,
+      packSize: 2,
       price: 80,
       isFree: false,
       requiresValidation: false,
@@ -46,6 +47,7 @@ test.describe("Public booking service details", () => {
     await page.goto("/demo-coach/booking?service=svc-1");
 
     await expect(page.getByRole("heading", { name: "Service details" })).toBeVisible();
+    await expect(page.getByText("2 sessions").last()).toBeVisible();
 
     await page.getByRole("button", { name: "Choose an appointment time" }).click();
     await expect(page.getByRole("heading", { name: "Choose a time" })).toBeVisible();

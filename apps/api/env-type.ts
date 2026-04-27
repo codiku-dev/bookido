@@ -2,8 +2,9 @@
  * Generated from .env.production. 
  */
 import { config } from "@dotenvx/dotenvx";
-import { z } from "zod";
+import { existsSync } from "node:fs";
 import { resolve } from "node:path";
+import { z } from "zod";
 
 export const envSchema = z.object({
   PORT: z.string(),
@@ -37,6 +38,18 @@ export const envSchema = z.object({
 
 export type Env = z.infer<typeof envSchema>;
 
+/** Same layering as `db:migrate` so Prisma/Better Auth hit the same DB as CLI migrations. */
+export function loadDevelopmentEnvFromFiles(cwd: string = process.cwd()): void {
+  if (process.env.NODE_ENV !== "development") {
+    return;
+  }
+  config({ path: resolve(cwd, ".env") });
+  const localPath = resolve(cwd, ".env.local.development");
+  if (existsSync(localPath)) {
+    config({ path: localPath });
+  }
+}
+
 declare global {
   namespace NodeJS {
     interface ProcessEnv extends Env { }
@@ -44,9 +57,7 @@ declare global {
 }
 
 export function parseEnv(): Env {
-  // En dev on charge .env ; en prod l’env est déjà injecté par dotenvx run -f .env.production
-  if (process.env['NODE_ENV'] === 'development') {
-    config({ path: resolve(process.cwd(), '.env') });
-  }
+  // En dev on charge .env (+ .env.local.development si présent) ; en prod l’env est déjà injecté par dotenvx run -f .env.production
+  loadDevelopmentEnvFromFiles();
   return envSchema.parse(process.env);
 }

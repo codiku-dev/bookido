@@ -18,6 +18,10 @@ type WeeklyTimeGridProps = {
   timeSlots: string[];
   renderCell: (p: { day: WeeklyTimeGridDay; time: string; slotIndex: number; isLastVisibleSlot: boolean }) => ReactNode;
   className?: string;
+  /** Narrower columns (e.g. public booking) to reduce horizontal scroll. */
+  compact?: boolean;
+  /** When false, no horizontal scroll container (e.g. onboarding full-width layout). */
+  horizontalScroll?: boolean;
 };
 
 export function CalendarSlotHoverHint(p: { label: string; children: ReactNode }) {
@@ -38,18 +42,22 @@ export function CalendarSlotHoverHint(p: { label: string; children: ReactNode })
 }
 
 export function WeeklyTimeGrid(p: WeeklyTimeGridProps) {
-  const timeColumnWidth = 48;
-  const normalDayMinWidth = 108;
-  const compactDayMinWidth = 66;
+  const horizontalScroll = p.horizontalScroll !== false;
+  const timeColumnWidth = p.compact ? 40 : 48;
+  const normalDayMinWidth = p.compact ? 84 : 108;
+  const compactDayMinWidth = p.compact ? 56 : 66;
   const gridTemplateColumns = p.days
     .map((day) => (day.isCompact ? `minmax(${compactDayMinWidth}px, 0.62fr)` : `minmax(${normalDayMinWidth}px, 1fr)`))
     .join(" ");
   const minWidth = `${timeColumnWidth + p.days.reduce((sum, day) => sum + (day.isCompact ? compactDayMinWidth : normalDayMinWidth), 0)}px`;
 
+  const scrollShellClass = horizontalScroll ? "overflow-x-auto" : "overflow-x-visible";
+  const innerStyle = horizontalScroll ? { minWidth } : { minWidth: "100%" as const };
+
   return (
     <div className={p.className}>
-      <div className="overflow-x-auto">
-        <div style={{ minWidth }}>
+      <div className={scrollShellClass}>
+        <div style={innerStyle}>
           <div
             style={{
               display: "grid",

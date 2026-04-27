@@ -13,16 +13,20 @@ import {
   Copy,
   Euro,
   FileText,
+  FilterX,
   Globe,
   Image as ImageIcon,
   Loader2,
   MoreHorizontal,
   Package,
   Plus,
+  Search,
   Upload,
   Wallet,
+  X,
 } from "lucide-react";
 import { Button } from "#/components/ui/button";
+import { Label } from "#/components/ui/label";
 import { Input } from "#/components/ui/input";
 import { Textarea } from "#/components/ui/textarea";
 import { Checkbox } from "#/components/ui/checkbox";
@@ -68,7 +72,8 @@ const buildServiceFormSchema = (p: {
   descriptionRequired: string;
   addressRequired: string;
   durationNumber: string;
-  durationPositive: string;
+  durationMin30: string;
+  durationMultipleOf30: string;
   packSizeNumber: string;
   packSizePositive: string;
   priceNumber: string;
@@ -84,7 +89,14 @@ const buildServiceFormSchema = (p: {
     duration: normalizedNumeric
       .refine((value) => value.length > 0, p.durationNumber)
       .refine((value) => /^\d+$/.test(value), p.durationNumber)
-      .refine((value) => Number.parseInt(value, 10) > 0, p.durationPositive),
+      .refine((value) => {
+        const n = Number.parseInt(value, 10);
+        return !Number.isNaN(n) && n >= 30;
+      }, p.durationMin30)
+      .refine((value) => {
+        const n = Number.parseInt(value, 10);
+        return !Number.isNaN(n) && n % 30 === 0;
+      }, p.durationMultipleOf30),
     packSize: normalizedNumeric
       .refine((value) => value.length > 0, p.packSizeNumber)
       .refine((value) => /^\d+$/.test(value), p.packSizeNumber)
@@ -173,6 +185,12 @@ export default function ServicesManagement() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [mutationError, setMutationError] = useState<string | null>(null);
+  const [listSearch, setListSearch] = useState("");
+  const [publishedFilter, setPublishedFilter] = useState<"" | "published" | "draft">("");
+  const [priceMinInput, setPriceMinInput] = useState("");
+  const [priceMaxInput, setPriceMaxInput] = useState("");
+  const [paymentFilter, setPaymentFilter] = useState<"" | "card" | "direct">("");
+  const [durationFilter, setDurationFilter] = useState("");
   const showDevFill = process.env.NODE_ENV === "development";
   const imageUploadInputRef = useRef<HTMLInputElement | null>(null);
   const availabilityDragRef = useRef<{
@@ -192,7 +210,8 @@ export default function ServicesManagement() {
         descriptionRequired: t("services.validation.descriptionRequired"),
         addressRequired: t("services.validation.addressRequired"),
         durationNumber: t("services.validation.durationNumber"),
-        durationPositive: t("services.validation.durationPositive"),
+        durationMin30: t("services.validation.durationMin30"),
+        durationMultipleOf30: t("services.validation.durationMultipleOf30"),
         packSizeNumber: t("services.validation.packSizeNumber"),
         packSizePositive: t("services.validation.packSizePositive"),
         priceNumber: t("services.validation.priceNumber"),
@@ -468,6 +487,187 @@ export default function ServicesManagement() {
 
   const isSaving = createMutation.isPending || updateMutation.isPending;
   const servicesRows = listQuery.data ?? [];
+  const isFormMode = isAdding || editingId;
+
+  const filteredServices = useMemo(() => {
+    const q = listSearch.trim().toLowerCase();
+    const minRaw = priceMinInput.trim().replace(",", ".");
+    const maxRaw = priceMaxInput.trim().replace(",", ".");
+    const minP = minRaw.length > 0 ? Number.parseFloat(minRaw) : Number.NaN;
+    const maxP = maxRaw.length > 0 ? Number.parseFloat(maxRaw) : Number.NaN;
+    const hasMin = minRaw.length > 0 && !Number.isNaN(minP);
+    const hasMax = maxRaw.length > 0 && !Number.isNaN(maxP);
+    const durationTarget = durationFilter.trim().length > 0 ? Number.parseInt(durationFilter, 10) : Number.NaN;
+    const hasDuration = durationFilter.trim().length > 0 && !Number.isNaN(durationTarget);
+
+    return servicesRows.filter((service) => {
+      if (q.length > 0) {
+        const inName = service.name.toLowerCase().includes(q);
+        const inDesc = service.description.toLowerCase().includes(q);
+        if (!inName && !inDesc) return false;
+      }
+      if (publishedFilter === "published" && !service.isPublished) return false;
+      if (publishedFilter === "draft" && service.isPublished) return false;
+      if (paymentFilter === "direct" && !service.allowsDirectPayment) return false;
+      if (paymentFilter === "card" && service.allowsDirectPayment) return false;
+      const effectivePrice = service.isFree ? 0 : service.price;
+      if (hasMin && effectivePrice < minP) return false;
+      if (hasMax && effectivePrice > maxP) return false;
+      if (hasDuration && service.durationMinutes !== durationTarget) return false;
+      return true;
+    });
+  }, [
+    servicesRows,
+    listSearch,
+    publishedFilter,
+    priceMinInput,
+    priceMaxInput,
+    paymentFilter,
+    durationFilter,
+  ]);
+
+  const distinctDurationMinutes = useMemo(() => {
+    const set = new Set<number>();
+    for (const s of servicesRows) {
+      set.add(s.durationMinutes);
+    }
+    return [...set].sort((a, b) => a - b);
+  }, [servicesRows]);
+
+  const hasActiveListFilters =
+    listSearch.trim().length > 0 ||
+    publishedFilter !== "" ||
+    priceMinInput.trim().length > 0 ||
+    priceMaxInput.trim().length > 0 ||
+    paymentFilter !== "" ||
+    durationFilter !== "";
+
+  const clearListFilters = () => {
+    setListSearch("");
+    setPublishedFilter("");
+    setPriceMinInput("");
+    setPriceMaxInput("");
+    setPaymentFilter("");
+    setDurationFilter("");
+  };
+
+  const listFilterSelectClass =
+    "w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-600";
+
+  const servicesFiltersPanel = isFormMode ? null : (
+    <div className="mb-6 space-y-4 rounded-2xl border border-slate-200 bg-white p-4">
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+        <input
+          type="text"
+          value={listSearch}
+          onChange={(e) => setListSearch(e.target.value)}
+          placeholder={t("services.filters.searchPlaceholder")}
+          className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-12 pr-10 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-600"
+          aria-label={t("services.filters.searchLabel")}
+        />
+        {listSearch.length > 0 ? (
+          <button
+            type="button"
+            onClick={() => setListSearch("")}
+            aria-label={t("services.filters.searchClearAria")}
+            className="absolute right-3 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        ) : null}
+      </div>
+      <div className="grid grid-cols-1 gap-4 border-t border-slate-100 pt-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="services-filter-published" className="text-xs font-medium text-slate-500">
+            {t("services.filters.published")}
+          </Label>
+          <select
+            id="services-filter-published"
+            value={publishedFilter}
+            onChange={(e) => setPublishedFilter(e.target.value === "" ? "" : (e.target.value as "published" | "draft"))}
+            className={listFilterSelectClass}
+          >
+            <option value="">{t("services.filters.publishedAll")}</option>
+            <option value="published">{t("services.filters.publishedYes")}</option>
+            <option value="draft">{t("services.filters.publishedNo")}</option>
+          </select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="services-filter-payment" className="text-xs font-medium text-slate-500">
+            {t("services.filters.payment")}
+          </Label>
+          <select
+            id="services-filter-payment"
+            value={paymentFilter}
+            onChange={(e) => setPaymentFilter(e.target.value === "" ? "" : (e.target.value as "card" | "direct"))}
+            className={listFilterSelectClass}
+          >
+            <option value="">{t("services.filters.paymentAll")}</option>
+            <option value="card">{t("services.filters.paymentCard")}</option>
+            <option value="direct">{t("services.filters.paymentDirect")}</option>
+          </select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="services-filter-duration" className="text-xs font-medium text-slate-500">
+            {t("services.filters.duration")}
+          </Label>
+          <select
+            id="services-filter-duration"
+            value={durationFilter}
+            onChange={(e) => setDurationFilter(e.target.value)}
+            className={listFilterSelectClass}
+          >
+            <option value="">{t("services.filters.durationAll")}</option>
+            {distinctDurationMinutes.map((m) => (
+              <option key={m} value={String(m)}>
+                {t("services.durationValue", { minutes: m })}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="services-filter-price-min" className="text-xs font-medium text-slate-500">
+            {t("services.filters.priceMin")}
+          </Label>
+          <input
+            id="services-filter-price-min"
+            type="text"
+            inputMode="decimal"
+            value={priceMinInput}
+            onChange={(e) => setPriceMinInput(e.target.value)}
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-600"
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="services-filter-price-max" className="text-xs font-medium text-slate-500">
+            {t("services.filters.priceMax")}
+          </Label>
+          <input
+            id="services-filter-price-max"
+            type="text"
+            inputMode="decimal"
+            value={priceMaxInput}
+            onChange={(e) => setPriceMaxInput(e.target.value)}
+            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-600"
+          />
+        </div>
+      </div>
+      <div className="flex justify-end border-t border-slate-100 pt-3">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={clearListFilters}
+          disabled={!hasActiveListFilters}
+          className="gap-2 border-slate-200"
+        >
+          <FilterX className="h-4 w-4" />
+          {t("services.filters.clear")}
+        </Button>
+      </div>
+    </div>
+  );
 
   const formErrorMessages = [
     form.formState.errors.name?.message,
@@ -740,10 +940,11 @@ export default function ServicesManagement() {
                         const next = e.target.value.replace(/[^\d]/g, "");
                         field.onChange(next);
                       }}
-                      placeholder="60"
+                      placeholder={t("services.durationPlaceholder")}
                       className="rounded-xl h-11"
                     />
                   </FormControl>
+                  <p className="text-xs text-slate-500">{t("services.durationHint")}</p>
                   <FormMessage />
                 </FormItem>
               )}
@@ -1065,11 +1266,22 @@ export default function ServicesManagement() {
 
   const servicesCardsGrid = (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {servicesRows.map((service) => renderServiceCard(service))}
+      {filteredServices.map((service) => renderServiceCard(service))}
     </div>
   );
 
-  const isFormMode = isAdding || editingId;
+  const servicesFilteredEmptyPanel = (
+    <div className="rounded-xl border border-dashed border-slate-200 bg-white px-6 py-14 text-center">
+      <Search className="mx-auto size-11 text-slate-300" aria-hidden />
+      <h3 className="mt-4 text-lg font-semibold text-slate-900">{t("services.filters.noResultsTitle")}</h3>
+      <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-slate-600">{t("services.filters.noResultsDescription")}</p>
+      <Button type="button" variant="outline" onClick={clearListFilters} className="mt-6 h-11 rounded-xl border-slate-200">
+        <FilterX className="size-4" />
+        {t("services.filters.noResultsClear")}
+      </Button>
+    </div>
+  );
+
   const isPublished = form.watch("isPublished");
 
   const visibilityTopBanner = isFormMode ? (
@@ -1099,7 +1311,9 @@ export default function ServicesManagement() {
           ? servicesErrorPanel
           : servicesRows.length === 0
             ? servicesEmptyPanel
-            : servicesCardsGrid;
+            : filteredServices.length === 0
+              ? servicesFilteredEmptyPanel
+              : servicesCardsGrid;
 
   const mainWhitePanel = (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg md:p-8">
@@ -1114,6 +1328,7 @@ export default function ServicesManagement() {
   return (
     <div className="mx-auto w-full max-w-7xl p-8">
       {renderHeader()}
+      {servicesFiltersPanel}
       {visibilityTopBanner}
       {mainWhitePanel}
       {renderDeleteDialog()}

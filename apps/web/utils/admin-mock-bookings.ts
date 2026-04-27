@@ -56,7 +56,7 @@ const seedBookings: AdminBookingRecord[] = [
     service: "Coaching Nutrition",
     date: "2026-04-14",
     time: "14:00",
-    durationMinutes: 45,
+    durationMinutes: 60,
     amount: 40,
     paidAmount: 40,
     payment: "paid",

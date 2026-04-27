@@ -10,7 +10,8 @@ export default function Layout(p: { children: ReactNode }) {
     pathname === "/admin/signin" ||
     pathname === "/admin/signup" ||
     pathname === "/admin/forgot-password" ||
-    pathname === "/admin/reset-password";
+    pathname === "/admin/reset-password" ||
+    pathname === "/admin/onboarding";
 
   if (isAuthShellExcluded) {
     return <>{p.children}</>;

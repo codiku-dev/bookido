@@ -152,6 +152,32 @@ export function computeVisibleTimeSlots(p: {
   return p.allTimeSlots.slice(first, last + 1);
 }
 
+/** Half-hour cells covered by a booking starting at `dateIso` + `startTimeHm`, for overlap checks (same calendar day). */
+export function collectDateIsoOccupiedHalfHours(p: {
+  dateIso: string;
+  startTimeHm: string;
+  durationMinutes: number;
+  slotMinutes?: number;
+}) {
+  const slotMinutes = p.slotMinutes ?? 30;
+  const [hRaw, mRaw] = p.startTimeHm.split(":");
+  const h = Number(hRaw);
+  const m = Number(mRaw);
+  if (!Number.isFinite(h) || !Number.isFinite(m)) {
+    return new Set<string>();
+  }
+  const startTotal = h * 60 + m;
+  const aligned = Math.floor(startTotal / slotMinutes) * slotMinutes;
+  const slotCount = Math.max(1, Math.ceil(p.durationMinutes / slotMinutes));
+  const keys = new Set<string>();
+  for (let index = 0; index < slotCount; index += 1) {
+    const slotTotal = aligned + index * slotMinutes;
+    const hm = totalMinutesToTimeHm(slotTotal);
+    keys.add(`${p.dateIso}|${hm}`);
+  }
+  return keys;
+}
+
 export function isSlotSelectableForService(p: {
   column: BookingPageDayColumn;
   startTime: string;
@@ -160,6 +186,8 @@ export function isSlotSelectableForService(p: {
   weekHours: WeekHours;
   closedSlotKeys: Set<string>;
   occupiedSlotKeys: Set<string>;
+  /** Extra blocked half-hour rows on this column (e.g. other pack sessions). */
+  slotBlockedPredicate?: (slotTime: string) => boolean;
 }) {
   const { contiguousMinutes } = getContiguousBookableMinutesFromSlot({
     column: { dayKey: p.column.dayKey, weekdayName: p.column.weekdayName },
@@ -168,7 +196,12 @@ export function isSlotSelectableForService(p: {
     slotMinutes: 30,
     weekHours: p.weekHours,
     closedSlotKeys: p.closedSlotKeys,
-    hasBookingAtSlot: (dayKey, time) => p.occupiedSlotKeys.has(buildCalendarSlotKey(dayKey, time)),
+    hasBookingAtSlot: (dayKey, time) => {
+      if (p.occupiedSlotKeys.has(buildCalendarSlotKey(dayKey, time))) {
+        return true;
+      }
+      return p.slotBlockedPredicate?.(time) ?? false;
+    },
   });
   return contiguousMinutes >= p.serviceDurationMinutes;
 }

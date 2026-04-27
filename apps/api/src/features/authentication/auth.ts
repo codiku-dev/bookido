@@ -1,6 +1,5 @@
-import { config } from "@dotenvx/dotenvx";
-import { resolve } from "path";
 import { betterAuth } from "better-auth";
+import { loadDevelopmentEnvFromFiles } from "@api/env-type";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { PrismaClient } from "@api/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
@@ -17,9 +16,7 @@ import {
 // Use process.cwd() so it works from dist/ (nest start) where cwd is apps/api.
 const apiRoot = process.cwd();
 
-if (process.env['NODE_ENV'] === 'development') {
-    config({ path: resolve(apiRoot, ".env") });
-}
+loadDevelopmentEnvFromFiles(apiRoot);
 
 const connectionString = process.env.DATABASE_URL
 

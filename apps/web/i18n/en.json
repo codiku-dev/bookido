@@ -190,6 +190,7 @@
       "loadError": "Could not load services. Try again later.",
       "empty": "No services are available for online booking yet.",
       "durationMinutes": "{minutes} min",
+      "packSessions": "{count, plural, one {# session} other {# sessions}}",
       "items": {
         "personalTraining": {
           "name": "1-on-1 Personal Training",
@@ -258,12 +259,18 @@
       "coachSectionLabel": "Your professional",
       "coachBioFallback": "No bio has been added yet.",
       "calendarTitle": "Choose a time",
-      "pickSlotSubtitle": "Pick one start time for your session. Unavailable slots match your coach’s calendar.",
+      "pickSlotSubtitle": "Pick a start time for each session in this service. Unavailable slots match your coach’s calendar.",
+      "sessionsProgress": "{current} / {total} sessions scheduled",
+      "sessionNumber": "Session {n}",
+      "noSlotsChosenYet": "No time slots selected yet.",
+      "confirmDisabledHint": "Select a time for every session before confirming.",
       "invalidSlugTitle": "This booking link is not valid.",
       "coachNotFoundTitle": "We could not find a coach at this address.",
       "coachNotFoundHint": "Check the link your coach sent you, or ask them for their public booking URL.",
       "weekPrev": "Previous week",
       "weekNext": "Next week",
+      "selectMonth": "Month",
+      "selectYear": "Year",
       "durationLabel": "{minutes} min",
       "free": "Free",
       "clientName": "Full name",
@@ -318,7 +325,7 @@
         "badge": "Scheduling for independent professionals",
         "titleBefore": "Turn open time into",
         "titleAccent": "booked time",
-        "subtitle": "The simple way to take bookings and get paid. (For independents)",
+        "subtitle": "The simple way for independents to sell their services.",
         "ctaScroll": "Try now",
         "urlHint": "bookido.com/marc-dupont",
         "mockDateEyebrow": "Pick a date",
@@ -354,11 +361,11 @@
         "heading": "How it works",
         "one": {
           "title": "Share your link",
-          "body": "One memorable URL—clients land on your services and book in a few taps."
+          "body": "Share your unique link to take bookings in three clicks."
         },
         "two": {
           "title": "Get paid",
-          "body": "Take payments alongside confirmations so nothing slips through the cracks."
+          "body": "Get paid automatically as bookings roll in."
         },
         "three": {
           "title": "Track bookings",
@@ -376,7 +383,8 @@
           "desc": "For solo pros getting their first online bookings.",
           "f1": "Public booking page",
           "f2": "Services & calendar",
-          "f3": "Email confirmations"
+          "f3": "Email confirmations",
+          "f4": "1.5% fee on sales"
         },
         "pro": {
           "badge": "Popular",
@@ -384,10 +392,15 @@
           "price": "€29",
           "per": "/ month",
           "desc": "When you want the full workflow without limits.",
-          "f1": "Accept direct payments (in person or online)",
-          "f2": "Full booking history",
-          "f3": "Admin dashboard: clients, services, calendar",
-          "f4": "Mobile app with real-time tracking"
+          "f1": "0% fees on transactions",
+          "f2": "Public booking page",
+          "f3": "Services & calendar",
+          "f4": "Email confirmations",
+          "f5": "Accept direct payments (in person or online)",
+          "f6": "Full booking history",
+          "f7": "Admin dashboard: clients, services, calendar",
+          "f8": "Mobile app with real-time tracking",
+          "f9": "SMS reminders for clients"
         }
       },
       "ctaBand": {
@@ -937,8 +950,8 @@
     }
   },
   "signup": {
-    "title": "Bookido Admin",
-    "subtitle": "Create your administrator account",
+    "title": "Bookido - Sign up",
+    "subtitle": "Create an account and start selling",
     "name": "Full name",
     "namePlaceholder": "Jane Doe",
     "email": "Email",
@@ -1039,10 +1052,8 @@
           "ready": "Payments enabled",
           "updateDetails": "Update Stripe details"
         },
-        "manageAccount": "Manage Stripe account",
         "preparingStripeRedirect": "Preparing Stripe onboarding…",
         "pendingRedirect": "Redirecting to Stripe…",
-        "embeddedReady": "Stripe account session created. Plug this client secret into embedded components.",
         "products": {
           "title": "Services et vitrine",
           "subtitle": "La creation des services se fait depuis la page Services. La devise est geree la-bas (EUR par defaut).",
@@ -1060,15 +1071,6 @@
         },
         "errors": {
           "generic": "Unable to open Stripe onboarding. Please try again."
-        },
-        "payout": {
-          "title": "Payout details (Stripe Connect)",
-          "hint": "Update the bank account or card Stripe uses to pay out your sales. You will complete this on a secure Stripe page.",
-          "noAccount": "Create your Stripe Connect account above first, then you can update payout details here.",
-          "cta": "Update payout details on Stripe",
-          "errors": {
-            "generic": "Unable to open Stripe. Please try again."
-          }
         }
       },
       "due": {
@@ -1228,6 +1230,90 @@
       }
     }
   },
+  "onboarding": {
+    "gateLoading": "Preparing your workspace…",
+    "progressLabel": "Step {current} of {total}",
+    "skipLater": "Later",
+    "next": "Continue",
+    "validation": {
+      "nameMin": "Use at least 2 characters.",
+      "nameMissing": "Your name is required to continue."
+    },
+    "errors": {
+      "complete": "Could not finish onboarding. Try again."
+    },
+    "name": {
+      "title": "What should we call you?",
+      "subtitle": "This is how your name appears in the admin and on your public page.",
+      "fieldLabel": "Your name"
+    },
+    "bio": {
+      "title": "A few words about what you do",
+      "subtitle": "This short description appears on your public booking page.",
+      "fieldLabel": "Public description",
+      "placeholder": "Example: Sports coach focused on strength training, with 4+ years of experience. CrossFit, fitness, marathon — I offer tailored sessions for every goal."
+    },
+    "avatar": {
+      "title": "Profile photo",
+      "subtitle": "Optional. If you skip this, we show your initials on your public page.",
+      "choose": "Choose a photo"
+    },
+    "hours": {
+      "title": "When are you open?",
+      "subtitle": "Default hours come from your profile; adjust them for your typical week.",
+      "openingTitle": "Opening hours",
+      "loadError": "Could not load your calendar settings. You can still continue and fix this later in Calendar."
+    },
+    "address": {
+      "title": "What is your address?",
+      "subtitle": "Leave empty if you travel to clients. You can set a precise address per service later.",
+      "note": "If it varies by service, you can add a specific address when you edit each service.",
+      "fieldLabel": "Default address",
+      "placeholder": "e.g. 12 Baker Street, London"
+    },
+    "unavailable": {
+      "title": "When are you unavailable?",
+      "subtitle": "Tap slots to mark breaks or recurring blocks (for example lunch). Defaults include 12:00–14:00.",
+      "hint": "Striped slots are unavailable. White slots are available within your opening hours."
+    },
+    "service": {
+      "title": "Create your first service",
+      "subtitle": "Clients book a service (session type). You can add more later in Services.",
+      "alreadyHave": "You already have a service — you can skip or add another.",
+      "nameLabel": "Service name",
+      "descriptionLabel": "Description",
+      "addressLabel": "Location for this service",
+      "fallbackAddress": "By appointment",
+      "validation": {
+        "name": "Enter a service name.",
+        "description": "Enter a short description.",
+        "address": "Enter a location or use your default address.",
+        "pricePaid": "Enter a price greater than 0 or turn on “Free service.”"
+      },
+      "optionalImageHint": "Cover image (optional, max 5 MB).",
+      "switchPublished": "Publish on my public booking page",
+      "switchPublishedHint": "If you turn this off, the service stays a draft.",
+      "chooseImage": "Choose image"
+    },
+    "slug": {
+      "title": "What will your Bookido URL be?",
+      "subtitle": "Choose the last part of your public link. Lowercase letters, numbers, and hyphens only.",
+      "fieldLabel": "Your page slug",
+      "invalidFormat": "Use 2–96 characters: lowercase letters, numbers, and single hyphens between words."
+    },
+    "stripe": {
+      "title": "Set up Stripe to get paid",
+      "subtitle": "Connect Stripe so clients can pay online. You can finish this later from your profile.",
+      "publishBlocked": "Until Stripe is set up and charges are enabled, you cannot publish paid card bookings on your public site.",
+      "ready": "Stripe looks ready — you can still open the dashboard to double-check.",
+      "cta": "Open Stripe setup"
+    },
+    "done": {
+      "title": "You are all set",
+      "subtitle": "Your dashboard is ready. You can refine services, calendar, and payments anytime.",
+      "cta": "Go to dashboard"
+    }
+  },
   "services": {
     "availability": {
       "instructions": "Click or drag slots to mark them unavailable or available for this service (within your opening hours).",
@@ -1241,6 +1327,8 @@
       "hint": "Required. Pre-filled from your default profile address, editable per service."
     },
     "duration": "Duration",
+    "durationPlaceholder": "60",
+    "durationHint": "Multiples of 30 minutes only (30, 60, 90…). Minimum 30.",
     "free": "Free",
     "freeService": "Free service",
     "form": {
@@ -1321,6 +1409,27 @@
     "availabilityTitle": "Availability",
     "durationValue": "{minutes} min",
     "loading": "Loading services…",
+    "filters": {
+      "searchLabel": "Search",
+      "searchPlaceholder": "Search by service name or description…",
+      "searchClearAria": "Clear search",
+      "published": "Visibility",
+      "publishedAll": "All",
+      "publishedYes": "Published",
+      "publishedNo": "Draft",
+      "priceMin": "Min price (€)",
+      "priceMax": "Max price (€)",
+      "payment": "Payment",
+      "paymentAll": "All",
+      "paymentCard": "Card (online)",
+      "paymentDirect": "On-site / direct",
+      "duration": "Duration",
+      "durationAll": "All durations",
+      "clear": "Clear filters",
+      "noResultsTitle": "No matching services",
+      "noResultsDescription": "Try adjusting or clearing your filters.",
+      "noResultsClear": "Clear filters"
+    },
     "emptyList": {
       "title": "No services yet",
       "description": "Create a service with pricing, duration, image, and availability slots so clients can book it online.",
@@ -1342,7 +1451,8 @@
       "nameRequired": "Name is required.",
       "descriptionRequired": "Description is required.",
       "durationNumber": "Duration must be a valid number.",
-      "durationPositive": "Duration must be greater than 0.",
+      "durationMin30": "Duration must be at least 30 minutes.",
+      "durationMultipleOf30": "Duration must be a multiple of 30 minutes (30, 60, 90…).",
       "packSizeNumber": "Pack size must be a valid number.",
       "packSizePositive": "Pack size must be at least 1.",
       "priceNumber": "Price must be a valid number.",

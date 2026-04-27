@@ -111,7 +111,6 @@ export default function ProfileSettings() {
   const [profileImageDraft, setProfileImageDraft] = useState("");
   const [profileImageSaving, setProfileImageSaving] = useState(false);
   const [stripeOnboardingPhase, setStripeOnboardingPhase] = useState<StripeHostedRedirectPhase>("idle");
-  const [stripePayoutUpdatePhase, setStripePayoutUpdatePhase] = useState<StripeHostedRedirectPhase>("idle");
   const [publicUrlOrigin, setPublicUrlOrigin] = useState("");
   const profileImageFileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -137,9 +136,6 @@ export default function ProfileSettings() {
     enabled: Boolean(user?.id),
   });
   const createStripeOnboardingLinkMutation = trpc.profile.createStripeOnboardingLink.useMutation();
-  const createStripeConnectAccountUpdateLinkMutation =
-    trpc.profile.createStripeConnectAccountUpdateLink.useMutation();
-  const createStripeEmbeddedAccountSessionMutation = trpc.profile.createStripeEmbeddedAccountSession.useMutation();
 
   const slugMutation = trpc.profile.updatePublicBookingPresence.useMutation({
     onSuccess: () => {
@@ -286,24 +282,6 @@ export default function ProfileSettings() {
     }
   };
 
-  const handleStripeConnectPayoutUpdateRedirect = async () => {
-    setStripePayoutUpdatePhase("fetching");
-    try {
-      const result = await createStripeConnectAccountUpdateLinkMutation.mutateAsync({});
-      const url = result.url?.trim() ?? "";
-      if (typeof window !== "undefined" && url.length > 0) {
-        setStripePayoutUpdatePhase("navigating");
-        window.location.assign(url);
-        return;
-      }
-      setStripePayoutUpdatePhase("idle");
-      toast.error(t("profile.billing.connect.payout.errors.generic"));
-    } catch {
-      setStripePayoutUpdatePhase("idle");
-      toast.error(t("profile.billing.connect.payout.errors.generic"));
-    }
-  };
-
   const handleSavePublicSlug = async () => {
     const raw = publicSlugDraft.trim().toLowerCase();
     await slugMutation.mutateAsync({ publicBookingSlug: raw.length === 0 ? "" : raw });
@@ -373,7 +351,7 @@ export default function ProfileSettings() {
   };
 
   const billingStatusBadge = (
-    <Badge variant="secondary" className="capitalize">
+    <Badge variant="success" className="capitalize">
       {t("profile.billing.status.active")}
     </Badge>
   );
@@ -415,41 +393,6 @@ export default function ProfileSettings() {
     createStripeOnboardingLinkMutation.isPending ||
     isStripeOnboardingBusy;
 
-  const isStripePayoutUpdateBusy = stripePayoutUpdatePhase !== "idle";
-  const stripePayoutUpdatePendingLabel =
-    stripePayoutUpdatePhase === "navigating"
-      ? t("profile.billing.connect.pendingRedirect")
-      : t("profile.billing.connect.preparingStripeRedirect");
-  const isStripePayoutUpdateDisabled =
-    isStripeStatusLoading ||
-    !hasStripeAccount ||
-    createStripeConnectAccountUpdateLinkMutation.isPending ||
-    isStripePayoutUpdateBusy;
-
-  const stripeConnectPayoutDetailsCard = (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-      <p className="text-sm text-slate-500">{t("profile.billing.connect.payout.title")}</p>
-      <p className="mt-2 text-sm font-medium text-slate-900">{t("profile.billing.connect.payout.hint")}</p>
-      {!hasStripeAccount && !isStripeStatusLoading ? (
-        <p className="mt-2 text-sm text-amber-800">{t("profile.billing.connect.payout.noAccount")}</p>
-      ) : null}
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="mt-3"
-        disabled={isStripePayoutUpdateDisabled}
-        pending={createStripeConnectAccountUpdateLinkMutation.isPending || isStripePayoutUpdateBusy}
-        pendingChildren={stripePayoutUpdatePendingLabel}
-        onClick={() => {
-          void handleStripeConnectPayoutUpdateRedirect();
-        }}
-      >
-        {t("profile.billing.connect.payout.cta")}
-      </Button>
-    </div>
-  );
-
   const stripePayoutSection = (
     <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -470,26 +413,6 @@ export default function ProfileSettings() {
           {stripeConnectButtonLabel}
         </Button>
       </div>
-      {isStripeOnboardingComplete && hasStripeAccount && !isStripeStatusLoading ? (
-        <div className="mt-3">
-          <Button
-            type="button"
-            variant="ghost"
-            className="px-0 text-blue-700"
-            disabled={createStripeEmbeddedAccountSessionMutation.isPending}
-            onClick={async () => {
-              try {
-                await createStripeEmbeddedAccountSessionMutation.mutateAsync({});
-                toast.success(t("profile.billing.connect.embeddedReady"));
-              } catch {
-                toast.error(t("profile.billing.connect.errors.generic"));
-              }
-            }}
-          >
-            {t("profile.billing.connect.manageAccount")}
-          </Button>
-        </div>
-      ) : null}
     </div>
   );
 
@@ -659,26 +582,18 @@ export default function ProfileSettings() {
       </CardHeader>
       <CardContent className="space-y-6">
         {stripePayoutSection}
-        <div
-          className={
-            SHOW_BILLING_PLAN_CARD ? "grid gap-4 md:grid-cols-2" : "grid gap-4"
-          }
-        >
-          {SHOW_BILLING_PLAN_CARD ? (
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-sm text-slate-500">{t("profile.billing.plan.label")}</p>
-              <p className="mt-2 text-lg font-semibold text-slate-900">
-                {t("profile.billing.plan.name")}
-              </p>
-              <p className="text-sm text-slate-600">{t("profile.billing.plan.description")}</p>
-              <Button variant="outline" size="sm" className="mt-3">
-                {t("profile.billing.plan.change")}
-              </Button>
-            </div>
-          ) : null}
-
-          {stripeConnectPayoutDetailsCard}
-        </div>
+        {SHOW_BILLING_PLAN_CARD ? (
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-sm text-slate-500">{t("profile.billing.plan.label")}</p>
+            <p className="mt-2 text-lg font-semibold text-slate-900">
+              {t("profile.billing.plan.name")}
+            </p>
+            <p className="text-sm text-slate-600">{t("profile.billing.plan.description")}</p>
+            <Button variant="outline" size="sm" className="mt-3">
+              {t("profile.billing.plan.change")}
+            </Button>
+          </div>
+        ) : null}
 
         {billingPaymentHistorySection}
       </CardContent>

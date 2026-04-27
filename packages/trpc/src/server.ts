@@ -1,13 +1,6 @@
 import { initTRPC } from "@trpc/server";
 import { z } from "zod";
 
-const PROFILE_AVATAR_DATA_URL_MAX_LEN = 8_388_608;
-const publicBookingSlugSchema = z
-  .string()
-  .min(2)
-  .max(96)
-  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
-
 const t = initTRPC.create();
 const publicProcedure = t.procedure;
 
@@ -327,7 +320,12 @@ const appRouter = t.router({
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     delete: publicProcedure.input(z.object({ id: z.string() })).output(z.object({ id: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   }),
-  profile: t.router({
+  profile: t.router({ ,
+    getAdminOnboardingStatus: publicProcedure.output(z.object({
+      needsOnboarding: z.boolean(),
+      bio: z.string().nullable(),
+    })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    completeAdminOnboarding: publicProcedure.input(z.object({})).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     getCalendarAvailability: publicProcedure.output(z.object({
       weekHours: z.object({
         Monday: z.object({
@@ -456,7 +454,7 @@ const appRouter = t.router({
       password: z.string().optional(),
     })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   }),
-  services: t.router({
+  services: t.router({ ,
     list: publicProcedure.output(z.array(z.object({
       id: z.string(),
       userId: z.string(),
@@ -478,7 +476,11 @@ const appRouter = t.router({
     create: publicProcedure.input(z.object({
       name: z.string().min(1),
       description: z.string().trim().min(1),
-      durationMinutes: z.number().int().positive(),
+      durationMinutes: z
+        .number()
+        .int()
+        .min(30, { message: "DURATION_MINUTES_MIN_30" })
+        .refine((n) => n % 30 === 0, { message: "DURATION_MINUTES_MULTIPLE_30" }),
       price: z.number().nonnegative(),
       isFree: z.boolean(),
       packSize: z.number().int().min(1),
@@ -511,7 +513,11 @@ const appRouter = t.router({
       data: z.object({
         name: z.string().min(1),
         description: z.string().trim().min(1),
-        durationMinutes: z.number().int().positive(),
+        durationMinutes: z
+          .number()
+          .int()
+          .min(30, { message: "DURATION_MINUTES_MIN_30" })
+          .refine((n) => n % 30 === 0, { message: "DURATION_MINUTES_MULTIPLE_30" }),
         price: z.number().nonnegative(),
         isFree: z.boolean(),
         packSize: z.number().int().min(1),
@@ -795,6 +801,7 @@ const appRouter = t.router({
         imageUrl: z.string().nullable(),
         address: z.string(),
         durationMinutes: z.number().int(),
+        packSize: z.number().int().min(1),
         price: z.number(),
         isFree: z.boolean(),
         requiresValidation: z.boolean(),
@@ -812,7 +819,8 @@ const appRouter = t.router({
         .max(96)
         .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "INVALID_SLUG_FORMAT"),
       serviceId: z.string().uuid(),
-      startsAt: z.string().datetime(),
+      /** One ISO start per session; length must match the service `packSize`. */
+      sessionsStartsAt: z.array(z.string().datetime()).min(1).max(32),
       clientName: z.string().min(1).max(200),
       clientEmail: z.string().email().max(320),
       clientPhone: z.string().max(80).optional(),

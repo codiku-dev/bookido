@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useLayoutEffect, useMemo, useState } from "react";
 import { useParams, usePathname } from "next/navigation";
 import { motion } from "motion/react";
-import { Clock, ImageIcon } from "lucide-react";
+import { Clock, ImageIcon, Package } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
 import { BackButton } from "../../_components/BackButton";
@@ -106,6 +106,7 @@ export default function ServicesPage() {
         const priceLabel =
           service.isFree || service.price <= 0 ? t("public.booking.free") : priceFormatter.format(service.price);
         const durationLabel = t("public.services.durationMinutes", { minutes: service.durationMinutes });
+        const packLabel = t("public.services.packSessions", { count: service.packSize });
         const mobileMedia = service.imageUrl ? (
           <img src={service.imageUrl} alt={service.name} className="h-16 w-16 shrink-0 rounded-lg object-cover" loading="lazy" />
         ) : (
@@ -148,12 +149,18 @@ export default function ServicesPage() {
                     {t("public.hero.cta")}
                   </Link>
                 </div>
-                <div className="mt-2 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5 text-xs text-slate-600">
-                    <Clock className="h-3.5 w-3.5" />
-                    <span>{durationLabel}</span>
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5">
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5 shrink-0" />
+                      {durationLabel}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <Package className="h-3.5 w-3.5 shrink-0" />
+                      {packLabel}
+                    </span>
                   </div>
-                  <span className="text-base font-bold text-slate-900">{priceLabel}</span>
+                  <span className="shrink-0 text-base font-bold text-slate-900">{priceLabel}</span>
                 </div>
               </div>
             </div>
@@ -167,12 +174,18 @@ export default function ServicesPage() {
             {service.description ? (
               <p className="mb-3 line-clamp-2 text-sm text-slate-600 sm:mb-4 sm:line-clamp-3">{service.description}</p>
             ) : null}
-            <div className="mt-auto mb-4 flex items-center justify-between gap-3 text-slate-600 sm:mb-5">
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                <span className="text-sm sm:text-base">{durationLabel}</span>
+            <div className="mt-auto mb-4 flex flex-wrap items-center justify-between gap-3 text-slate-600 sm:mb-5">
+              <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
+                <span className="inline-flex items-center gap-2 text-sm sm:text-base">
+                  <Clock className="h-4 w-4 shrink-0" />
+                  {durationLabel}
+                </span>
+                <span className="inline-flex items-center gap-2 text-sm sm:text-base">
+                  <Package className="h-4 w-4 shrink-0" />
+                  {packLabel}
+                </span>
               </div>
-              <span className="text-xl font-bold text-slate-900 sm:text-2xl">{priceLabel}</span>
+              <span className="shrink-0 text-xl font-bold text-slate-900 sm:text-2xl">{priceLabel}</span>
             </div>
             <Link
               href={`/${coachSlug}/booking?service=${encodeURIComponent(service.id)}`}

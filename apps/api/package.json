@@ -3,10 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "NODE_ENV=development npx dotenvx run -o -- nest start --watch",
+    "dev": "NODE_ENV=development npx dotenvx run -o -f .env -f .env.local.development -- sh -c 'prisma migrate deploy && nest start --watch'",
     "build": "NODE_ENV=production npx dotenvx run -o -f .env.production -- nest build",
     "start": "NODE_ENV=production npx dotenvx run -o -f .env.production -- nest start",
-    "start:debug": "dotenvx run -o -- nest start --debug --watch",
+    "start:debug": "NODE_ENV=development npx dotenvx run -o -f .env -f .env.local.development -- nest start --debug --watch",
     "start:prod": "NODE_ENV=production npx dotenvx run -o -f .env.production -- bunx prisma migrate deploy && NODE_ENV=production npx dotenvx run -o -f .env.production -- node dist/src/main",
     "test": "npx dotenvx run -o -- jest",
     "test:watch": "npx dotenvx run -o -- jest --watch",

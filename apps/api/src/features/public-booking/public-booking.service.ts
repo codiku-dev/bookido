@@ -158,6 +158,7 @@ export class PublicBookingService {
         imageUrl: s.imageUrl,
         address: s.address,
         durationMinutes: s.durationMinutes,
+        packSize: s.packSize,
         price: s.price,
         isFree: s.isFree,
         requiresValidation: s.requiresValidation,
@@ -177,64 +178,118 @@ export class PublicBookingService {
       throw new NotFoundException("SERVICE_NOT_FOUND");
     }
 
-    const startsAt = new Date(input.startsAt);
-    if (Number.isNaN(startsAt.getTime())) {
-      throw new BadRequestException("INVALID_STARTS_AT");
-    }
-    const noticeThresholdMs = this.getNoticeThresholdMs(coach.publicBookingMinNoticeHours);
-    if (startsAt.getTime() < noticeThresholdMs) {
-      throw new BadRequestException("SLOT_TOO_SOON");
+    const packSize = Math.max(1, service.packSize);
+    if (input.sessionsStartsAt.length !== packSize) {
+      throw new BadRequestException("PACK_SESSION_COUNT_MISMATCH");
     }
 
-    const endMs = startsAt.getTime() + service.durationMinutes * 60_000;
+    const noticeThresholdMs = this.getNoticeThresholdMs(coach.publicBookingMinNoticeHours);
+    const durationMs = service.durationMinutes * 60_000;
+
+    const parsed = input.sessionsStartsAt.map((raw) => {
+      const startsAt = new Date(raw);
+      if (Number.isNaN(startsAt.getTime())) {
+        throw new BadRequestException("INVALID_STARTS_AT");
+      }
+      if (startsAt.getTime() < noticeThresholdMs) {
+        throw new BadRequestException("SLOT_TOO_SOON");
+      }
+      return startsAt;
+    });
+
+    const uniqueIso = new Set(parsed.map((d) => d.toISOString()));
+    if (uniqueIso.size !== parsed.length) {
+      throw new BadRequestException("DUPLICATE_SESSION_START");
+    }
+
+    const intervals = parsed.map((start) => ({
+      startMs: start.getTime(),
+      endMs: start.getTime() + durationMs,
+    }));
+
+    for (let i = 0; i < intervals.length; i += 1) {
+      for (let j = i + 1; j < intervals.length; j += 1) {
+        const a = intervals[i]!;
+        const b = intervals[j]!;
+        if (a.endMs > b.startMs && b.endMs > a.startMs) {
+          throw new BadRequestException("SESSIONS_OVERLAP");
+        }
+      }
+    }
+
+    const maxEnd = new Date(Math.max(...intervals.map((x) => x.endMs)));
 
     const candidates = await this.db.booking.findMany({
       where: {
         ownerId: ownerUserId,
         status: { not: "cancelled" },
-        startsAt: { lt: new Date(endMs) },
+        startsAt: { lt: maxEnd },
       },
       select: { startsAt: true, durationMinutes: true },
     });
 
-    for (const b of candidates) {
-      const bStart = b.startsAt.getTime();
-      const bEnd = bStart + b.durationMinutes * 60_000;
-      if (bEnd > startsAt.getTime() && bStart < endMs) {
-        throw new ConflictException("SLOT_UNAVAILABLE");
+    for (const interval of intervals) {
+      for (const b of candidates) {
+        const bStart = b.startsAt.getTime();
+        const bEnd = bStart + b.durationMinutes * 60_000;
+        if (bEnd > interval.startMs && bStart < interval.endMs) {
+          throw new ConflictException("SLOT_UNAVAILABLE");
+        }
       }
     }
 
     const email = input.clientEmail.trim().toLowerCase();
-    let client = await this.db.client.findFirst({
-      where: { ownerId: ownerUserId, email },
-    });
-    if (!client) {
-      const phone = (input.clientPhone ?? "").trim();
-      client = await this.db.client.create({
-        data: {
-          ownerId: ownerUserId,
-          name: input.clientName.trim(),
-          email,
-          phone: phone.length > 0 ? phone : "—",
-        },
-      });
-    }
 
     const status = service.requiresValidation ? ("pending" as const) : ("confirmed" as const);
+    const sorted = [...parsed].sort((a, b) => a.getTime() - b.getTime());
+    const unitCents = service.isFree ? 0 : Math.round(service.price * 100);
+    const baseCents = packSize > 0 ? Math.floor(unitCents / packSize) : 0;
+    let allocatedCents = 0;
 
-    return this.bookingsService.create(ownerUserId, {
-      clientId: client.id,
-      serviceId: service.id,
-      startsAt: startsAt.toISOString(),
-      durationMinutes: service.durationMinutes,
-      price: service.isFree ? 0 : service.price,
-      paidAmount: 0,
-      status,
-      notes: undefined,
-      location: service.address ?? coach.address ?? "",
-      paymentMethod: "—",
-      createdByClient: true,
+    return this.db.$transaction(async (tx) => {
+      let client = await tx.client.findFirst({
+        where: { ownerId: ownerUserId, email },
+      });
+      if (!client) {
+        const phone = (input.clientPhone ?? "").trim();
+        client = await tx.client.create({
+          data: {
+            ownerId: ownerUserId,
+            name: input.clientName.trim(),
+            email,
+            phone: phone.length > 0 ? phone : "—",
+          },
+        });
+      }
+
+      let lastRow: Awaited<ReturnType<BookingsService["create"]>> | null = null;
+      for (let idx = 0; idx < sorted.length; idx += 1) {
+        const startsAt = sorted[idx]!;
+        const isLast = idx === sorted.length - 1;
+        const sessionCents = service.isFree ? 0 : isLast ? unitCents - allocatedCents : baseCents;
+        if (!service.isFree) {
+          allocatedCents += sessionCents;
+        }
+        const sessionPrice = sessionCents / 100;
+        lastRow = await this.bookingsService.create(
+          ownerUserId,
+          {
+            clientId: client.id,
+            serviceId: service.id,
+            startsAt: startsAt.toISOString(),
+            durationMinutes: service.durationMinutes,
+            price: sessionPrice,
+            paidAmount: 0,
+            status,
+            notes: undefined,
+            location: service.address ?? coach.address ?? "",
+            paymentMethod: "—",
+            createdByClient: true,
+          },
+          { tx },
+        );
+      }
+      return lastRow!;
     });
   }
 }

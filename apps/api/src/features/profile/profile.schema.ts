@@ -94,3 +94,8 @@ export const updateProfileBasicsInputSchema = z.object({
 });
 
 export type UpdateProfileBasicsInput = z.infer<typeof updateProfileBasicsInputSchema>;
+
+export const adminOnboardingStatusOutputSchema = z.object({
+  needsOnboarding: z.boolean(),
+  bio: z.string().nullable(),
+});

@@ -71,14 +71,15 @@ export class BookingsService {
     return this.mapRow(row);
   }
 
-  async create(ownerId: string, input: CreateBookingInput) {
-    const client = await this.db.client.findFirst({
+  async create(ownerId: string, input: CreateBookingInput, options?: { tx?: Prisma.TransactionClient }) {
+    const db = options?.tx ?? this.db;
+    const client = await db.client.findFirst({
       where: { id: input.clientId, ownerId },
     });
     if (!client) {
       throw new NotFoundException("Client not found");
     }
-    const service = await this.db.service.findFirst({
+    const service = await db.service.findFirst({
       where: { id: input.serviceId, userId: ownerId },
     });
     if (!service) {
@@ -93,7 +94,7 @@ export class BookingsService {
     const paidRaw = input.paidAmount ?? 0;
     const paidAmount = Math.min(price, Math.max(0, paidRaw));
 
-    const row = await this.db.booking.create({
+    const row = await db.booking.create({
       data: {
         ownerId,
         clientId: input.clientId,
