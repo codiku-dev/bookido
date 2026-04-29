@@ -6,6 +6,7 @@ import { Prisma } from "@api/generated/prisma/client";
 import {
   ClientWithStats,
   CreateClientInput,
+  ListClientsPaginatedInput,
   UpdateClientInput,
   withPlaceholderStats,
 } from "./clients.schema";
@@ -20,6 +21,55 @@ export class ClientsService {
       orderBy: { createdAt: "desc" },
     });
     return rows.map((r) => withPlaceholderStats(r));
+  }
+
+  async listPaginated(ownerId: string, input: ListClientsPaginatedInput) {
+    const page = input.page;
+    const pageSize = input.pageSize;
+    const search = input.search?.trim() ?? "";
+    const where: Prisma.ClientWhereInput = {
+      ownerId,
+      ...(search.length > 0
+        ? {
+            OR: [
+              { name: { contains: search, mode: "insensitive" } },
+              { email: { contains: search, mode: "insensitive" } },
+              { phone: { contains: search, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+    };
+
+    const [total, rows] = await Promise.all([
+      this.db.client.count({ where }),
+      this.db.client.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+    ]);
+
+    const items = rows.map((r) => withPlaceholderStats(r)).filter((row) => {
+      if (!row.nextBookingDate) {
+        return !input.nextBookingFrom && !input.nextBookingTo;
+      }
+      if (input.nextBookingFrom && row.nextBookingDate < input.nextBookingFrom) {
+        return false;
+      }
+      if (input.nextBookingTo && row.nextBookingDate > input.nextBookingTo) {
+        return false;
+      }
+      return true;
+    });
+
+    return {
+      items,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.max(1, Math.ceil(total / pageSize)),
+    };
   }
 
   async findOneForOwner(ownerId: string, id: string): Promise<ClientWithStats> {

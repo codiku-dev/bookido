@@ -75,6 +75,7 @@ type StripeHostedRedirectPhase = "idle" | "fetching" | "navigating";
 
 /** Re-enable when platform subscription / plan UI is wired. */
 const SHOW_BILLING_PLAN_CARD = false;
+const PROFESSIONAL_BIO_MAX_CHARS = 320;
 
 const ARCHIVE_ERROR_CODES = new Set([
   "CONFIRM_EMAIL_MISMATCH",
@@ -176,9 +177,22 @@ export default function ProfileSettings() {
     () =>
       z.object({
         name: z.string().min(1, { message: t("profile.validation.nameRequired") }),
-        bio: z.string().max(4000).optional(),
+        bio: z.string().max(PROFESSIONAL_BIO_MAX_CHARS, {
+          message: t("profile.validation.bioMax", { max: PROFESSIONAL_BIO_MAX_CHARS }),
+        }).optional(),
         defaultAddress: z.string().max(500).optional(),
-        publicBookingMinNoticeHours: z.coerce.number().int().min(0).max(168),
+        publicBookingMinNoticeHours: z
+          .string()
+          .trim()
+          .refine((value) => /^\d+$/.test(value), {
+            message: t("profile.validation.publicBookingMinNoticeHoursInvalid"),
+          })
+          .refine((value) => {
+            const parsed = Number.parseInt(value, 10);
+            return parsed >= 0 && parsed <= 168;
+          }, {
+            message: t("profile.validation.publicBookingMinNoticeHoursRange"),
+          }),
       }),
     [t],
   );
@@ -187,7 +201,7 @@ export default function ProfileSettings() {
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
-    defaultValues: { name: "", bio: "", defaultAddress: "", publicBookingMinNoticeHours: 24 },
+    defaultValues: { name: "", bio: "", defaultAddress: "", publicBookingMinNoticeHours: "24" },
   });
 
   useEffect(() => {
@@ -198,7 +212,7 @@ export default function ProfileSettings() {
       name: user.name ?? "",
       bio: user.bio ?? "",
       defaultAddress: presenceQuery.data?.defaultAddress ?? "",
-      publicBookingMinNoticeHours: presenceQuery.data?.publicBookingMinNoticeHours ?? 24,
+      publicBookingMinNoticeHours: String(presenceQuery.data?.publicBookingMinNoticeHours ?? 24),
     });
   }, [user?.id, user?.name, user?.bio, profileForm, presenceQuery.data?.defaultAddress, presenceQuery.data?.publicBookingMinNoticeHours]);
 
@@ -234,7 +248,7 @@ export default function ProfileSettings() {
         name: values.name.trim(),
         bio: values.bio?.trim().length ? values.bio.trim() : null,
         defaultAddress: values.defaultAddress?.trim().length ? values.defaultAddress.trim() : null,
-        publicBookingMinNoticeHours: values.publicBookingMinNoticeHours,
+        publicBookingMinNoticeHours: Number.parseInt(values.publicBookingMinNoticeHours, 10),
       });
       await refetchSession();
       toast.success(t("profile.toast.profileUpdated"));
@@ -868,16 +882,13 @@ export default function ProfileSettings() {
       <Label htmlFor="public-booking-min-notice-hours">{t("profile.publicBooking.minNoticeHours.label")}</Label>
       <Input
         id="public-booking-min-notice-hours"
-        type="number"
-        min={0}
-        max={168}
-        step={1}
+        type="text"
+        inputMode="numeric"
         disabled={sessionPending || !user}
         className="h-11 border-slate-300 bg-white"
-        value={profileForm.watch("publicBookingMinNoticeHours")}
+        value={profileForm.watch("publicBookingMinNoticeHours") ?? ""}
         onChange={(event) => {
-          const parsed = Number.parseInt(event.target.value, 10);
-          profileForm.setValue("publicBookingMinNoticeHours", Number.isNaN(parsed) ? 0 : parsed, {
+          profileForm.setValue("publicBookingMinNoticeHours", event.target.value, {
             shouldDirty: true,
             shouldTouch: true,
             shouldValidate: true,
@@ -896,6 +907,7 @@ export default function ProfileSettings() {
       <Textarea
         id="profile-bio"
         rows={5}
+        maxLength={PROFESSIONAL_BIO_MAX_CHARS}
         placeholder={t("profile.bio.placeholder")}
         disabled={sessionPending || !user}
         className="border-slate-300 bg-white"

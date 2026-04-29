@@ -53,9 +53,27 @@ export const publicBookingRequestInputSchema = z.object({
   clientName: z.string().min(1).max(200),
   clientEmail: z.string().email().max(320),
   clientPhone: z.string().max(80).optional(),
+  locale: z.enum(["fr", "en"]).optional(),
+});
+
+export const publicBookingCreateCheckoutSessionInputSchema = publicBookingRequestInputSchema;
+
+export const publicBookingCreateCheckoutSessionOutputSchema = z.object({
+  url: z.string().url(),
+});
+
+export const publicBookingConfirmCheckoutInputSchema = z.object({
+  coachSlug: publicBookingSlugSchema,
+  sessionId: z.string().min(1),
+});
+
+export const publicBookingConfirmCheckoutOutputSchema = z.object({
+  ok: z.literal(true),
 });
 
 export type PublicBookingGetStorefrontInput = z.infer<typeof publicBookingGetStorefrontInputSchema>;
 export type PublicBookingRequestInput = z.infer<typeof publicBookingRequestInputSchema>;
+export type PublicBookingCreateCheckoutSessionInput = z.infer<typeof publicBookingCreateCheckoutSessionInputSchema>;
+export type PublicBookingConfirmCheckoutInput = z.infer<typeof publicBookingConfirmCheckoutInputSchema>;
 
 export const publicBookingRequestOutputSchema = bookingOutputSchema;

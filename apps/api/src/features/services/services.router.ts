@@ -5,6 +5,8 @@ import { TRPCError } from "@trpc/server";
 import { AuthGuard } from "@api/src/infrastructure/decorators/auth/auth-guard.decorator";
 import {
   createServiceSchema,
+  listServicesPaginatedInputSchema,
+  paginatedServicesOutputSchema,
   serviceSchema,
   updateServiceSchema,
 } from "./services.schema";
@@ -29,6 +31,15 @@ export class ServiceRouter {
   async list(@Ctx() ctx: BaseUserSession) {
     const { id } = this.requireUser(ctx);
     return this.servicesService.findAllForUser(id);
+  }
+
+  @Query({
+    input: listServicesPaginatedInputSchema,
+    output: paginatedServicesOutputSchema,
+  })
+  async listPaginated(@Ctx() ctx: BaseUserSession, @Input() input: z.infer<typeof listServicesPaginatedInputSchema>) {
+    const { id } = this.requireUser(ctx);
+    return this.servicesService.findPaginatedForUser(id, input);
   }
 
   @Mutation({

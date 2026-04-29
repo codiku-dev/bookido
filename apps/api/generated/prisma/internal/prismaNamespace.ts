@@ -1057,6 +1057,7 @@ export const UserScalarFieldEnum = {
   calendarClosedSlotKeys: 'calendarClosedSlotKeys',
   bookingsLastViewedAt: 'bookingsLastViewedAt',
   adminOnboardingCompletedAt: 'adminOnboardingCompletedAt',
+  adminOnboardingStep: 'adminOnboardingStep',
   stripeAccountId: 'stripeAccountId',
   stripeBillingCustomerId: 'stripeBillingCustomerId',
   stripeOnboardingComplete: 'stripeOnboardingComplete',
@@ -1135,6 +1136,7 @@ export const BookingScalarFieldEnum = {
   requiresHostValidation: 'requiresHostValidation',
   hostValidationAccepted: 'hostValidationAccepted',
   createdByClient: 'createdByClient',
+  adminViewedAt: 'adminViewedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

@@ -3,9 +3,11 @@ import { Prisma } from "@api/generated/prisma/client";
 import { PrismaService } from "@api/src/infrastructure/prisma/prisma.service";
 import { z } from "zod";
 import { createServiceSchema, updateServiceSchema } from "./services.schema";
+import { listServicesPaginatedInputSchema } from "./services.schema";
 
 type CreateServiceInput = z.infer<typeof createServiceSchema>;
 type UpdateServiceInput = z.infer<typeof updateServiceSchema>;
+type ListServicesPaginatedInput = z.infer<typeof listServicesPaginatedInputSchema>;
 
 function slotKeysFromJson(value: Prisma.JsonValue): string[] {
   if (!Array.isArray(value)) {
@@ -62,6 +64,52 @@ export class ServicesService {
       orderBy: { createdAt: "desc" },
     });
     return rows.map((row) => this.mapRow(row));
+  }
+
+  async findPaginatedForUser(userId: string, input: ListServicesPaginatedInput) {
+    const page = input.page;
+    const pageSize = input.pageSize;
+    const search = input.search?.trim() ?? "";
+    const where: Prisma.ServiceWhereInput = {
+      userId,
+      ...(search.length > 0
+        ? {
+            OR: [
+              { name: { contains: search, mode: "insensitive" } },
+              { description: { contains: search, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+      ...(input.published === "published" ? { isPublished: true } : {}),
+      ...(input.published === "draft" ? { isPublished: false } : {}),
+      ...(input.payment === "direct" ? { allowsDirectPayment: true } : {}),
+      ...(input.payment === "card" ? { allowsDirectPayment: false } : {}),
+      ...(input.durationMinutes ? { durationMinutes: input.durationMinutes } : {}),
+      ...((input.priceMin !== undefined || input.priceMax !== undefined) && {
+        price: {
+          ...(input.priceMin !== undefined ? { gte: input.priceMin } : {}),
+          ...(input.priceMax !== undefined ? { lte: input.priceMax } : {}),
+        },
+      }),
+    };
+
+    const [total, rows] = await Promise.all([
+      this.db.service.count({ where }),
+      this.db.service.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+    ]);
+
+    return {
+      items: rows.map((row) => this.mapRow(row)),
+      total,
+      page,
+      pageSize,
+      totalPages: Math.max(1, Math.ceil(total / pageSize)),
+    };
   }
 
   async create(userId: string, input: CreateServiceInput) {

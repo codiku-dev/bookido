@@ -169,6 +169,12 @@
     "next": "Next",
     "previous": "Previous",
     "save": "Save",
+    "pagination": {
+      "perPage": "Per page",
+      "page": "Page",
+      "next": "Next",
+      "previous": "Previous"
+    },
     "datePicker": {
       "placeholder": "mm/dd/yyyy",
       "clear": "Clear"
@@ -261,7 +267,9 @@
       "calendarTitle": "Choose a time",
       "pickSlotSubtitle": "Pick a start time for each session in this service. Unavailable slots match your coach’s calendar.",
       "sessionsProgress": "{current} / {total} sessions scheduled",
+      "sidebarSelectionsTitle": "Selections",
       "sessionNumber": "Session {n}",
+      "noSelectionYet": "No selection yet.",
       "noSlotsChosenYet": "No time slots selected yet.",
       "confirmDisabledHint": "Select a time for every session before confirming.",
       "invalidSlugTitle": "This booking link is not valid.",
@@ -274,8 +282,25 @@
       "durationLabel": "{minutes} min",
       "free": "Free",
       "clientName": "Full name",
+      "firstName": "First name",
+      "lastName": "Last name",
       "clientEmail": "Email",
       "clientPhone": "Phone (optional)",
+      "clientDetailsTitle": "Your details",
+      "recapTitle": "Summary",
+      "recapSubtitle": "Review your information before confirming payment.",
+      "recapContactTitle": "Client details",
+      "recapFullNameLabel": "Full name",
+      "recapEmailLabel": "Email",
+      "recapNameMissing": "Name not provided",
+      "recapEmailMissing": "Email not provided",
+      "removeSelectionAria": "Remove session {session}",
+      "stepper": {
+        "service": "Service",
+        "date": "Date",
+        "recap": "Summary"
+      },
+      "rememberMe": "Remember me",
       "submit": "Confirm booking",
       "submitting": "Sending…",
       "detailsTitle": "Your details",
@@ -289,10 +314,17 @@
       "validationNotRequired": "Instant confirmation",
       "slotTaken": "This slot is no longer available. Please choose another time.",
       "slotTooSoon": "This slot can no longer be booked because the minimum notice time has passed.",
+      "minNoticeHint": "Slots before {dateTime} are unavailable (minimum notice: {hours}h).",
+      "minNoticeHoverHint": "This service takes place too soon. To book with this professional, please book at least {hours} hour(s) in advance.",
+      "paymentCancelled": "Payment was cancelled.",
+      "paymentStartError": "Could not start Stripe payment.",
+      "paymentConfirmError": "Payment could not be confirmed.",
       "error": "We could not complete your booking. Please try again.",
       "noEnabledDays": "No opening days are configured for this week.",
       "noVisibleSlots": "No bookable time appears in this week for this coach.",
       "validation": {
+        "firstName": "Please enter your first name.",
+        "lastName": "Please enter your last name.",
         "name": "Enter your name.",
         "email": "Enter a valid email."
       }
@@ -388,10 +420,13 @@
         },
         "pro": {
           "badge": "Popular",
+          "comingSoonBadge": "Coming soon",
           "name": "Pro",
           "price": "€29",
           "per": "/ month",
           "desc": "When you want the full workflow without limits.",
+          "comingSoonHint": "This plan is not available yet. Coming soon.",
+          "ctaComingSoon": "Coming soon",
           "f1": "0% fees on transactions",
           "f2": "Public booking page",
           "f3": "Services & calendar",
@@ -562,8 +597,11 @@
         "client": "Client",
         "service": "Service",
         "date": "Date",
+        "firstSessionDate": "First session date",
+        "reservationDate": "Booking date",
         "time": "Time",
         "amount": "Amount",
+        "paymentDate": "Payment date",
         "payment": "Payment",
         "status": "Status",
         "actions": "Actions"
@@ -571,7 +609,8 @@
       "payment": {
         "paid": "Paid",
         "partial": "Partially paid",
-        "unpaid": "Unpaid"
+        "unpaid": "Unpaid",
+        "notPaidDate": "Unpaid"
       },
       "filter": {
         "dateFrom": "From",
@@ -624,6 +663,7 @@
       "payment": {
         "info": "Payment",
         "method": "Payment method",
+        "onlineMethod": "Online payment",
         "status": "Payment status",
         "total": "Total",
         "paidSoFar": "Already paid",
@@ -635,7 +675,13 @@
       "reschedule": "Reschedule",
       "service": "Service",
       "title": "Booking details",
-      "clientLabel": "Client"
+      "clientLabel": "Client",
+      "status": {
+        "confirmed": "Confirmed",
+        "pending": "Pending",
+        "cancelled": "Cancelled",
+        "completed": "Completed"
+      }
     },
     "create": {
       "title": "Create booking",
@@ -744,6 +790,11 @@
     "nav": {
       "today": "Today"
     },
+    "listView": {
+      "title": "List view",
+      "subtitle": "Bookings for the displayed week, sorted by date and time.",
+      "empty": "No bookings for this week."
+    },
     "search": {
       "client": "Search for a client"
     },
@@ -844,7 +895,7 @@
         "month": "Month",
         "revenue": "Revenue",
         "growth": "vs previous month",
-        "bookings": "Billable bookings"
+        "bookings": "Number of bookings"
       },
       "detailColumns": {
         "date": "Date",
@@ -1023,7 +1074,7 @@
   "profile": {
     "bio": {
       "placeholder": "Describe your activity, specialties, and coaching approach",
-      "publicHint": "This description is shown on your public booking pages (services list and booking flow) for clients who open your public link."
+      "publicHint": "This description is shown on your public booking pages (services list and booking flow) for clients who open your public link. Maximum 320 characters."
     },
     "billing": {
       "cancel": {
@@ -1129,7 +1180,7 @@
       }
     },
     "danger": {
-      "warning": "Archiving disables your account: you will not be able to sign in. Your data is kept in our systems for possible recovery.",
+      "warning": "Archiving disables your account: you will not be able to sign in. Your data is kept in our systems for possible recovery. Your Stripe account remains independent and you will still have access to it.",
       "zone": "Danger zone"
     },
     "delete": {
@@ -1191,7 +1242,10 @@
       "generic": "Something went wrong."
     },
     "validation": {
-      "nameRequired": "Name is required"
+      "nameRequired": "Name is required",
+      "bioMax": "Maximum {max} characters.",
+      "publicBookingMinNoticeHoursInvalid": "Please enter a whole number.",
+      "publicBookingMinNoticeHoursRange": "Value must be between 0 and 168."
     },
     "loading": "Loading profile…",
     "sessionRequired": "You must be signed in to view this page.",
@@ -1233,11 +1287,30 @@
   "onboarding": {
     "gateLoading": "Preparing your workspace…",
     "progressLabel": "Step {current} of {total}",
+    "publicProfileIntro": {
+      "badge": "Professional profile",
+      "title": "Set up the profile your public clients will see",
+      "subtitle": "Each step builds your public page (bio, photo, schedule, services, and payments).",
+      "steps": {
+        "name": "Name",
+        "bio": "Bio",
+        "avatar": "Photo",
+        "hours": "Hours",
+        "address": "Address",
+        "unavailable": "Slots",
+        "service": "Service",
+        "slug": "URL",
+        "stripe": "Payment"
+      }
+    },
     "skipLater": "Later",
+    "previous": "Previous",
     "next": "Continue",
+    "clickClosedSlotToOpen": "Click to make this slot available.",
     "validation": {
       "nameMin": "Use at least 2 characters.",
-      "nameMissing": "Your name is required to continue."
+      "nameMissing": "Your name is required to continue.",
+      "bioMax": "Maximum {max} characters."
     },
     "errors": {
       "complete": "Could not finish onboarding. Try again."
@@ -1245,7 +1318,8 @@
     "name": {
       "title": "What should we call you?",
       "subtitle": "This is how your name appears in the admin and on your public page.",
-      "fieldLabel": "Your name"
+      "firstNameLabel": "First name",
+      "lastNameLabel": "Last name"
     },
     "bio": {
       "title": "A few words about what you do",
@@ -1260,21 +1334,26 @@
     },
     "hours": {
       "title": "When are you open?",
-      "subtitle": "Default hours come from your profile; adjust them for your typical week.",
+      "subtitle": "Clients cannot book when you are closed, and you can always change this later from your profile.",
       "openingTitle": "Opening hours",
       "loadError": "Could not load your calendar settings. You can still continue and fix this later in Calendar."
     },
     "address": {
-      "title": "What is your address?",
-      "subtitle": "Leave empty if you travel to clients. You can set a precise address per service later.",
+      "title": "Where do you provide your services?",
+      "subtitle": "You can skip this field if you travel to the client.",
       "note": "If it varies by service, you can add a specific address when you edit each service.",
-      "fieldLabel": "Default address",
-      "placeholder": "e.g. 12 Baker Street, London"
+      "fieldLabel": "Address of provided services",
+      "placeholder": "e.g. 12 Baker Street, London",
+      "mustPickFromMap": "Please choose an address from the Google suggestions list."
     },
     "unavailable": {
-      "title": "When are you unavailable?",
-      "subtitle": "Tap slots to mark breaks or recurring blocks (for example lunch). Defaults include 12:00–14:00.",
-      "hint": "Striped slots are unavailable. White slots are available within your opening hours."
+      "title": "When can clients book you?",
+      "subtitle": "Select multiple slots at once.",
+      "legend": {
+        "open": "Open for bookings",
+        "closed": "Closed slot",
+        "outsideHours": "Outside opening hours"
+      }
     },
     "service": {
       "title": "Create your first service",
@@ -1288,12 +1367,19 @@
         "name": "Enter a service name.",
         "description": "Enter a short description.",
         "address": "Enter a location or use your default address.",
-        "pricePaid": "Enter a price greater than 0 or turn on “Free service.”"
+        "pricePaid": "Enter a price greater than 0 for a paid pack, or 0 for a free pack."
       },
       "optionalImageHint": "Cover image (optional, max 5 MB).",
       "switchPublished": "Publish on my public booking page",
       "switchPublishedHint": "If you turn this off, the service stays a draft.",
-      "chooseImage": "Choose image"
+      "chooseImage": "Choose image",
+      "packTotalPriceLabel": "Price for all sessions (pack total)",
+      "availabilityInstructions": "Tap or drag slots to set when this service is offered (blue). Grey means it is not offered on that slot. Locked cells follow your hours and calendar.",
+      "availabilityLegend": {
+        "open": "Offered for this service",
+        "closed": "Not offered",
+        "readOnly": "Outside hours or closed on your calendar"
+      }
     },
     "slug": {
       "title": "What will your Bookido URL be?",
@@ -1450,6 +1536,8 @@
       "summaryTitle": "Please fix the following fields:",
       "nameRequired": "Name is required.",
       "descriptionRequired": "Description is required.",
+      "descriptionMax": "Description cannot exceed 300 characters.",
+      "descriptionCharCount": "{current} / {max}",
       "durationNumber": "Duration must be a valid number.",
       "durationMin30": "Duration must be at least 30 minutes.",
       "durationMultipleOf30": "Duration must be a multiple of 30 minutes (30, 60, 90…).",

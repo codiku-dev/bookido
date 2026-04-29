@@ -9,10 +9,15 @@ import {
   bookingOutputSchema,
   createBookingInputSchema,
   listBookingsInputSchema,
+  listBookingsPaginatedInputSchema,
+  markBookingViewedInputSchema,
   markBookingsListViewedInputSchema,
+  paginatedBookingsOutputSchema,
   updateBookingInputSchema,
   type CreateBookingInput,
   type ListBookingsInput,
+  type ListBookingsPaginatedInput,
+  type MarkBookingViewedInput,
   type MarkBookingsListViewedInput,
   type UpdateBookingInput,
 } from "./bookings.schema";
@@ -38,6 +43,15 @@ export class BookingsRouter {
   list(@Ctx() ctx: BaseUserSession, @Input() input: ListBookingsInput) {
     const ownerId = requireUserId(ctx);
     return this.bookingsService.list(ownerId, input);
+  }
+
+  @Query({
+    input: listBookingsPaginatedInputSchema,
+    output: paginatedBookingsOutputSchema,
+  })
+  listPaginated(@Ctx() ctx: BaseUserSession, @Input() input: ListBookingsPaginatedInput) {
+    const ownerId = requireUserId(ctx);
+    return this.bookingsService.listPaginated(ownerId, input);
   }
 
   @Query({
@@ -89,6 +103,15 @@ export class BookingsRouter {
   delete(@Ctx() ctx: BaseUserSession, @Input("id") id: string) {
     const ownerId = requireUserId(ctx);
     return this.bookingsService.remove(ownerId, id);
+  }
+
+  @Mutation({
+    input: markBookingViewedInputSchema,
+    output: z.object({ ok: z.literal(true) }),
+  })
+  markBookingViewed(@Ctx() ctx: BaseUserSession, @Input() input: MarkBookingViewedInput) {
+    const ownerId = requireUserId(ctx);
+    return this.bookingsService.markBookingViewed(ownerId, input.id);
   }
 
   @Mutation({

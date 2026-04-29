@@ -6,10 +6,16 @@ import { AuthGuard } from "@api/src/infrastructure/decorators/auth/auth-guard.de
 import { Public } from "@api/src/infrastructure/decorators/auth/public-procedure.decorator";
 
 import {
+  publicBookingConfirmCheckoutInputSchema,
+  publicBookingConfirmCheckoutOutputSchema,
+  publicBookingCreateCheckoutSessionInputSchema,
+  publicBookingCreateCheckoutSessionOutputSchema,
   publicBookingGetStorefrontInputSchema,
   publicBookingGetStorefrontOutputSchema,
   publicBookingRequestInputSchema,
   publicBookingRequestOutputSchema,
+  type PublicBookingConfirmCheckoutInput,
+  type PublicBookingCreateCheckoutSessionInput,
   type PublicBookingGetStorefrontInput,
   type PublicBookingRequestInput,
 } from "./public-booking.schema";
@@ -40,5 +46,23 @@ export class PublicBookingRouter {
   })
   request(@Ctx() _ctx: BaseUserSession, @Input() input: PublicBookingRequestInput) {
     return this.publicBookingService.requestBooking(input);
+  }
+
+  @Public()
+  @Mutation({
+    input: publicBookingCreateCheckoutSessionInputSchema,
+    output: publicBookingCreateCheckoutSessionOutputSchema,
+  })
+  createCheckoutSession(@Ctx() _ctx: BaseUserSession, @Input() input: PublicBookingCreateCheckoutSessionInput) {
+    return this.publicBookingService.createCheckoutSession(input);
+  }
+
+  @Public()
+  @Mutation({
+    input: publicBookingConfirmCheckoutInputSchema,
+    output: publicBookingConfirmCheckoutOutputSchema,
+  })
+  confirmCheckout(@Ctx() _ctx: BaseUserSession, @Input() input: PublicBookingConfirmCheckoutInput) {
+    return this.publicBookingService.confirmCheckoutAndCreateBooking(input);
   }
 }

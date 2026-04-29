@@ -152,6 +152,19 @@ function dedupeCalendarBookingsById(bookings: CalendarCellBooking[]) {
   return out;
 }
 
+function bookingStatusBadgeClass(status: BookingRow["status"]) {
+  if (status === "confirmed") {
+    return "bg-blue-100 text-blue-800 border-blue-200";
+  }
+  if (status === "pending") {
+    return "bg-amber-100 text-amber-800 border-amber-200";
+  }
+  if (status === "cancelled") {
+    return "bg-red-100 text-red-800 border-red-200";
+  }
+  return "bg-slate-100 text-slate-700 border-slate-200";
+}
+
 export type RescheduleSlotSelection = {
   dayKey: CalendarDayKey;
   dateLabel: string;
@@ -1134,6 +1147,13 @@ export default function CalendarView(p: CalendarViewProps = {}) {
     </div>
   );
 
+  const planningListRows = useMemo(() => {
+    const weekDateKeys = new Set(weekDates.map((date) => bookingLocalDateKey(date)));
+    return (bookingsListQuery.data ?? [])
+      .filter((row) => weekDateKeys.has(bookingLocalDateKey(new Date(row.startsAt))))
+      .sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime());
+  }, [bookingsListQuery.data, weekDates]);
+
   if (!calendarReady) {
     if (mode === "reschedule") {
       return (
@@ -1254,6 +1274,64 @@ export default function CalendarView(p: CalendarViewProps = {}) {
     ) : null;
 
   const calendarBodyOutsideAvailabilitySection = mode === "planning" && isAvailabilityMode ? null : calendarBody;
+
+  const planningListSection =
+    mode === "planning" && !isAvailabilityMode ? (
+      <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="mb-4">
+          <h2 className="text-lg font-bold text-slate-900">{t("calendar.listView.title")}</h2>
+          <p className="text-sm text-slate-600">{t("calendar.listView.subtitle")}</p>
+        </div>
+
+        {planningListRows.length === 0 ? (
+          <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+            {t("calendar.listView.empty")}
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {planningListRows.map((row) => {
+              const startsAt = new Date(row.startsAt);
+              const dayKey = getCalendarDayKeyFromDate(startsAt);
+              const rangeStart = totalMinutesToTimeHm(startsAt.getHours() * 60 + startsAt.getMinutes());
+              const rangeEnd = totalMinutesToTimeHm(startsAt.getHours() * 60 + startsAt.getMinutes() + row.durationMinutes);
+              const bookingDate = formatDate(startsAt);
+              const statusLabel =
+                row.status === "confirmed"
+                  ? t("booking.detail.status.confirmed")
+                  : row.status === "pending"
+                    ? t("booking.detail.status.pending")
+                    : row.status === "cancelled"
+                      ? t("booking.detail.status.cancelled")
+                      : t("booking.detail.status.completed");
+
+              return (
+                <button
+                  key={row.id}
+                  type="button"
+                  onClick={() => router.push(`/admin/bookings/${row.id}`)}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-left transition-colors hover:bg-slate-50"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-slate-900">{row.clientName}</p>
+                      <p className="truncate text-sm text-slate-600">{row.serviceName}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">
+                        {t(`public.time.days.${dayKey}.short`)} · {bookingDate} · {rangeStart} - {rangeEnd}
+                      </p>
+                    </div>
+                    <span
+                      className={`inline-flex shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${bookingStatusBadgeClass(row.status)}`}
+                    >
+                      {statusLabel}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </section>
+    ) : null;
 
   const availabilityBookingConflictPopover =
     availabilityBookingConflict === null ? null : (
@@ -1377,6 +1455,7 @@ export default function CalendarView(p: CalendarViewProps = {}) {
 
         {availabilityPlanningSection}
         {calendarBodyOutsideAvailabilitySection}
+        {planningListSection}
       </div>
 
       {mode === "planning" ? (

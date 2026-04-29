@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FilterX, NotebookText, Plus, Search } from "lucide-react";
 import type { inferRouterOutputs } from "@trpc/server";
@@ -17,44 +17,95 @@ import { useSession } from "@web/libs/auth-client";
 type BookingRow = inferRouterOutputs<AppRouter>["bookings"]["list"][number];
 type BookingStatus = BookingRow["status"];
 type PaymentKind = ReturnType<typeof paymentKindFromAmounts>;
+type BookingDisplayRow = BookingRow & { sessionCount: number };
 
 export default function BookingsView() {
   const t = useTranslations();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { locale } = useLanguage();
   const utils = trpc.useUtils();
   const { data: sessionPayload, isPending: sessionPending } = useSession();
   const sessionReady = !sessionPending && Boolean(sessionPayload?.user);
-
-  const listQuery = trpc.bookings.list.useQuery({}, { retry: false, enabled: sessionReady });
 
   const markBookingsListViewedMutation = trpc.bookings.markBookingsListViewed.useMutation({
     onSuccess: async () => {
       await utils.bookings.clientBadgeCount.invalidate();
     },
   });
-
-  useEffect(() => {
-    if (!sessionReady) {
-      return;
-    }
-    markBookingsListViewedMutation.mutate({});
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- run when session becomes ready; mutation fn is stable enough
-  }, [sessionReady]);
-
-  const updateMutation = trpc.bookings.update.useMutation({
+  const markBookingViewedMutation = trpc.bookings.markBookingViewed.useMutation({
     onSuccess: async () => {
-      await utils.bookings.list.invalidate();
+      await utils.bookings.clientBadgeCount.invalidate();
     },
   });
 
-  const [search, setSearch] = useState("");
+  const updateMutation = trpc.bookings.update.useMutation({
+    onSuccess: async () => {
+      await utils.bookings.listPaginated.invalidate();
+    },
+  });
+
+  const querySearch = searchParams.get("search")?.trim() ?? "";
+  const queryDateFrom = searchParams.get("dateFrom")?.trim() ?? "";
+  const queryDateTo = searchParams.get("dateTo")?.trim() ?? "";
+
+  const [search, setSearch] = useState(querySearch);
   const [paymentFilter, setPaymentFilter] = useState<"" | PaymentKind>("");
   const [statusFilter, setStatusFilter] = useState<"" | BookingStatus>("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
+  const [dateFrom, setDateFrom] = useState(queryDateFrom);
+  const [dateTo, setDateTo] = useState(queryDateTo);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<25 | 50 | 100>(25);
 
-  const bookingRows = listQuery.data ?? [];
+  const paginatedListQuery = trpc.bookings.listPaginated.useQuery(
+    {
+      page,
+      pageSize,
+      search: search.trim().length > 0 ? search.trim() : undefined,
+      payment: paymentFilter || undefined,
+      status: statusFilter || undefined,
+      dateFrom: dateFrom || undefined,
+      dateTo: dateTo || undefined,
+    },
+    { retry: false, enabled: sessionReady },
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, paymentFilter, statusFilter, dateFrom, dateTo, pageSize]);
+
+  const bookingRows = paginatedListQuery.data?.items ?? [];
+  const [locallySeenBookingIds, setLocallySeenBookingIds] = useState<string[]>([]);
+  const locallySeenBookingIdsRef = useRef<Set<string>>(new Set());
+  const sessionReadyRef = useRef(false);
+
+  const unseenBookingIdsKey = useMemo(() => {
+    const unseenIds = bookingRows
+      .filter((booking) => booking.isUnseenInAdmin)
+      .map((booking) => booking.id)
+      .sort();
+    return unseenIds.join("|");
+  }, [bookingRows]);
+
+  useEffect(() => {
+    const unseenIds = unseenBookingIdsKey.length > 0 ? unseenBookingIdsKey.split("|") : [];
+    setLocallySeenBookingIds([]);
+    locallySeenBookingIdsRef.current = new Set(unseenIds);
+  }, [unseenBookingIdsKey]);
+
+  useEffect(() => {
+    sessionReadyRef.current = sessionReady;
+  }, [sessionReady]);
+
+  useEffect(() => {
+    return () => {
+      if (sessionReadyRef.current) {
+        markBookingsListViewedMutation.mutate({});
+      }
+    };
+    // Run only once; we read latest readiness via ref.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const getStatusBadgeClass = (status: BookingStatus) => {
     if (status === "confirmed") return "bg-green-50 text-green-700";
@@ -95,25 +146,38 @@ export default function BookingsView() {
     setDateTo("");
   };
 
-  const filteredBookings = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return bookingRows.filter((b) => {
-      if (q.length > 0) {
-        const matchesSearch =
-          b.clientName.toLowerCase().includes(q) ||
-          b.serviceName.toLowerCase().includes(q) ||
-          b.price.toString().includes(q);
-        if (!matchesSearch) return false;
+  const groupedBookingRows = useMemo<BookingDisplayRow[]>(() => {
+    const grouped = new Map<string, BookingDisplayRow>();
+    for (const booking of bookingRows) {
+      // Public pack bookings are created in one transaction; group by owner/client/service/creation second.
+      const createdAt = new Date(booking.createdAt);
+      const createdAtSecond = Number.isNaN(createdAt.getTime()) ? booking.createdAt : Math.floor(createdAt.getTime() / 1000).toString();
+      const groupKey = `${booking.ownerId}|${booking.clientId}|${booking.serviceId}|${booking.createdByClient ? "1" : "0"}|${createdAtSecond}`;
+      const existing = grouped.get(groupKey);
+      if (!existing) {
+        grouped.set(groupKey, { ...booking, sessionCount: 1 });
+        continue;
       }
-      const pay = paymentKindFromAmounts(b.paidAmount, b.price);
-      if (paymentFilter && pay !== paymentFilter) return false;
-      if (statusFilter && b.status !== statusFilter) return false;
-      const dk = bookingLocalDateKey(b.startsAt);
-      if (dateFrom && dk < dateFrom) return false;
-      if (dateTo && dk > dateTo) return false;
-      return true;
-    });
-  }, [bookingRows, search, paymentFilter, statusFilter, dateFrom, dateTo]);
+      const existingRepresentativeScore = Math.max(existing.price, existing.paidAmount);
+      const currentRepresentativeScore = Math.max(booking.price, booking.paidAmount);
+      const representative = currentRepresentativeScore > existingRepresentativeScore ? booking : existing;
+      const existingStartsAtMs = new Date(existing.startsAt).getTime();
+      const currentStartsAtMs = new Date(booking.startsAt).getTime();
+      const nextStartsAt = currentStartsAtMs < existingStartsAtMs ? booking.startsAt : existing.startsAt;
+      grouped.set(groupKey, {
+        ...representative,
+        startsAt: nextStartsAt,
+        durationMinutes: existing.durationMinutes + booking.durationMinutes,
+        price: Math.round((existing.price + booking.price) * 100) / 100,
+        paidAmount: Math.round((existing.paidAmount + booking.paidAmount) * 100) / 100,
+        isUnseenInAdmin: existing.isUnseenInAdmin || booking.isUnseenInAdmin,
+        sessionCount: existing.sessionCount + 1,
+      });
+    }
+    return Array.from(grouped.values());
+  }, [bookingRows]);
+
+  const filteredBookings = groupedBookingRows;
 
   const handleValidateBooking = (bookingId: string) => {
     const target = bookingRows.find((b) => b.id === bookingId);
@@ -125,6 +189,15 @@ export default function BookingsView() {
         hostValidationAccepted: true,
       },
     });
+  };
+
+  const markLineAsSeen = (bookingId: string) => {
+    if (!locallySeenBookingIdsRef.current.has(bookingId)) {
+      return;
+    }
+    locallySeenBookingIdsRef.current.delete(bookingId);
+    setLocallySeenBookingIds((prev) => [...prev, bookingId]);
+    markBookingViewedMutation.mutate({ id: bookingId });
   };
 
   const canQuickValidateFromList = (b: BookingRow) =>
@@ -204,9 +277,14 @@ export default function BookingsView() {
   const tableHead = (
     <thead className="bg-slate-50 border-b border-slate-200">
       <tr>
+        <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">
+          {t("booking.list.columns.reservationDate")}
+        </th>
+        <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">
+          {t("booking.list.columns.firstSessionDate")}
+        </th>
         <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">{t("booking.list.columns.client")}</th>
         <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">{t("booking.list.columns.service")}</th>
-        <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">{t("booking.list.columns.date")}</th>
         <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">{t("booking.list.columns.amount")}</th>
         <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">{t("booking.list.columns.payment")}</th>
         <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">{t("booking.list.columns.status")}</th>
@@ -214,15 +292,15 @@ export default function BookingsView() {
     </thead>
   );
 
-  const tableBodyRows = listQuery.isLoading ? (
+  const tableBodyRows = paginatedListQuery.isLoading ? (
     <tr>
-      <td colSpan={6} className="px-6 py-10 text-center text-sm text-slate-500">
+      <td colSpan={7} className="px-6 py-10 text-center text-sm text-slate-500">
         {t("booking.list.loading")}
       </td>
     </tr>
-  ) : listQuery.isError ? (
+  ) : paginatedListQuery.isError ? (
     <tr>
-      <td colSpan={6} className="px-6 py-10 text-center text-sm text-red-600">
+      <td colSpan={7} className="px-6 py-10 text-center text-sm text-red-600">
         {t("booking.list.loadError")}
       </td>
     </tr>
@@ -230,18 +308,36 @@ export default function BookingsView() {
     filteredBookings.map((booking) => {
       const tm = bookingLocalTimeHm(booking.startsAt);
       const pay = paymentKindFromAmounts(booking.paidAmount, booking.price);
+      const serviceLabel =
+        booking.sessionCount > 1
+          ? `${booking.serviceName} (${t("public.services.packSessions", { count: booking.sessionCount })})`
+          : booking.serviceName;
       return (
         <tr
           key={booking.id}
           onClick={() => router.push(`/admin/bookings/${booking.id}`)}
-          className="hover:bg-slate-50 transition-colors cursor-pointer"
+          onMouseEnter={() => {
+            markLineAsSeen(booking.id);
+          }}
+          className="cursor-pointer transition-colors hover:bg-blue-50"
         >
-          <td className="px-6 py-4 font-medium text-slate-900">{booking.clientName}</td>
-          <td className="px-6 py-4 text-slate-700">{booking.serviceName}</td>
+          <td className="px-6 py-4 text-slate-700">
+            <div className="font-medium text-slate-900">{formatShortDate(booking.createdAt, locale)}</div>
+            <div className="text-sm text-slate-500">{bookingLocalTimeHm(booking.createdAt)}</div>
+          </td>
           <td className="px-6 py-4 text-slate-700">
             <div className="font-medium text-slate-900">{formatShortDate(booking.startsAt, locale)}</div>
             <div className="text-sm text-slate-500">{tm}</div>
           </td>
+          <td className="px-6 py-4 font-medium text-slate-900">
+            <div className="flex items-center gap-2">
+              {booking.clientName}
+              {booking.isUnseenInAdmin && !locallySeenBookingIds.includes(booking.id) ? (
+                <span className="inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
+              ) : null}
+            </div>
+          </td>
+          <td className="px-6 py-4 text-slate-700">{serviceLabel}</td>
           <td className="px-6 py-4 font-medium text-slate-900">€{booking.price}</td>
           <td className="px-6 py-4">
             <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getPaymentBadgeClass(pay)}`}>
@@ -273,9 +369,41 @@ export default function BookingsView() {
     })
   );
 
-  const showEmptyList = !listQuery.isLoading && !listQuery.isError && bookingRows.length === 0;
+  const showEmptyList = !paginatedListQuery.isLoading && !paginatedListQuery.isError && (paginatedListQuery.data?.total ?? 0) === 0;
   const showEmptyFiltered =
-    !listQuery.isLoading && !listQuery.isError && bookingRows.length > 0 && filteredBookings.length === 0;
+    !paginatedListQuery.isLoading &&
+    !paginatedListQuery.isError &&
+    (paginatedListQuery.data?.total ?? 0) > 0 &&
+    filteredBookings.length === 0;
+
+  const totalPages = paginatedListQuery.data?.totalPages ?? 1;
+  const pagination = (
+    <div className="mt-4 flex items-center justify-between gap-3">
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-slate-600">{t("common.pagination.perPage")}</span>
+        <select
+          value={String(pageSize)}
+          onChange={(event) => setPageSize(Number(event.target.value) as 25 | 50 | 100)}
+          className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm"
+        >
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </div>
+      <div className="flex items-center gap-2">
+        <Button type="button" variant="outline" disabled={page <= 1} onClick={() => setPage((prev) => Math.max(1, prev - 1))}>
+          {t("common.pagination.previous")}
+        </Button>
+        <span className="text-sm text-slate-600">
+          {t("common.pagination.page")} {page}/{totalPages}
+        </span>
+        <Button type="button" variant="outline" disabled={page >= totalPages} onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}>
+          {t("common.pagination.next")}
+        </Button>
+      </div>
+    </div>
+  );
 
   const emptyListBlock = showEmptyList ? (
     <div className="border-t border-slate-100 bg-slate-50/60 px-6 py-16 text-center">
@@ -309,10 +437,12 @@ export default function BookingsView() {
 
   const bookingsTable = (
     <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-      <table className="w-full">
-        {tableHead}
-        <tbody className="divide-y divide-slate-200">{tableBodyRows}</tbody>
-      </table>
+      <div className="w-full overflow-x-auto">
+        <table className="w-full min-w-[980px]">
+          {tableHead}
+          <tbody className="divide-y divide-slate-200">{tableBodyRows}</tbody>
+        </table>
+      </div>
       {emptyListBlock}
       {emptyFilteredBlock}
     </div>
@@ -336,6 +466,7 @@ export default function BookingsView() {
       {pageHeader}
       {filtersPanel}
       {bookingsTable}
+      {pagination}
     </div>
   );
 }

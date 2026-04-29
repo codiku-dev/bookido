@@ -4,8 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useParams, useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
-import { Check, ChevronLeft, ChevronRight, Clock, MapPin, Package, Share2 } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Clock, MapPin, Package, Share2, X } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { toast } from "sonner";
 
 import { BackButton } from "../../_components/BackButton";
@@ -17,14 +20,17 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "#/components/ui/accordion";
-import { WeeklyTimeGrid } from "#/components/calendar/WeeklyTimeGrid";
+import { CalendarSlotHoverHint, WeeklyTimeGrid } from "#/components/calendar/WeeklyTimeGrid";
 import { Button } from "#/components/ui/button";
+import { Checkbox } from "#/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "#/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "#/components/ui/form";
+import { Input } from "#/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -51,6 +57,8 @@ type SelectedSlot = {
   column: BookingPageDayColumn;
   time: string;
 };
+
+const BOOKING_CLIENT_CACHE_KEY = "bookido.publicBooking.client";
 
 function isSameSelectedSlot(s: SelectedSlot, column: BookingPageDayColumn, time: string) {
   return s.column.dateIso === column.dateIso && s.time === time;
@@ -86,15 +94,41 @@ export default function BookingPage() {
   const servicesHref = `/${coachSlug}/services`;
 
   const serviceIdParam = searchParams.get("service")?.trim() ?? "";
+  const checkoutStatusParam = searchParams.get("checkout")?.trim() ?? "";
+  const checkoutSessionIdParam = searchParams.get("session_id")?.trim() ?? "";
 
   const [weekAnchor, setWeekAnchor] = useState(() => new Date());
-  const [step, setStep] = useState<"service" | "pick" | "done">("service");
+  const [step, setStep] = useState<"service" | "pick" | "details" | "done">(() =>
+    checkoutStatusParam === "success" ? "done" : "service",
+  );
   const [selectedSlots, setSelectedSlots] = useState<SelectedSlot[]>([]);
   const [mobileHeroImageIndex, setMobileHeroImageIndex] = useState(0);
   const [mobilePickerMonthAnchor, setMobilePickerMonthAnchor] = useState(() => new Date());
   const [mobileMonthSelectOpen, setMobileMonthSelectOpen] = useState(false);
   const [mobileYearSelectOpen, setMobileYearSelectOpen] = useState(false);
   const [mobilePickerOpenDayKey, setMobilePickerOpenDayKey] = useState<string | null>(null);
+  const bookingClientSchema = useMemo(
+    () =>
+      z.object({
+        firstName: z.string().trim().min(1, t("public.booking.validation.firstName")),
+        lastName: z.string().trim().min(1, t("public.booking.validation.lastName")),
+        email: z.string().trim().email(t("public.booking.validation.email")),
+        rememberMe: z.boolean(),
+      }),
+    [t],
+  );
+  type BookingClientFormValues = z.infer<typeof bookingClientSchema>;
+  const bookingClientForm = useForm<BookingClientFormValues>({
+    resolver: zodResolver(bookingClientSchema),
+    mode: "onChange",
+    reValidateMode: "onChange",
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      rememberMe: true,
+    },
+  });
 
   const weekDates = useMemo(() => getCalendarWeekDates(weekAnchor), [weekAnchor]);
 
@@ -170,6 +204,31 @@ export default function BookingPage() {
     setSelectedSlots([]);
   }, [selectedService?.id]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const raw = window.localStorage.getItem(BOOKING_CLIENT_CACHE_KEY);
+    if (!raw) {
+      return;
+    }
+    try {
+      const parsed = JSON.parse(raw) as {
+        firstName?: string;
+        lastName?: string;
+        email?: string;
+      };
+      bookingClientForm.reset({
+        firstName: parsed.firstName?.trim() ?? "",
+        lastName: parsed.lastName?.trim() ?? "",
+        email: parsed.email?.trim() ?? "",
+        rememberMe: true,
+      });
+    } catch {
+      // ignore malformed cached value
+    }
+  }, [bookingClientForm]);
+
   const mobileHeroImageCandidates = useMemo(
     () =>
       [selectedService?.imageUrl ?? null, coach?.imageUrl ?? null].filter(
@@ -240,7 +299,6 @@ export default function BookingPage() {
     const toPart = new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", year: "numeric" }).format(to);
     return `${fromPart} – ${toPart}`;
   }, [weekDates, locale]);
-
   const weeklyGridDays = useMemo(() => {
     const today = bookingLocalDateKey(new Date());
     return enabledColumns.map((col) => ({
@@ -272,8 +330,30 @@ export default function BookingPage() {
       }
     },
   });
+  const createCheckoutSessionMutation = trpc.publicBooking.createCheckoutSession.useMutation({
+    onSuccess: (payload) => {
+      window.location.href = payload.url;
+    },
+    onError: () => {
+      toast.error(t("public.booking.paymentStartError"));
+    },
+  });
+  const confirmCheckoutMutation = trpc.publicBooking.confirmCheckout.useMutation({
+    onSuccess: () => {
+      setStep("done");
+      if (typeof window !== "undefined") {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.delete("checkout");
+        currentUrl.searchParams.delete("session_id");
+        window.history.replaceState({}, "", currentUrl.toString());
+      }
+    },
+    onError: () => {
+      toast.error(t("public.booking.paymentConfirmError"));
+    },
+  });
 
-  const isCellBlocked = useCallback(
+  const isCellBlockedByBaseRules = useCallback(
     (column: BookingPageDayColumn, time: string, occupiedSlotKeys: Set<string>) => {
       if (!selectedService) {
         return true;
@@ -327,6 +407,22 @@ export default function BookingPage() {
   const requiredSessionCount = selectedService ? Math.max(1, selectedService.packSize) : 0;
   const allSessionsSelected = Boolean(selectedService && selectedSlots.length === requiredSessionCount);
 
+  const isCellBlocked = useCallback(
+    (column: BookingPageDayColumn, time: string, occupiedSlotKeys: Set<string>) => {
+      return isCellBlockedByBaseRules(column, time, occupiedSlotKeys);
+    },
+    [isCellBlockedByBaseRules],
+  );
+
+  const isSlotBlockedByMinNotice = useCallback(
+    (column: BookingPageDayColumn, time: string) => {
+      const startsAt = toSlotStartDate(column, time);
+      const minStartMs = Date.now() + minBookingNoticeHours * 60 * 60 * 1000;
+      return startsAt.getTime() < minStartMs;
+    },
+    [minBookingNoticeHours],
+  );
+
   const handlePickSlotWithOccupied = (column: BookingPageDayColumn, time: string, occ: Set<string>) => {
     if (!selectedService) {
       return;
@@ -336,10 +432,18 @@ export default function BookingPage() {
       setSelectedSlots((prev) => prev.filter((_, i) => i !== existingIdx));
       return;
     }
-    if (selectedSlots.length >= requiredSessionCount) {
+    if (isCellBlockedByBaseRules(column, time, occ)) {
       return;
     }
-    if (isCellBlocked(column, time, occ)) {
+    if (selectedSlots.length >= requiredSessionCount) {
+      setSelectedSlots((prev) => {
+        if (prev.length === 0) {
+          return [{ column, time }];
+        }
+        const next = [...prev];
+        next[next.length - 1] = { column, time };
+        return next;
+      });
       return;
     }
     setSelectedSlots((prev) => [...prev, { column, time }]);
@@ -348,23 +452,78 @@ export default function BookingPage() {
   const handlePickSlot = (column: BookingPageDayColumn, time: string) => {
     handlePickSlotWithOccupied(column, time, occupiedKeys);
   };
+  const handleRemoveSelectedSlot = (slotToRemove: SelectedSlot) => {
+    setSelectedSlots((prev) =>
+      prev.filter((slot) => !(slot.column.dateIso === slotToRemove.column.dateIso && slot.time === slotToRemove.time)),
+    );
+  };
 
-  const submitBookingRequest = () => {
+  useEffect(() => {
+    if (checkoutStatusParam !== "cancel") {
+      return;
+    }
+    toast.error(t("public.booking.paymentCancelled"));
+  }, [checkoutStatusParam, t]);
+
+  useEffect(() => {
+    if (checkoutStatusParam !== "success") {
+      return;
+    }
+    setStep("done");
+    if (!checkoutSessionIdParam || checkoutSessionIdParam.length === 0) {
+      return;
+    }
+    if (confirmCheckoutMutation.isPending || confirmCheckoutMutation.isSuccess) {
+      return;
+    }
+    confirmCheckoutMutation.mutate({
+      coachSlug: coachSlugKey,
+      sessionId: checkoutSessionIdParam,
+    });
+  }, [checkoutSessionIdParam, checkoutStatusParam, coachSlugKey, confirmCheckoutMutation]);
+
+  const submitBookingRequest = bookingClientForm.handleSubmit((values) => {
     if (!slugOk || !selectedService || !allSessionsSelected) {
       return;
     }
     const sessionsStartsAt = selectedSlots.map((s) =>
       new Date(`${s.column.dateIso}T${s.time}:00`).toISOString(),
     );
-    const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    requestMutation.mutate({
+    const payloadLocale: "fr" | "en" = locale === "fr" ? "fr" : "en";
+    const normalizedFirstName = values.firstName.trim();
+    const normalizedLastName = values.lastName.trim();
+    const normalizedEmail = values.email.trim().toLowerCase();
+    const payload = {
       coachSlug: coachSlugKey,
       serviceId: selectedService.id,
       sessionsStartsAt,
-      clientName: "Client public",
-      clientEmail: `public-booking-${uniqueSuffix}@bookido.local`,
-    });
-  };
+      clientName: `${normalizedFirstName} ${normalizedLastName}`.trim(),
+      clientEmail: normalizedEmail,
+      locale: payloadLocale,
+    };
+
+    if (typeof window !== "undefined") {
+      if (values.rememberMe) {
+        window.localStorage.setItem(
+          BOOKING_CLIENT_CACHE_KEY,
+          JSON.stringify({
+            firstName: normalizedFirstName,
+            lastName: normalizedLastName,
+            email: normalizedEmail,
+          }),
+        );
+      } else {
+        window.localStorage.removeItem(BOOKING_CLIENT_CACHE_KEY);
+      }
+    }
+
+    if (selectedService.isFree || selectedService.price <= 0) {
+      requestMutation.mutate(payload);
+      return;
+    }
+
+    createCheckoutSessionMutation.mutate(payload);
+  });
 
   const priceLabel =
     selectedService && (selectedService.isFree || selectedService.price <= 0)
@@ -498,20 +657,34 @@ export default function BookingPage() {
           const selectedHere = selectedSlots.some((s) => isSameSelectedSlot(s, column, time));
           const blocked = blockedRaw && !selectedHere;
           return (
-            <button
-              type="button"
-              disabled={blocked}
-              onClick={() => handlePickSlot(column, time)}
-              className={`h-full min-h-8 w-full px-0.5 py-0 text-[10px] transition-colors md:text-xs ${
-                blocked
-                  ? "cursor-not-allowed bg-slate-100 text-slate-400 opacity-60"
-                  : selectedHere
-                    ? "bg-blue-600 text-white"
-                    : "bg-white text-slate-800 hover:bg-blue-50"
-              }`}
-            >
-              {!blocked && selectedHere ? <Check className="mx-auto size-3.5" /> : null}
-            </button>
+            (() => {
+              const slotButton = (
+                <button
+                  type="button"
+                  disabled={blocked}
+                  onClick={() => handlePickSlot(column, time)}
+                  className={`h-full min-h-8 w-full px-0.5 py-0 text-[10px] transition-colors md:text-xs ${
+                    blocked
+                      ? "cursor-not-allowed bg-slate-100 text-slate-400 opacity-60"
+                      : selectedHere
+                        ? "bg-blue-600 text-white"
+                        : "bg-white text-slate-800 hover:bg-blue-50"
+                  }`}
+                >
+                  {!blocked && selectedHere ? <Check className="mx-auto size-3.5" /> : null}
+                </button>
+              );
+
+              if (blocked && !selectedHere && isSlotBlockedByMinNotice(column, time)) {
+                return (
+                  <CalendarSlotHoverHint label={t("public.booking.minNoticeHoverHint", { hours: minBookingNoticeHours })}>
+                    {slotButton}
+                  </CalendarSlotHoverHint>
+                );
+              }
+
+              return slotButton;
+            })()
           );
         }}
       />
@@ -525,22 +698,65 @@ export default function BookingPage() {
         a.time.localeCompare(b.time),
     );
   }, [selectedSlots]);
+  const firstNamePreview = bookingClientForm.watch("firstName").trim();
+  const lastNamePreview = bookingClientForm.watch("lastName").trim();
+  const emailPreview = bookingClientForm.watch("email").trim();
+  const fullNamePreview = `${firstNamePreview} ${lastNamePreview}`.trim();
+  const hasEmailError = Boolean(bookingClientForm.formState.errors.email);
+  const canSubmitBooking = firstNamePreview.length > 0 && lastNamePreview.length > 0 && emailPreview.length > 0 && !hasEmailError;
+  const bookingStepperSteps = [
+    { key: "service", label: t("public.booking.stepper.service") },
+    { key: "pick", label: t("public.booking.stepper.date") },
+    { key: "details", label: t("public.booking.stepper.recap") },
+  ] as const;
+  const bookingStepperCurrentIndex = step === "service" ? 0 : step === "pick" ? 1 : 2;
+
+  const bookingStepper = (
+    <div className="flex justify-center rounded-xl border border-blue-100 bg-blue-50/60 px-3 py-2">
+      <div className="mx-auto flex w-fit items-center justify-center">
+        {bookingStepperSteps.map((stepItem, idx) => {
+          const done = idx < bookingStepperCurrentIndex;
+          const current = idx === bookingStepperCurrentIndex;
+          const circleClass = current ? "bg-blue-600 border-blue-600" : done ? "bg-blue-500 border-blue-500" : "bg-white border-blue-200";
+          const lineClass = done ? "bg-blue-500" : "bg-blue-200";
+          const labelClass = current ? "text-blue-700" : "text-slate-500";
+          return (
+            <div key={stepItem.key} className="flex min-w-0 items-center">
+              <div className="flex w-[92px] flex-col items-center">
+                <span className={`block h-2.5 w-2.5 rounded-full border ${circleClass}`} />
+                <span className={`mt-1 text-center text-[10px] font-medium ${labelClass}`}>{stepItem.label}</span>
+              </div>
+              {idx < bookingStepperSteps.length - 1 ? <span className={`mx-1 h-px w-11 ${lineClass}`} /> : null}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
 
   const desktopSlotsSidebar = (
     <div className="rounded-2xl bg-white p-4 shadow-lg sm:p-5">
-      <h3 className="mb-2 font-bold text-slate-900">{t("public.payment.slots")}</h3>
+      <h3 className="mb-3 font-bold text-slate-900">{t("public.booking.sidebarSelectionsTitle")}</h3>
       {selectedService ? (
-        <p className="mb-3 text-sm text-slate-600">
-          {selectedService.name} · {t("public.booking.durationLabel", { minutes: selectedService.durationMinutes })} ·{" "}
-          {servicePackSessionsLabel} · {priceLabel}
-        </p>
+        <div className="mb-4 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+          {selectedService.imageUrl ? (
+            <img src={selectedService.imageUrl} alt={selectedService.name} className="h-28 w-full object-cover" />
+          ) : (
+            <div className="flex h-28 items-center justify-center px-3 text-center text-sm text-slate-500">
+              {selectedService.name}
+            </div>
+          )}
+          <div className="px-3 py-2">
+            <p className="truncate text-sm font-semibold text-slate-900">{selectedService.name}</p>
+          </div>
+        </div>
       ) : null}
       <p className="mb-3 text-sm font-medium text-slate-800">
         {t("public.booking.sessionsProgress", { current: selectedSlots.length, total: requiredSessionCount })}
       </p>
-      <p className="mb-4 text-sm text-slate-600">{t("public.booking.pickSlotSubtitle")}</p>
       {orderedSelectedSlots.length === 0 ? (
-        <p className="py-4 text-center text-sm text-slate-500">{t("public.booking.noSlotsChosenYet")}</p>
+        <p className="py-4 text-center text-sm text-slate-500">{t("public.booking.noSelectionYet")}</p>
       ) : (
         <ul className="mb-4 max-h-48 space-y-2 overflow-y-auto">
           {orderedSelectedSlots.map((slot, idx) => (
@@ -548,11 +764,23 @@ export default function BookingPage() {
               key={`${slot.column.dateIso}-${slot.time}-${idx}`}
               className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-slate-800"
             >
-              <div className="font-medium">
-                {t("public.booking.sessionNumber", { n: idx + 1 })} · {getDayShortLabel(slot.column.dayKey)}
-              </div>
-              <div className="text-slate-600">
-                {getDayDateLabel(slot.column.fullDate)} · {slot.time}
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="font-medium">
+                    {t("public.booking.sessionNumber", { n: idx + 1 })} · {getDayShortLabel(slot.column.dayKey)}
+                  </div>
+                  <div className="text-slate-600">
+                    {getDayDateLabel(slot.column.fullDate)} · {slot.time}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveSelectedSlot(slot)}
+                  className="inline-flex h-6 w-6 items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-blue-100 hover:text-slate-800"
+                  aria-label={t("public.booking.removeSelectionAria", { session: idx + 1 })}
+                >
+                  <X className="size-3.5" />
+                </button>
               </div>
             </li>
           ))}
@@ -564,12 +792,10 @@ export default function BookingPage() {
       <Button
         type="button"
         className="w-full rounded-xl"
-        onClick={submitBookingRequest}
-        disabled={!allSessionsSelected || requestMutation.isPending}
-        pending={requestMutation.isPending}
-        pendingChildren={t("public.booking.submitting")}
+        onClick={() => setStep("details")}
+        disabled={!allSessionsSelected}
       >
-        {t("public.booking.submit")}
+        {t("public.booking.continueToDetails")}
       </Button>
     </div>
   );
@@ -591,7 +817,8 @@ export default function BookingPage() {
     [mobileMonthDates, bookingSegments],
   );
   const mobileHeroClassName = "relative h-[30vh] min-h-56 overflow-hidden bg-slate-100";
-  const mobileDrawerClassName = "fixed inset-x-0 bottom-0 z-40 flex h-[70vh] -translate-y-5 flex-col rounded-t-[28px] bg-white";
+  const mobileDrawerClassName =
+    "fixed inset-x-0 bottom-0 z-40 flex h-[70vh] -translate-y-[10vh] flex-col rounded-t-[28px] bg-white";
   const now = useMemo(() => new Date(), []);
   const currentYear = now.getFullYear();
   const currentMonthIndex = now.getMonth();
@@ -627,20 +854,31 @@ export default function BookingPage() {
       mobileDayColumns.map((column) => ({
         column,
         label: fullDateFormatter.format(column.fullDate),
+        selectedTimes: selectedSlots
+          .filter((slot) => slot.column.dateIso === column.dateIso)
+          .map((slot) => slot.time)
+          .sort((a, b) => a.localeCompare(b)),
         slots: BOOKING_PAGE_GRID_SLOTS.filter((time) => {
           if (selectedSlots.some((s) => isSameSelectedSlot(s, column, time))) {
             return true;
           }
-          return !isCellBlocked(column, time, mobileOccupiedKeys);
+          return !isCellBlockedByBaseRules(column, time, mobileOccupiedKeys);
         }),
       }))
       .filter((day) => day.slots.length > 0),
-    [mobileDayColumns, fullDateFormatter, mobileOccupiedKeys, isCellBlocked, selectedSlots],
+    [mobileDayColumns, fullDateFormatter, mobileOccupiedKeys, isCellBlockedByBaseRules, selectedSlots],
   );
 
   useEffect(() => {
-    const firstDay = pickerAccordionDays[0]?.column;
-    setMobilePickerOpenDayKey(firstDay ? firstDay.dateIso : null);
+    setMobilePickerOpenDayKey((currentOpenDayKey) => {
+      if (!pickerAccordionDays.length) {
+        return null;
+      }
+      if (currentOpenDayKey && pickerAccordionDays.some((day) => day.column.dateIso === currentOpenDayKey)) {
+        return currentOpenDayKey;
+      }
+      return pickerAccordionDays[0]?.column.dateIso ?? null;
+    });
   }, [pickerAccordionDays]);
 
   const mobileGrid = (
@@ -687,6 +925,7 @@ export default function BookingPage() {
       <div className={mobileDrawerClassName}>
         <div className="mx-auto mt-3 h-1.5 w-14 rounded-full bg-slate-200" />
         <div className="flex-1 space-y-4 overflow-y-auto px-5 pb-4 pt-4">
+          {bookingStepper}
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="truncate text-2xl font-bold text-slate-900">{selectedService?.name ?? ""}</p>
@@ -697,31 +936,8 @@ export default function BookingPage() {
           <div className="flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 p-2">
             <Button
               type="button"
-              variant="ghost"
-              size="icon-sm"
-              className="shrink-0 rounded-lg hover:bg-slate-200"
-              onClick={() => shiftWeek(-1)}
-              aria-label={t("public.booking.weekPrev")}
-            >
-              <ChevronLeft className="size-5 text-slate-800" />
-            </Button>
-            <span className="min-w-0 flex-[1_1_140px] truncate text-center text-xs font-medium text-slate-900">
-              {weekRangeLabel}
-            </span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              className="shrink-0 rounded-lg hover:bg-slate-200"
-              onClick={() => shiftWeek(1)}
-              aria-label={t("public.booking.weekNext")}
-            >
-              <ChevronRight className="size-5 text-slate-800" />
-            </Button>
-            <Button
-              type="button"
               variant="outline"
-              className="min-w-0 flex-1 justify-center rounded-xl"
+              className="min-w-0 flex-[2] justify-center rounded-xl capitalize"
               onClick={() => setMobileMonthSelectOpen(true)}
             >
               {mobileMonthLabel}
@@ -752,7 +968,21 @@ export default function BookingPage() {
                 {pickerAccordionDays.map((day) => (
                   <AccordionItem key={day.column.dateIso} value={day.column.dateIso} className="px-3">
                     <AccordionTrigger className="text-base font-semibold capitalize no-underline hover:no-underline">
-                      {day.label}
+                      <div className="min-w-0">
+                        <p className="truncate">{day.label}</p>
+                        {day.selectedTimes.length > 0 ? (
+                          <div className="mt-1.5 flex flex-wrap gap-1.5">
+                            {day.selectedTimes.map((time) => (
+                              <span
+                                key={`${day.column.dateIso}-${time}`}
+                                className="inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700"
+                              >
+                                {time}
+                              </span>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
                     </AccordionTrigger>
                     <AccordionContent>
                       {day.slots.length === 0 ? (
@@ -789,12 +1019,10 @@ export default function BookingPage() {
           <Button
             type="button"
             className="w-full rounded-2xl py-6 text-base font-semibold"
-            onClick={submitBookingRequest}
-            disabled={!allSessionsSelected || requestMutation.isPending}
-            pending={requestMutation.isPending}
-            pendingChildren={t("public.booking.submitting")}
+            onClick={() => setStep("details")}
+            disabled={!allSessionsSelected}
           >
-            {t("public.booking.submit")}
+            {t("public.booking.continueToDetails")}
           </Button>
         </div>
       </div>
@@ -892,13 +1120,322 @@ export default function BookingPage() {
           <div className="hidden lg:block">
             {coachBannerPick}
             <h2 className="mb-2 text-center text-3xl font-bold text-slate-900">{t("public.booking.calendarTitle")}</h2>
-            <p className="mb-2 text-center text-slate-600">{selectedService?.name ?? ""}</p>
           </div>
           {desktopGrid}
           {mobileGrid}
         </>
       )}
     </>
+  );
+
+  const detailsStepContent = (
+    <div className="mx-auto max-w-3xl">
+      <div className={`${mobileHeroClassName} md:hidden`}>
+        {mobileHeroImageCandidates[mobileHeroImageIndex] ? (
+          <img
+            src={mobileHeroImageCandidates[mobileHeroImageIndex]}
+            alt={selectedService?.name ?? "service"}
+            className="h-full w-full object-cover object-bottom"
+            onError={() => {
+              setMobileHeroImageIndex((current) => {
+                if (current >= mobileHeroImageCandidates.length - 1) {
+                  return current;
+                }
+                return current + 1;
+              });
+            }}
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center bg-slate-200 px-4 text-center text-sm text-slate-600">
+            {selectedService?.name ?? ""}
+          </div>
+        )}
+        <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 pt-5">
+          <button
+            type="button"
+            onClick={() => setStep("pick")}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm"
+            aria-label={t("common.back")}
+          >
+            <ChevronLeft className="size-5" />
+          </button>
+          <button
+            type="button"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm"
+            aria-label={t("public.booking.share")}
+          >
+            <Share2 className="size-4.5" />
+          </button>
+        </div>
+      </div>
+
+      <div className={`${mobileDrawerClassName} md:hidden`}>
+        <div className="mx-auto mt-3 h-1.5 w-14 rounded-full bg-slate-200" />
+        <div className="flex-1 space-y-4 overflow-y-auto px-5 pb-4 pt-4">
+          {bookingStepper}
+          <h2 className="mb-1 text-2xl font-bold text-slate-900">{t("public.booking.clientDetailsTitle")}</h2>
+          <p className="mb-4 text-sm text-slate-600">{t("public.booking.recapSubtitle")}</p>
+          <Form {...bookingClientForm}>
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <FormField
+                  control={bookingClientForm.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("public.booking.firstName")}</FormLabel>
+                      <FormControl>
+                        <Input {...field} autoComplete="given-name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={bookingClientForm.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("public.booking.lastName")}</FormLabel>
+                      <FormControl>
+                        <Input {...field} autoComplete="family-name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <FormField
+                control={bookingClientForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("public.booking.clientEmail")}</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="email" autoComplete="email" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={bookingClientForm.control}
+                name="rememberMe"
+                render={({ field }) => (
+                  <FormItem>
+                    <label className="flex items-center gap-2 text-sm text-slate-600">
+                      <FormControl>
+                        <Checkbox checked={field.value === true} onCheckedChange={(value) => field.onChange(value === true)} />
+                      </FormControl>
+                      <span>{t("public.booking.rememberMe")}</span>
+                    </label>
+                  </FormItem>
+                )}
+              />
+            </div>
+          </Form>
+
+          <div className="mt-5 space-y-3 rounded-2xl border border-blue-100 bg-gradient-to-b from-blue-50/70 to-white p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-base font-semibold text-slate-900">{t("public.booking.recapTitle")}</p>
+              <p className="text-base font-semibold text-blue-700">{priceLabel}</p>
+            </div>
+            <div className="rounded-xl border border-blue-100 bg-white px-3 py-3 text-sm text-slate-700 shadow-sm">
+              <p className="font-medium text-slate-900">{selectedService?.name ?? ""}</p>
+              <p className="mt-0.5 text-slate-600">
+                {t("public.booking.durationLabel", { minutes: selectedService?.durationMinutes ?? 0 })} · {servicePackSessionsLabel}
+              </p>
+            </div>
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                {t("public.booking.sidebarSelectionsTitle")}
+              </p>
+              {orderedSelectedSlots.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-slate-300 bg-white px-3 py-3 text-sm text-slate-500">
+                  {t("public.booking.noSelectionYet")}
+                </div>
+              ) : (
+                <ul className="max-h-44 space-y-2 overflow-y-auto pr-1">
+                  {orderedSelectedSlots.map((slot, idx) => (
+                <li
+                  key={`${slot.column.dateIso}-${slot.time}-${idx}`}
+                  className="rounded-xl border border-blue-100 bg-white px-3 py-2 shadow-sm"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-slate-900">{t("public.booking.sessionNumber", { n: idx + 1 })}</p>
+                      <p className="mt-0.5 text-sm text-slate-700">
+                        {getDayDateLabel(slot.column.fullDate)} · {slot.time}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveSelectedSlot(slot)}
+                      className="inline-flex h-6 w-6 items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800"
+                      aria-label={t("public.booking.removeSelectionAria", { session: idx + 1 })}
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                  </div>
+                </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-slate-200 bg-white px-5 py-4">
+          <div className="flex flex-col gap-2">
+            <Button type="button" variant="outline" className="w-full rounded-2xl py-6 text-base font-semibold" onClick={() => setStep("pick")}>
+              {t("common.back")}
+            </Button>
+            <Button
+              type="button"
+              className="w-full rounded-2xl py-6 text-base font-semibold"
+              onClick={submitBookingRequest}
+              disabled={
+                !canSubmitBooking || requestMutation.isPending || createCheckoutSessionMutation.isPending || confirmCheckoutMutation.isPending
+              }
+              pending={requestMutation.isPending || createCheckoutSessionMutation.isPending || confirmCheckoutMutation.isPending}
+              pendingChildren={t("public.booking.submitting")}
+            >
+              {t("public.booking.submit")}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="hidden mx-auto max-w-2xl rounded-2xl border border-slate-200 bg-white p-5 shadow-lg sm:p-6 md:block">
+        <h2 className="mb-1 text-2xl font-bold text-slate-900">{t("public.booking.clientDetailsTitle")}</h2>
+        <p className="mb-4 text-sm text-slate-600">{t("public.booking.recapSubtitle")}</p>
+        <Form {...bookingClientForm}>
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <FormField
+                control={bookingClientForm.control}
+                name="firstName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("public.booking.firstName")}</FormLabel>
+                    <FormControl>
+                      <Input {...field} autoComplete="given-name" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={bookingClientForm.control}
+                name="lastName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("public.booking.lastName")}</FormLabel>
+                    <FormControl>
+                      <Input {...field} autoComplete="family-name" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <FormField
+              control={bookingClientForm.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("public.booking.clientEmail")}</FormLabel>
+                  <FormControl>
+                    <Input {...field} type="email" autoComplete="email" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={bookingClientForm.control}
+              name="rememberMe"
+              render={({ field }) => (
+                <FormItem>
+                  <label className="flex items-center gap-2 text-sm text-slate-600">
+                    <FormControl>
+                      <Checkbox checked={field.value === true} onCheckedChange={(value) => field.onChange(value === true)} />
+                    </FormControl>
+                    <span>{t("public.booking.rememberMe")}</span>
+                  </label>
+                </FormItem>
+              )}
+            />
+          </div>
+        </Form>
+
+        <div className="mt-5 space-y-3 rounded-2xl border border-blue-100 bg-gradient-to-b from-blue-50/70 to-white p-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-base font-semibold text-slate-900">{t("public.booking.recapTitle")}</p>
+            <p className="text-base font-semibold text-blue-700">{priceLabel}</p>
+          </div>
+          <div className="rounded-xl border border-blue-100 bg-white px-3 py-3 text-sm text-slate-700 shadow-sm">
+            <p className="font-medium text-slate-900">{selectedService?.name ?? ""}</p>
+            <p className="mt-0.5 text-slate-600">
+              {t("public.booking.durationLabel", { minutes: selectedService?.durationMinutes ?? 0 })} · {servicePackSessionsLabel}
+            </p>
+          </div>
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              {t("public.booking.sidebarSelectionsTitle")}
+            </p>
+            {orderedSelectedSlots.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-slate-300 bg-white px-3 py-3 text-sm text-slate-500">
+                {t("public.booking.noSelectionYet")}
+              </div>
+            ) : (
+              <ul className="max-h-44 space-y-2 overflow-y-auto pr-1">
+                {orderedSelectedSlots.map((slot, idx) => (
+                <li
+                  key={`${slot.column.dateIso}-${slot.time}-${idx}`}
+                  className="rounded-xl border border-blue-100 bg-white px-3 py-2 shadow-sm"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-slate-900">{t("public.booking.sessionNumber", { n: idx + 1 })}</p>
+                      <p className="mt-0.5 text-sm text-slate-700">
+                        {getDayDateLabel(slot.column.fullDate)} · {slot.time}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveSelectedSlot(slot)}
+                      className="inline-flex h-6 w-6 items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800"
+                      aria-label={t("public.booking.removeSelectionAria", { session: idx + 1 })}
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                  </div>
+                </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">
+          <Button type="button" variant="outline" onClick={() => setStep("pick")}>
+            {t("common.back")}
+          </Button>
+          <Button
+            type="button"
+            onClick={submitBookingRequest}
+            disabled={
+              !canSubmitBooking || requestMutation.isPending || createCheckoutSessionMutation.isPending || confirmCheckoutMutation.isPending
+            }
+            pending={requestMutation.isPending || createCheckoutSessionMutation.isPending || confirmCheckoutMutation.isPending}
+            pendingChildren={t("public.booking.submitting")}
+          >
+            {t("public.booking.submit")}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 
   const serviceDetailsStep = selectedService ? (
@@ -944,6 +1481,7 @@ export default function BookingPage() {
       <div className={`${mobileDrawerClassName} md:hidden`}>
         <div className="mx-auto mt-3 h-1.5 w-14 rounded-full bg-slate-200" />
         <div className="flex-1 space-y-4 overflow-y-auto px-5 pb-4 pt-4">
+          {bookingStepper}
           {coach ? <PublicCoachBanner name={coach.name} bio={coach.bio} imageUrl={coach.imageUrl} /> : null}
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
@@ -1058,6 +1596,8 @@ export default function BookingPage() {
     doneBlock
   ) : step === "service" ? (
     serviceDetailsStep
+  ) : step === "details" ? (
+    detailsStepContent
   ) : (
     pickStepContent
   );
@@ -1065,22 +1605,27 @@ export default function BookingPage() {
   return (
     <FrontOfficePageLayout
       rootClassName={
-        step === "service" || step === "pick"
+        step === "service" || step === "pick" || step === "details"
           ? "min-h-screen bg-black px-0 py-0 md:bg-slate-50 md:px-2 md:py-8 lg:px-3"
           : "min-h-screen bg-slate-50 px-6 py-12"
       }
-      hideBrandOnMobile={step === "service" || step === "pick"}
+      hideBrandOnMobile={step === "service" || step === "pick" || step === "details"}
       topAction={
-        step === "done" || step === "service" || step === "pick" ? null : <BackButton label={t("common.back")} fallbackHref={servicesHref} />
+        step === "done" || step === "service" || step === "pick" || step === "details"
+          ? null
+          : <BackButton label={t("common.back")} fallbackHref={servicesHref} />
       }
     >
       <div
         className={
-          step === "service" || step === "pick"
+          step === "service" || step === "pick" || step === "details"
             ? "mx-auto w-full max-w-[1600px] pt-0 md:pt-6"
             : "mx-auto max-w-5xl pt-8"
         }
       >
+        {step === "service" || step === "pick" || step === "details" ? (
+          <div className="mb-4 hidden md:block">{bookingStepper}</div>
+        ) : null}
         {mainInner}
       </div>
     </FrontOfficePageLayout>

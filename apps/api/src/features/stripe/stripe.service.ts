@@ -97,6 +97,15 @@ export class StripeService {
     const requirementsStatus = account.requirements?.summary?.minimum_deadline?.status;
     const onboardingComplete = requirementsStatus !== "currently_due" && requirementsStatus !== "past_due";
 
+    await this.db.user.updateMany({
+      where: { stripeAccountId: account.id },
+      data: {
+        stripeOnboardingComplete: onboardingComplete,
+        stripeChargesEnabled: readyToProcessPayments,
+        stripePayoutsEnabled: readyToProcessPayments,
+      },
+    });
+
     return {
       stripeAccountId: account.id,
       stripeOnboardingComplete: onboardingComplete,

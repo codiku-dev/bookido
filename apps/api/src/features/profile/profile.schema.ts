@@ -88,7 +88,7 @@ export type UpdatePublicBookingPresenceInput = z.infer<typeof updatePublicBookin
 
 export const updateProfileBasicsInputSchema = z.object({
   name: z.string().min(1).max(200),
-  bio: z.string().max(4000).nullable().optional(),
+  bio: z.string().max(320).nullable().optional(),
   defaultAddress: z.string().max(500).nullable().optional(),
   publicBookingMinNoticeHours: z.number().int().min(0).max(168).optional(),
 });
@@ -98,4 +98,9 @@ export type UpdateProfileBasicsInput = z.infer<typeof updateProfileBasicsInputSc
 export const adminOnboardingStatusOutputSchema = z.object({
   needsOnboarding: z.boolean(),
   bio: z.string().nullable(),
+  currentStep: z.number().int().min(0).max(8),
+});
+
+export const saveAdminOnboardingStepInputSchema = z.object({
+  step: z.number().int().min(0).max(8),
 });

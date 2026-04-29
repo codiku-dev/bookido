@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FilterX, Plus, Search, Users, X } from "lucide-react";
@@ -23,11 +23,22 @@ export default function UsersView() {
   const [nextBookingFrom, setNextBookingFrom] = useState("");
   const [nextBookingTo, setNextBookingTo] = useState("");
   const [showNewClientModal, setShowNewClientModal] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<25 | 50 | 100>(25);
 
-  const listQuery = trpc.clients.list.useQuery(undefined, { retry: false });
+  const listQuery = trpc.clients.listPaginated.useQuery(
+    {
+      page,
+      pageSize,
+      search: search.trim().length > 0 ? search.trim() : undefined,
+      nextBookingFrom: nextBookingFrom || undefined,
+      nextBookingTo: nextBookingTo || undefined,
+    },
+    { retry: false },
+  );
   const createMutation = trpc.clients.create.useMutation({
     onSuccess: async () => {
-      await utils.clients.list.invalidate();
+      await utils.clients.listPaginated.invalidate();
       setShowNewClientModal(false);
       toast.success(t("users.clients.created"));
     },
@@ -36,34 +47,8 @@ export default function UsersView() {
     },
   });
 
-  const allUsers = listQuery.data ?? [];
-
-  const filteredUsers = useMemo(() => {
-    const rows = allUsers;
-    const q = search.trim().toLowerCase();
-    const hasDateFilter = nextBookingFrom.length > 0 || nextBookingTo.length > 0;
-
-    return rows.filter((user) => {
-      const matchesSearch =
-        q.length === 0 ||
-        user.name.toLowerCase().includes(q) ||
-        user.email.toLowerCase().includes(q) ||
-        user.phone.toLowerCase().includes(q);
-
-      let matchesNextDate = true;
-      if (hasDateFilter) {
-        const nb = user.nextBookingDate;
-        if (!nb) {
-          matchesNextDate = false;
-        } else {
-          if (nextBookingFrom && nb < nextBookingFrom) matchesNextDate = false;
-          if (nextBookingTo && nb > nextBookingTo) matchesNextDate = false;
-        }
-      }
-
-      return matchesSearch && matchesNextDate;
-    });
-  }, [allUsers, search, nextBookingFrom, nextBookingTo]);
+  const allUsers = listQuery.data?.items ?? [];
+  const filteredUsers = allUsers;
 
   const hasActiveFilters = search.length > 0 || nextBookingFrom.length > 0 || nextBookingTo.length > 0;
 
@@ -72,6 +57,10 @@ export default function UsersView() {
     setNextBookingFrom("");
     setNextBookingTo("");
   };
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, nextBookingFrom, nextBookingTo, pageSize]);
 
   const handleSaveNewClient = async (clientData: ClientFormData) => {
     await createMutation.mutateAsync({
@@ -221,9 +210,38 @@ export default function UsersView() {
     ))
   );
 
-  const showEmptyList = !listQuery.isLoading && !listQuery.isError && allUsers.length === 0;
+  const showEmptyList = !listQuery.isLoading && !listQuery.isError && (listQuery.data?.total ?? 0) === 0;
   const showEmptyFiltered =
-    !listQuery.isLoading && !listQuery.isError && allUsers.length > 0 && filteredUsers.length === 0;
+    !listQuery.isLoading && !listQuery.isError && (listQuery.data?.total ?? 0) > 0 && filteredUsers.length === 0;
+
+  const totalPages = listQuery.data?.totalPages ?? 1;
+  const pagination = (
+    <div className="mt-4 flex items-center justify-between gap-3">
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-slate-600">{t("common.pagination.perPage")}</span>
+        <select
+          value={String(pageSize)}
+          onChange={(event) => setPageSize(Number(event.target.value) as 25 | 50 | 100)}
+          className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm"
+        >
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </div>
+      <div className="flex items-center gap-2">
+        <Button type="button" variant="outline" disabled={page <= 1} onClick={() => setPage((prev) => Math.max(1, prev - 1))}>
+          {t("common.pagination.previous")}
+        </Button>
+        <span className="text-sm text-slate-600">
+          {t("common.pagination.page")} {page}/{totalPages}
+        </span>
+        <Button type="button" variant="outline" disabled={page >= totalPages} onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}>
+          {t("common.pagination.next")}
+        </Button>
+      </div>
+    </div>
+  );
 
   const emptyListBlock = showEmptyList ? (
     <div className="border-t border-slate-100 bg-slate-50/60 px-6 py-16 text-center">
@@ -257,10 +275,12 @@ export default function UsersView() {
 
   const table = (
     <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-      <table className="w-full">
-        {tableHead}
-        <tbody className="divide-y divide-slate-200">{tableBodyRows}</tbody>
-      </table>
+      <div className="w-full overflow-x-auto">
+        <table className="w-full min-w-[760px]">
+          {tableHead}
+          <tbody className="divide-y divide-slate-200">{tableBodyRows}</tbody>
+        </table>
+      </div>
       {emptyListBlock}
       {emptyFilteredBlock}
     </div>
@@ -278,6 +298,7 @@ export default function UsersView() {
         />
         {filtersCard}
         {table}
+        {pagination}
       </div>
     </div>
   );

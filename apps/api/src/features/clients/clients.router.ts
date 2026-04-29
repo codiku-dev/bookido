@@ -9,8 +9,11 @@ import { ClientsService } from "./clients.service";
 import {
   clientWithStatsSchema,
   createClientInputSchema,
+  listClientsPaginatedInputSchema,
+  paginatedClientsOutputSchema,
   updateClientInputSchema,
   type CreateClientInput,
+  type ListClientsPaginatedInput,
   type UpdateClientInput,
 } from "./clients.schema";
 
@@ -30,6 +33,14 @@ export class ClientsRouter {
   })
   list(@Ctx() ctx: BaseUserSession) {
     return this.clientsService.listByOwner(requireUserId(ctx));
+  }
+
+  @Query({
+    input: listClientsPaginatedInputSchema,
+    output: paginatedClientsOutputSchema,
+  })
+  listPaginated(@Ctx() ctx: BaseUserSession, @Input() input: ListClientsPaginatedInput) {
+    return this.clientsService.listPaginated(requireUserId(ctx), input);
   }
 
   @Query({

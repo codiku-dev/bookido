@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import BookidoLogo from "#/components/BookidoLogo";
+import { Avatar, AvatarFallback, AvatarImage } from "#/components/ui/avatar";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -158,6 +159,26 @@ export default function AdminLayout(p: { children: ReactNode }) {
     return onboardingGateOverlay;
   }
 
+  const userFullName = sessionPayload?.user?.name?.trim() ?? "";
+  const userEmail = sessionPayload?.user?.email?.trim() ?? "";
+  const userImage = sessionPayload?.user?.image?.trim() ?? "";
+  const avatarFallback = userFullName.length > 0 ? userFullName.slice(0, 2).toUpperCase() : "AD";
+
+  const accountIdentity = (
+    <div className="border-b border-slate-200 px-6 py-4">
+      <div className="flex items-center gap-3">
+        <Avatar className="h-10 w-10 border border-slate-200">
+          {userImage.length > 0 ? <AvatarImage src={userImage} alt={userFullName} /> : null}
+          <AvatarFallback className="bg-slate-100 text-slate-700">{avatarFallback}</AvatarFallback>
+        </Avatar>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-slate-900">{userFullName.length > 0 ? userFullName : "Admin"}</p>
+          <p className="truncate text-xs text-slate-500">{userEmail}</p>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="relative flex h-screen bg-slate-50">
       {/* Sidebar */}
@@ -171,6 +192,7 @@ export default function AdminLayout(p: { children: ReactNode }) {
             </div>
           </Link>
         </div>
+        {accountIdentity}
 
         <nav className="flex-1 p-4">
           <div className="space-y-1">

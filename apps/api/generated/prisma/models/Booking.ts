@@ -54,6 +54,7 @@ export type BookingMinAggregateOutputType = {
   requiresHostValidation: boolean | null
   hostValidationAccepted: boolean | null
   createdByClient: boolean | null
+  adminViewedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -74,6 +75,7 @@ export type BookingMaxAggregateOutputType = {
   requiresHostValidation: boolean | null
   hostValidationAccepted: boolean | null
   createdByClient: boolean | null
+  adminViewedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -94,6 +96,7 @@ export type BookingCountAggregateOutputType = {
   requiresHostValidation: number
   hostValidationAccepted: number
   createdByClient: number
+  adminViewedAt: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -128,6 +131,7 @@ export type BookingMinAggregateInputType = {
   requiresHostValidation?: true
   hostValidationAccepted?: true
   createdByClient?: true
+  adminViewedAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -148,6 +152,7 @@ export type BookingMaxAggregateInputType = {
   requiresHostValidation?: true
   hostValidationAccepted?: true
   createdByClient?: true
+  adminViewedAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -168,6 +173,7 @@ export type BookingCountAggregateInputType = {
   requiresHostValidation?: true
   hostValidationAccepted?: true
   createdByClient?: true
+  adminViewedAt?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -275,6 +281,7 @@ export type BookingGroupByOutputType = {
   requiresHostValidation: boolean
   hostValidationAccepted: boolean
   createdByClient: boolean
+  adminViewedAt: Date | null
   createdAt: Date
   updatedAt: Date
   _count: BookingCountAggregateOutputType | null
@@ -318,6 +325,7 @@ export type BookingWhereInput = {
   requiresHostValidation?: Prisma.BoolFilter<"Booking"> | boolean
   hostValidationAccepted?: Prisma.BoolFilter<"Booking"> | boolean
   createdByClient?: Prisma.BoolFilter<"Booking"> | boolean
+  adminViewedAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Booking"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Booking"> | Date | string
   owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -341,6 +349,7 @@ export type BookingOrderByWithRelationInput = {
   requiresHostValidation?: Prisma.SortOrder
   hostValidationAccepted?: Prisma.SortOrder
   createdByClient?: Prisma.SortOrder
+  adminViewedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   owner?: Prisma.UserOrderByWithRelationInput
@@ -367,6 +376,7 @@ export type BookingWhereUniqueInput = Prisma.AtLeast<{
   requiresHostValidation?: Prisma.BoolFilter<"Booking"> | boolean
   hostValidationAccepted?: Prisma.BoolFilter<"Booking"> | boolean
   createdByClient?: Prisma.BoolFilter<"Booking"> | boolean
+  adminViewedAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Booking"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Booking"> | Date | string
   owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -390,6 +400,7 @@ export type BookingOrderByWithAggregationInput = {
   requiresHostValidation?: Prisma.SortOrder
   hostValidationAccepted?: Prisma.SortOrder
   createdByClient?: Prisma.SortOrder
+  adminViewedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.BookingCountOrderByAggregateInput
@@ -418,6 +429,7 @@ export type BookingScalarWhereWithAggregatesInput = {
   requiresHostValidation?: Prisma.BoolWithAggregatesFilter<"Booking"> | boolean
   hostValidationAccepted?: Prisma.BoolWithAggregatesFilter<"Booking"> | boolean
   createdByClient?: Prisma.BoolWithAggregatesFilter<"Booking"> | boolean
+  adminViewedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Booking"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Booking"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Booking"> | Date | string
 }
@@ -435,6 +447,7 @@ export type BookingCreateInput = {
   requiresHostValidation?: boolean
   hostValidationAccepted?: boolean
   createdByClient?: boolean
+  adminViewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   owner: Prisma.UserCreateNestedOneWithoutBookingsInput
@@ -458,6 +471,7 @@ export type BookingUncheckedCreateInput = {
   requiresHostValidation?: boolean
   hostValidationAccepted?: boolean
   createdByClient?: boolean
+  adminViewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -475,6 +489,7 @@ export type BookingUpdateInput = {
   requiresHostValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hostValidationAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdByClient?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  adminViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner?: Prisma.UserUpdateOneRequiredWithoutBookingsNestedInput
@@ -498,6 +513,7 @@ export type BookingUncheckedUpdateInput = {
   requiresHostValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hostValidationAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdByClient?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  adminViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -518,6 +534,7 @@ export type BookingCreateManyInput = {
   requiresHostValidation?: boolean
   hostValidationAccepted?: boolean
   createdByClient?: boolean
+  adminViewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -535,6 +552,7 @@ export type BookingUpdateManyMutationInput = {
   requiresHostValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hostValidationAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdByClient?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  adminViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -555,6 +573,7 @@ export type BookingUncheckedUpdateManyInput = {
   requiresHostValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hostValidationAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdByClient?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  adminViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -585,6 +604,7 @@ export type BookingCountOrderByAggregateInput = {
   requiresHostValidation?: Prisma.SortOrder
   hostValidationAccepted?: Prisma.SortOrder
   createdByClient?: Prisma.SortOrder
+  adminViewedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -611,6 +631,7 @@ export type BookingMaxOrderByAggregateInput = {
   requiresHostValidation?: Prisma.SortOrder
   hostValidationAccepted?: Prisma.SortOrder
   createdByClient?: Prisma.SortOrder
+  adminViewedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -631,6 +652,7 @@ export type BookingMinOrderByAggregateInput = {
   requiresHostValidation?: Prisma.SortOrder
   hostValidationAccepted?: Prisma.SortOrder
   createdByClient?: Prisma.SortOrder
+  adminViewedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -780,6 +802,7 @@ export type BookingCreateWithoutOwnerInput = {
   requiresHostValidation?: boolean
   hostValidationAccepted?: boolean
   createdByClient?: boolean
+  adminViewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   client: Prisma.ClientCreateNestedOneWithoutBookingsInput
@@ -801,6 +824,7 @@ export type BookingUncheckedCreateWithoutOwnerInput = {
   requiresHostValidation?: boolean
   hostValidationAccepted?: boolean
   createdByClient?: boolean
+  adminViewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -850,6 +874,7 @@ export type BookingScalarWhereInput = {
   requiresHostValidation?: Prisma.BoolFilter<"Booking"> | boolean
   hostValidationAccepted?: Prisma.BoolFilter<"Booking"> | boolean
   createdByClient?: Prisma.BoolFilter<"Booking"> | boolean
+  adminViewedAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Booking"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Booking"> | Date | string
 }
@@ -867,6 +892,7 @@ export type BookingCreateWithoutClientInput = {
   requiresHostValidation?: boolean
   hostValidationAccepted?: boolean
   createdByClient?: boolean
+  adminViewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   owner: Prisma.UserCreateNestedOneWithoutBookingsInput
@@ -888,6 +914,7 @@ export type BookingUncheckedCreateWithoutClientInput = {
   requiresHostValidation?: boolean
   hostValidationAccepted?: boolean
   createdByClient?: boolean
+  adminViewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -931,6 +958,7 @@ export type BookingCreateWithoutServiceInput = {
   requiresHostValidation?: boolean
   hostValidationAccepted?: boolean
   createdByClient?: boolean
+  adminViewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   owner: Prisma.UserCreateNestedOneWithoutBookingsInput
@@ -952,6 +980,7 @@ export type BookingUncheckedCreateWithoutServiceInput = {
   requiresHostValidation?: boolean
   hostValidationAccepted?: boolean
   createdByClient?: boolean
+  adminViewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -997,6 +1026,7 @@ export type BookingCreateManyOwnerInput = {
   requiresHostValidation?: boolean
   hostValidationAccepted?: boolean
   createdByClient?: boolean
+  adminViewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1014,6 +1044,7 @@ export type BookingUpdateWithoutOwnerInput = {
   requiresHostValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hostValidationAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdByClient?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  adminViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   client?: Prisma.ClientUpdateOneRequiredWithoutBookingsNestedInput
@@ -1035,6 +1066,7 @@ export type BookingUncheckedUpdateWithoutOwnerInput = {
   requiresHostValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hostValidationAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdByClient?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  adminViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1054,6 +1086,7 @@ export type BookingUncheckedUpdateManyWithoutOwnerInput = {
   requiresHostValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hostValidationAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdByClient?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  adminViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1073,6 +1106,7 @@ export type BookingCreateManyClientInput = {
   requiresHostValidation?: boolean
   hostValidationAccepted?: boolean
   createdByClient?: boolean
+  adminViewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1090,6 +1124,7 @@ export type BookingUpdateWithoutClientInput = {
   requiresHostValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hostValidationAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdByClient?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  adminViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner?: Prisma.UserUpdateOneRequiredWithoutBookingsNestedInput
@@ -1111,6 +1146,7 @@ export type BookingUncheckedUpdateWithoutClientInput = {
   requiresHostValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hostValidationAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdByClient?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  adminViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1130,6 +1166,7 @@ export type BookingUncheckedUpdateManyWithoutClientInput = {
   requiresHostValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hostValidationAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdByClient?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  adminViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1149,6 +1186,7 @@ export type BookingCreateManyServiceInput = {
   requiresHostValidation?: boolean
   hostValidationAccepted?: boolean
   createdByClient?: boolean
+  adminViewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1166,6 +1204,7 @@ export type BookingUpdateWithoutServiceInput = {
   requiresHostValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hostValidationAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdByClient?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  adminViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner?: Prisma.UserUpdateOneRequiredWithoutBookingsNestedInput
@@ -1187,6 +1226,7 @@ export type BookingUncheckedUpdateWithoutServiceInput = {
   requiresHostValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hostValidationAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdByClient?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  adminViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1206,6 +1246,7 @@ export type BookingUncheckedUpdateManyWithoutServiceInput = {
   requiresHostValidation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hostValidationAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdByClient?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  adminViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1228,6 +1269,7 @@ export type BookingSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   requiresHostValidation?: boolean
   hostValidationAccepted?: boolean
   createdByClient?: boolean
+  adminViewedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1251,6 +1293,7 @@ export type BookingSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   requiresHostValidation?: boolean
   hostValidationAccepted?: boolean
   createdByClient?: boolean
+  adminViewedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1274,6 +1317,7 @@ export type BookingSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   requiresHostValidation?: boolean
   hostValidationAccepted?: boolean
   createdByClient?: boolean
+  adminViewedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1297,11 +1341,12 @@ export type BookingSelectScalar = {
   requiresHostValidation?: boolean
   hostValidationAccepted?: boolean
   createdByClient?: boolean
+  adminViewedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type BookingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "clientId" | "serviceId" | "startsAt" | "durationMinutes" | "price" | "paidAmount" | "status" | "notes" | "location" | "paymentMethod" | "requiresHostValidation" | "hostValidationAccepted" | "createdByClient" | "createdAt" | "updatedAt", ExtArgs["result"]["booking"]>
+export type BookingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "clientId" | "serviceId" | "startsAt" | "durationMinutes" | "price" | "paidAmount" | "status" | "notes" | "location" | "paymentMethod" | "requiresHostValidation" | "hostValidationAccepted" | "createdByClient" | "adminViewedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["booking"]>
 export type BookingInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
@@ -1344,6 +1389,10 @@ export type $BookingPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
      * True when the booking was created by the end client (public flow), not from the host admin UI.
      */
     createdByClient: boolean
+    /**
+     * When this booking notification has been seen in admin bookings list.
+     */
+    adminViewedAt: Date | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["booking"]>
@@ -1787,6 +1836,7 @@ export interface BookingFieldRefs {
   readonly requiresHostValidation: Prisma.FieldRef<"Booking", 'Boolean'>
   readonly hostValidationAccepted: Prisma.FieldRef<"Booking", 'Boolean'>
   readonly createdByClient: Prisma.FieldRef<"Booking", 'Boolean'>
+  readonly adminViewedAt: Prisma.FieldRef<"Booking", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Booking", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Booking", 'DateTime'>
 }

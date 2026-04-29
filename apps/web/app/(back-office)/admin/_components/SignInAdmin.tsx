@@ -125,6 +125,7 @@ export default function SignInAdmin() {
   };
 
   const rootError = form.formState.errors.root?.message;
+  const forgotPasswordHref = `/admin/forgot-password?email=${encodeURIComponent(form.watch("email") ?? "")}`;
 
   const headerBlock = (
     <div className="text-center mb-8">
@@ -317,7 +318,7 @@ export default function SignInAdmin() {
 
             <div className="flex justify-end -mt-2">
               <Link
-                href="/admin/forgot-password"
+                href={forgotPasswordHref}
                 className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline"
                 aria-disabled={isSubmittingSignin}
                 onClick={(event) => {

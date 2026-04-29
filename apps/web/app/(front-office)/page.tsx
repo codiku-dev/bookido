@@ -40,7 +40,7 @@ const HERO_MOCK_TARGET_MOTION = {
 };
 
 /** Calendar target cell: stay neutral longer, then hover tint, then click (blue + scale). */
-const HERO_MOCK_CALENDAR_CELL_TIMES = [0, 0.32, 0.4, 0.5, 0.58, 0.72, 1];
+const HERO_MOCK_CALENDAR_CELL_TIMES = [0, 0.5, 0.62, 0.72, 0.8, 0.9, 1];
 const HERO_MOCK_CALENDAR_CELL_MOTION = {
   duration: HERO_MOCK_TARGET_MOTION.duration,
   times: HERO_MOCK_CALENDAR_CELL_TIMES,
@@ -66,7 +66,10 @@ function initialsFromName(name: string) {
 function HeroMockCursor(p: {
   containerRef: RefObject<HTMLDivElement | null>;
   targetRef: RefObject<HTMLDivElement | null>;
+  phase?: "idle" | "moving" | "clicked";
+  onReady?: () => void;
 }) {
+  const phase = p.phase ?? "clicked";
   const [geom, setGeom] = useState<{
     dx: number;
     dy: number;
@@ -105,6 +108,11 @@ function HeroMockCursor(p: {
     };
   }, [p.containerRef, p.targetRef]);
 
+  useEffect(() => {
+    if (!geom) return;
+    p.onReady?.();
+  }, [geom, p.onReady]);
+
   if (!geom) return null;
 
   const targetHover = (
@@ -113,35 +121,53 @@ function HeroMockCursor(p: {
       className="pointer-events-none absolute z-[23] rounded-lg border border-slate-200/50 bg-slate-900/[0.03]"
       style={{ left: geom.rl, top: geom.rt, width: geom.rw, height: geom.rh }}
       initial={{ scale: 1, opacity: 0.28, boxShadow: "0 0 0 0 rgba(15, 23, 42, 0)" }}
-      animate={{
-        scale: [1, 1, 1.018, 1.042, 1.02, 1],
-        opacity: [0.28, 0.42, 0.92, 0.78, 0.5, 0.36],
-        boxShadow: [
-          "0 0 0 0 rgba(15, 23, 42, 0)",
-          "0 2px 10px -4px rgba(15, 23, 42, 0.12)",
-          "0 12px 28px -6px rgba(37, 99, 235, 0.45)",
-          "0 8px 20px -4px rgba(79, 70, 229, 0.35)",
-          "0 4px 14px -4px rgba(37, 99, 235, 0.22)",
-          "0 0 0 0 rgba(37, 99, 235, 0)",
-        ],
-        borderColor: [
-          "rgba(148, 163, 184, 0.45)",
-          "rgba(148, 163, 184, 0.55)",
-          "rgba(59, 130, 246, 0.7)",
-          "rgba(129, 140, 248, 0.55)",
-          "rgba(96, 165, 250, 0.35)",
-          "rgba(148, 163, 184, 0.4)",
-        ],
-        backgroundColor: [
-          "rgba(15, 23, 42, 0.03)",
-          "rgba(15, 23, 42, 0.055)",
-          "rgba(37, 99, 235, 0.14)",
-          "rgba(79, 70, 229, 0.1)",
-          "rgba(37, 99, 235, 0.06)",
-          "rgba(15, 23, 42, 0.04)",
-        ],
-      }}
-      transition={HERO_MOCK_TARGET_MOTION}
+      animate={
+        phase === "idle"
+          ? {
+              scale: 1,
+              opacity: 0,
+              boxShadow: "0 0 0 0 rgba(15, 23, 42, 0)",
+              borderColor: "rgba(148, 163, 184, 0.4)",
+              backgroundColor: "rgba(15, 23, 42, 0.03)",
+            }
+          : phase === "moving"
+            ? {
+                scale: 1.01,
+                opacity: 0.38,
+                boxShadow: "0 2px 10px -4px rgba(15, 23, 42, 0.12)",
+                borderColor: "rgba(148, 163, 184, 0.55)",
+                backgroundColor: "rgba(15, 23, 42, 0.055)",
+              }
+          : {
+              scale: [1, 1, 1.018, 1.042, 1.02, 1],
+              opacity: [0.28, 0.42, 0.92, 0.78, 0.5, 0.36],
+              boxShadow: [
+                "0 0 0 0 rgba(15, 23, 42, 0)",
+                "0 2px 10px -4px rgba(15, 23, 42, 0.12)",
+                "0 12px 28px -6px rgba(37, 99, 235, 0.45)",
+                "0 8px 20px -4px rgba(79, 70, 229, 0.35)",
+                "0 4px 14px -4px rgba(37, 99, 235, 0.22)",
+                "0 0 0 0 rgba(37, 99, 235, 0)",
+              ],
+              borderColor: [
+                "rgba(148, 163, 184, 0.45)",
+                "rgba(148, 163, 184, 0.55)",
+                "rgba(59, 130, 246, 0.7)",
+                "rgba(129, 140, 248, 0.55)",
+                "rgba(96, 165, 250, 0.35)",
+                "rgba(148, 163, 184, 0.4)",
+              ],
+              backgroundColor: [
+                "rgba(15, 23, 42, 0.03)",
+                "rgba(15, 23, 42, 0.055)",
+                "rgba(37, 99, 235, 0.14)",
+                "rgba(79, 70, 229, 0.1)",
+                "rgba(37, 99, 235, 0.06)",
+                "rgba(15, 23, 42, 0.04)",
+              ],
+            }
+      }
+      transition={phase === "clicked" ? HERO_MOCK_TARGET_MOTION : { duration: 0.14 }}
     />
   );
 
@@ -149,37 +175,43 @@ function HeroMockCursor(p: {
     <motion.div
       className="pointer-events-none absolute z-[25]"
       initial={{ left: 12, top: 62, opacity: 1 }}
-      animate={{ left: geom.dx, top: geom.dy, opacity: 1 }}
-      transition={{
-        type: "spring",
-        stiffness: 78,
-        damping: 14,
-        mass: 0.52,
-        opacity: { duration: 0.25 },
-      }}
+      animate={phase === "idle" ? { left: 12, top: 62, opacity: 1 } : { left: geom.dx, top: geom.dy, opacity: 1 }}
+      transition={phase === "idle" ? { duration: 0 } : { duration: 1.12, ease: [0.22, 1, 0.36, 1] }}
       style={{ marginLeft: -3, marginTop: -2 }}
     >
       <motion.div
         initial={{ scale: 1, rotate: 0 }}
-        animate={{
-          scale: [1, 1, 1.14, 0.93, 1.04, 1],
-          rotate: [0, 0, -4, 3, -1, 0],
-          filter: [
-            "drop-shadow(0 2px 4px rgb(15 23 42 / 0.2))",
-            "drop-shadow(0 2px 4px rgb(15 23 42 / 0.2))",
-            "drop-shadow(0 0 14px rgb(37 99 235 / 0.55))",
-            "drop-shadow(0 0 12px rgb(124 58 237 / 0.45))",
-            "drop-shadow(0 0 10px rgb(37 99 235 / 0.35))",
-            "drop-shadow(0 2px 5px rgb(15 23 42 / 0.22))",
-          ],
-          color: ["#0f172a", "#0f172a", "#2563eb", "#5b21b6", "#2563eb", "#0f172a"],
-        }}
-        transition={{
-          duration: HERO_MOCK_TARGET_MOTION.duration,
-          delay: 0.35,
-          times: [0, 0.32, 0.48, 0.58, 0.72, 1],
-          ease: HERO_MOCK_TARGET_MOTION.ease,
-        }}
+        animate={
+          phase !== "clicked"
+            ? {
+                scale: 1,
+                rotate: 0,
+                filter: "drop-shadow(0 2px 4px rgb(15 23 42 / 0.2))",
+                color: "#0f172a",
+              }
+            : {
+                scale: [1, 1, 1.14, 0.93, 1.04, 1],
+                rotate: [0, 0, -4, 3, -1, 0],
+                filter: [
+                  "drop-shadow(0 2px 4px rgb(15 23 42 / 0.2))",
+                  "drop-shadow(0 2px 4px rgb(15 23 42 / 0.2))",
+                  "drop-shadow(0 0 14px rgb(37 99 235 / 0.55))",
+                  "drop-shadow(0 0 12px rgb(124 58 237 / 0.45))",
+                  "drop-shadow(0 0 10px rgb(37 99 235 / 0.35))",
+                  "drop-shadow(0 2px 5px rgb(15 23 42 / 0.22))",
+                ],
+                color: ["#0f172a", "#0f172a", "#2563eb", "#5b21b6", "#2563eb", "#0f172a"],
+              }
+        }
+        transition={
+          phase !== "clicked"
+            ? { duration: 0.12 }
+            : {
+                duration: 0.5,
+                times: [0, 0.2, 0.45, 0.7, 1],
+                ease: "easeOut",
+              }
+        }
         className="text-slate-900"
       >
         <MousePointer2 className="size-7" fill="white" strokeWidth={1.35} />
@@ -200,10 +232,13 @@ function LandingHeroBrowserMock() {
   const prefersReducedMotion = useReducedMotion();
   const [slide, setSlide] = useState(0);
   const activeSlide = prefersReducedMotion ? 0 : slide;
-  /** Cursor + cell motion only after slide enter; avoids first paint already “clicked” before the cursor moves. */
-  const [calendarStepPlay, setCalendarStepPlay] = useState(Boolean(prefersReducedMotion));
+  const [calendarStepPhase, setCalendarStepPhase] = useState<"idle" | "moving" | "clicked">(
+    prefersReducedMotion ? "clicked" : "idle",
+  );
+  const [calendarCursorReady, setCalendarCursorReady] = useState(Boolean(prefersReducedMotion));
   const activeSlideRef = useRef(activeSlide);
   activeSlideRef.current = activeSlide;
+  const calendarRunIdRef = useRef(0);
 
   useEffect(() => {
     if (prefersReducedMotion) return;
@@ -216,13 +251,53 @@ function LandingHeroBrowserMock() {
 
   useEffect(() => {
     if (prefersReducedMotion) {
-      setCalendarStepPlay(true);
+      setCalendarStepPhase("clicked");
+      setCalendarCursorReady(true);
       return;
     }
     if (activeSlide !== 0) {
-      setCalendarStepPlay(false);
+      setCalendarStepPhase("idle");
+      setCalendarCursorReady(false);
     }
   }, [activeSlide, prefersReducedMotion]);
+
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+    if (activeSlide !== 0) return;
+    if (!calendarCursorReady) return;
+
+    calendarRunIdRef.current += 1;
+    const runId = calendarRunIdRef.current;
+    setCalendarStepPhase("idle");
+
+    let movingTimeoutId = 0;
+    let clickedTimeoutId = 0;
+    let raf1 = 0;
+    let raf2 = 0;
+
+    // Wait for a stable paint before launching the exact same sequence every time.
+    raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => {
+        if (activeSlideRef.current !== 0 || calendarRunIdRef.current !== runId) return;
+        movingTimeoutId = window.setTimeout(() => {
+          if (activeSlideRef.current !== 0 || calendarRunIdRef.current !== runId) return;
+          setCalendarStepPhase("moving");
+
+          clickedTimeoutId = window.setTimeout(() => {
+            if (activeSlideRef.current !== 0 || calendarRunIdRef.current !== runId) return;
+            setCalendarStepPhase("clicked");
+          }, 1120);
+        }, 140);
+      });
+    });
+
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+      window.clearTimeout(movingTimeoutId);
+      window.clearTimeout(clickedTimeoutId);
+    };
+  }, [activeSlide, calendarCursorReady, prefersReducedMotion]);
 
   const calendarContainerRef = useRef<HTMLDivElement>(null);
   const calendarTargetRef = useRef<HTMLDivElement>(null);
@@ -276,7 +351,13 @@ function LandingHeroBrowserMock() {
     );
 
     const cellFill =
-      isCursorTarget && p.markerRef ? (calendarStepPlay ? animatedTargetFill : staticFill) : staticFill;
+      isCursorTarget && p.markerRef
+        ? calendarStepPhase === "clicked"
+          ? animatedTargetFill
+          : calendarStepPhase === "moving"
+            ? <div className="absolute inset-0 rounded-md bg-slate-200" />
+            : staticFill
+        : staticFill;
 
     return (
       <div key={p.index} ref={p.markerRef} className="relative w-full min-w-0">
@@ -633,15 +714,15 @@ function LandingHeroBrowserMock() {
                 exit={{ opacity: 0, x: -18 }}
                 transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
                 className="space-y-4"
-                onAnimationComplete={() => {
-                  if (prefersReducedMotion) return;
-                  if (activeSlideRef.current !== 0) return;
-                  setCalendarStepPlay(true);
-                }}
               >
                 <div ref={calendarContainerRef} className="relative space-y-4 overflow-visible">
-                  {!prefersReducedMotion && calendarStepPlay ? (
-                    <HeroMockCursor containerRef={calendarContainerRef} targetRef={calendarTargetRef} />
+                  {!prefersReducedMotion ? (
+                    <HeroMockCursor
+                      containerRef={calendarContainerRef}
+                      targetRef={calendarTargetRef}
+                      phase={calendarStepPhase}
+                      onReady={() => setCalendarCursorReady(true)}
+                    />
                   ) : null}
                   {slideHeader({
                     eyebrow: t("hero.mockDateEyebrow"),
@@ -999,7 +1080,7 @@ export default function Page() {
       <Card className="relative h-full overflow-hidden border-2 border-blue-600 bg-linear-to-b from-blue-50/80 to-white shadow-xl shadow-blue-900/10">
         <div className="absolute right-4 top-4">
           <Badge className="rounded-full border-0 bg-blue-600 px-3 py-0.5 text-xs font-semibold text-white hover:bg-blue-600">
-            {t("pricing.pro.badge")}
+            {t("pricing.pro.comingSoonBadge")}
           </Badge>
         </div>
         <CardContent className="flex h-full flex-col p-8 pt-14">
@@ -1009,6 +1090,7 @@ export default function Page() {
             <span className="text-sm text-slate-500">{t("pricing.pro.per")}</span>
           </div>
           <p className="mt-4 text-sm leading-relaxed text-slate-600">{t("pricing.pro.desc")}</p>
+          <p className="mt-2 text-xs font-medium text-blue-700">{t("pricing.pro.comingSoonHint")}</p>
           <ul className="mt-6 flex flex-1 flex-col gap-3">
             {pricingBullet(t("pricing.pro.f1"))}
             {pricingBullet(t("pricing.pro.f2"))}
@@ -1020,8 +1102,8 @@ export default function Page() {
             {pricingBullet(t("pricing.pro.f8"))}
             {pricingBullet(t("pricing.pro.f9"))}
           </ul>
-          <Button className="mt-8 w-full rounded-xl shadow-md shadow-blue-600/20" asChild>
-            <Link href="/admin/signup">{t("nav.try")}</Link>
+          <Button className="mt-8 w-full rounded-xl shadow-md shadow-blue-600/20" disabled aria-disabled="true">
+            {t("pricing.pro.ctaComingSoon")}
           </Button>
         </CardContent>
       </Card>
@@ -1068,7 +1150,7 @@ export default function Page() {
               className="h-12 rounded-xl border-0 bg-white px-8 text-base font-semibold text-blue-700 shadow-lg hover:bg-blue-50"
               asChild
             >
-              <Link href="/admin/signin">
+              <Link href="/admin/signup">
                 {t("ctaBand.button")}
                 <ArrowRight className="size-4" />
               </Link>

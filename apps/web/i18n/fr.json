@@ -169,6 +169,12 @@
     "next": "Suivant",
     "previous": "Précédent",
     "save": "Enregistrer",
+    "pagination": {
+      "perPage": "Par page",
+      "page": "Page",
+      "next": "Suivant",
+      "previous": "Précédent"
+    },
     "datePicker": {
       "placeholder": "jj/mm/aaaa",
       "clear": "Effacer"
@@ -261,7 +267,9 @@
       "calendarTitle": "Choisissez un horaire",
       "pickSlotSubtitle": "Choisissez l’heure de début pour chaque séance de cette prestation. Les créneaux indisponibles correspondent au calendrier du coach.",
       "sessionsProgress": "{current} / {total} séances planifiées",
+      "sidebarSelectionsTitle": "Sélections",
       "sessionNumber": "Séance {n}",
+      "noSelectionYet": "Aucune sélection pour l’instant.",
       "noSlotsChosenYet": "Aucun créneau sélectionné pour l’instant.",
       "confirmDisabledHint": "Sélectionnez un horaire pour chaque séance avant de confirmer.",
       "invalidSlugTitle": "Ce lien de réservation n’est pas valide.",
@@ -274,8 +282,25 @@
       "durationLabel": "{minutes} min",
       "free": "Gratuit",
       "clientName": "Nom complet",
+      "firstName": "Prénom",
+      "lastName": "Nom",
       "clientEmail": "E-mail",
       "clientPhone": "Téléphone (optionnel)",
+      "clientDetailsTitle": "Vos informations",
+      "recapTitle": "Récapitulatif",
+      "recapSubtitle": "Vérifiez vos informations avant de confirmer le paiement.",
+      "recapContactTitle": "Coordonnées client",
+      "recapFullNameLabel": "Nom complet",
+      "recapEmailLabel": "E-mail",
+      "recapNameMissing": "Nom non renseigné",
+      "recapEmailMissing": "E-mail non renseigné",
+      "removeSelectionAria": "Supprimer la séance {session}",
+      "stepper": {
+        "service": "Service",
+        "date": "Date",
+        "recap": "Récap"
+      },
+      "rememberMe": "Se souvenir de moi",
       "submit": "Confirmer la réservation",
       "submitting": "Envoi…",
       "detailsTitle": "Vos coordonnées",
@@ -289,10 +314,17 @@
       "validationNotRequired": "Confirmation instantanée",
       "slotTaken": "Ce créneau n’est plus disponible. Choisissez un autre horaire.",
       "slotTooSoon": "Ce créneau ne peut plus être réservé car le délai minimum avant réservation est dépassé.",
+      "minNoticeHint": "Les créneaux avant {dateTime} sont indisponibles (délai minimum: {hours} h).",
+      "minNoticeHoverHint": "Cette prestation a lieu dans trop peu de temps. Pour réserver avec ce professionnel, veuillez réserver {hours} heure(s) à l'avance.",
+      "paymentCancelled": "Le paiement a été annulé.",
+      "paymentStartError": "Impossible de démarrer le paiement Stripe.",
+      "paymentConfirmError": "Le paiement n’a pas pu être confirmé.",
       "error": "La réservation n’a pas pu être enregistrée. Réessayez.",
       "noEnabledDays": "Aucun jour d’ouverture n’est configuré pour cette semaine.",
       "noVisibleSlots": "Aucun horaire réservable n’apparaît cette semaine pour ce coach.",
       "validation": {
+        "firstName": "Indiquez votre prénom.",
+        "lastName": "Indiquez votre nom.",
         "name": "Indiquez votre nom.",
         "email": "Saisissez une adresse e-mail valide."
       }
@@ -388,10 +420,13 @@
         },
         "pro": {
           "badge": "Le plus choisi",
+          "comingSoonBadge": "Bientôt disponible",
           "name": "Pro",
           "price": "29 €",
           "per": "/ mois",
           "desc": "Quand vous voulez tout le flux, sans plafond artificiel.",
+          "comingSoonHint": "Cette offre n’est pas encore disponible. Arrive bientôt.",
+          "ctaComingSoon": "Bientôt disponible",
           "f1": "0 frais sur les transactions",
           "f2": "Page publique de réservation",
           "f3": "Services & calendrier",
@@ -562,8 +597,11 @@
         "client": "Client",
         "service": "Service",
         "date": "Date",
+        "firstSessionDate": "Date 1re séance",
+        "reservationDate": "Date de réservation",
         "time": "Heure",
         "amount": "Montant",
+        "paymentDate": "Date paiement",
         "payment": "Paiement",
         "status": "Statut",
         "actions": "Actions"
@@ -571,7 +609,8 @@
       "payment": {
         "paid": "Payé",
         "partial": "Partiellement payé",
-        "unpaid": "Non payé"
+        "unpaid": "Non payé",
+        "notPaidDate": "Non payé"
       },
       "filter": {
         "dateFrom": "Du",
@@ -624,6 +663,7 @@
       "payment": {
         "info": "Paiement",
         "method": "Moyen de paiement",
+        "onlineMethod": "Paiement en ligne",
         "status": "Statut du paiement",
         "total": "Total",
         "paidSoFar": "Déjà payé",
@@ -635,7 +675,13 @@
       "reschedule": "Re-plannifier",
       "service": "Prestation",
       "title": "Détail de la réservation",
-      "clientLabel": "Client"
+      "clientLabel": "Client",
+      "status": {
+        "confirmed": "Confirmée",
+        "pending": "En attente",
+        "cancelled": "Annulée",
+        "completed": "Terminée"
+      }
     },
     "create": {
       "title": "Créer une réservation",
@@ -744,6 +790,11 @@
     "nav": {
       "today": "Aujourd'hui"
     },
+    "listView": {
+      "title": "Vue liste",
+      "subtitle": "Les réservations de la semaine affichée, triées par date et heure.",
+      "empty": "Aucune réservation sur cette semaine."
+    },
     "search": {
       "client": "Rechercher un client"
     },
@@ -844,7 +895,7 @@
         "month": "Mois",
         "revenue": "Revenu",
         "growth": "vs mois précédent",
-        "bookings": "Réservations facturables"
+        "bookings": "Nombre de réservations"
       },
       "detailColumns": {
         "date": "Date",
@@ -1023,7 +1074,7 @@
   "profile": {
     "bio": {
       "placeholder": "Décrivez votre activité, vos spécialités et votre approche",
-      "publicHint": "Cette description s’affiche sur vos pages de réservation publiques (liste des prestations et parcours de réservation) lorsque vos clients ouvrent votre lien."
+      "publicHint": "Cette description s’affiche sur vos pages de réservation publiques (liste des prestations et parcours de réservation) lorsque vos clients ouvrent votre lien. Maximum 320 caractères."
     },
     "billing": {
       "cancel": {
@@ -1129,7 +1180,7 @@
       }
     },
     "danger": {
-      "warning": "L'archivage désactive votre compte : vous ne pourrez plus vous connecter. Les données sont conservées pour une éventuelle réactivation.",
+      "warning": "L'archivage désactive votre compte : vous ne pourrez plus vous connecter. Les données sont conservées pour une éventuelle réactivation. Votre compte Stripe reste indépendant et vous y aurez toujours accès.",
       "zone": "Zone dangereuse"
     },
     "delete": {
@@ -1191,7 +1242,10 @@
       "generic": "Une erreur s'est produite."
     },
     "validation": {
-      "nameRequired": "Le nom est obligatoire"
+      "nameRequired": "Le nom est obligatoire",
+      "bioMax": "Maximum {max} caractères.",
+      "publicBookingMinNoticeHoursInvalid": "Indiquez un nombre entier.",
+      "publicBookingMinNoticeHoursRange": "La valeur doit être comprise entre 0 et 168."
     },
     "loading": "Chargement du profil…",
     "sessionRequired": "Vous devez être connecté pour afficher cette page.",
@@ -1233,11 +1287,30 @@
   "onboarding": {
     "gateLoading": "Préparation de votre espace…",
     "progressLabel": "Étape {current} sur {total}",
+    "publicProfileIntro": {
+      "badge": "Profil professionnel",
+      "title": "Prépare ton profil qui apparaîtra au grand public",
+      "subtitle": "Chaque étape complète ta vitrine publique (bio, photo, horaires, services et paiements).",
+      "steps": {
+        "name": "Nom",
+        "bio": "Bio",
+        "avatar": "Photo",
+        "hours": "Horaires",
+        "address": "Adresse",
+        "unavailable": "Créneaux",
+        "service": "Service",
+        "slug": "URL",
+        "stripe": "Paiement"
+      }
+    },
     "skipLater": "Plus tard",
+    "previous": "Précédent",
     "next": "Suivant",
+    "clickClosedSlotToOpen": "Cliquez pour rendre ce créneau disponible.",
     "validation": {
       "nameMin": "Au moins 2 caractères.",
-      "nameMissing": "Votre nom est requis pour continuer."
+      "nameMissing": "Votre nom est requis pour continuer.",
+      "bioMax": "Maximum {max} caractères."
     },
     "errors": {
       "complete": "Impossible de terminer l’onboarding. Réessayez."
@@ -1245,7 +1318,8 @@
     "name": {
       "title": "Comment tu t’appelles ?",
       "subtitle": "Ce nom apparaît dans l’admin et sur ta page publique.",
-      "fieldLabel": "Ton nom"
+      "firstNameLabel": "Prénom",
+      "lastNameLabel": "Nom"
     },
     "bio": {
       "title": "Une petite description de ce que tu fais",
@@ -1260,21 +1334,26 @@
     },
     "hours": {
       "title": "Tu es ouvert de quelle heure à quelle heure ?",
-      "subtitle": "Les horaires par défaut viennent de ton profil ; ajuste-les pour ta semaine type.",
+      "subtitle": "Tes clients ne pourront pas réserver quand tu es fermé, et tu peux toujours modifier ça depuis ton profil.",
       "openingTitle": "Heures d’ouverture",
       "loadError": "Impossible de charger le calendrier. Tu peux continuer et corriger plus tard dans Calendrier."
     },
     "address": {
-      "title": "À quelle adresse ?",
-      "subtitle": "Laisse vide si c’est toi qui te déplaces. Tu pourras mettre une adresse précise pour chaque service plus tard.",
+      "title": "Où proposes-tu tes services ?",
+      "subtitle": "Tu peux ignorer ce champ si c’est toi qui te déplaces chez le client.",
       "note": "Si l’adresse diffère selon le service, tu pourras la renseigner sur chaque fiche service.",
-      "fieldLabel": "Adresse par défaut",
-      "placeholder": "ex. 12 rue de la Paix, 75002 Paris"
+      "fieldLabel": "Adresse des services proposés",
+      "placeholder": "ex. 12 rue de la Paix, 75002 Paris",
+      "mustPickFromMap": "Choisis une adresse dans la liste de suggestions Google."
     },
     "unavailable": {
-      "title": "Tu es indisponible quand ?",
-      "subtitle": "Touche les créneaux pour marquer des pauses (ex. déjeuner). Par défaut : 12h–14h.",
-      "hint": "Les créneaux hachurés sont indisponibles. Les créneaux blancs sont disponibles dans tes heures d’ouverture."
+      "title": "Quand les clients peuvent-ils te réserver ?",
+      "subtitle": "Sélectionnez plusieurs créneaux à la fois.",
+      "legend": {
+        "open": "Créneau ouvert à la réservation",
+        "closed": "Créneau fermé",
+        "outsideHours": "Hors horaires d’ouverture"
+      }
     },
     "service": {
       "title": "Crée ton premier service",
@@ -1288,12 +1367,19 @@
         "name": "Indique un nom de service.",
         "description": "Ajoute une courte description.",
         "address": "Indique un lieu ou utilise ton adresse par défaut.",
-        "pricePaid": "Indique un prix supérieur à 0 ou active « Service gratuit »."
+        "pricePaid": "Indique un prix supérieur à 0 pour une prestation payante, ou 0 pour un pack gratuit."
       },
       "optionalImageHint": "Image d’illustration (optionnelle, max. 5 Mo).",
       "switchPublished": "Publier sur ma page publique de réservation",
       "switchPublishedHint": "Si tu désactives, le service reste en brouillon.",
-      "chooseImage": "Choisir une image"
+      "chooseImage": "Choisir une image",
+      "packTotalPriceLabel": "Prix pour l'ensemble des séances",
+      "availabilityInstructions": "Touche ou glisse sur les créneaux pour indiquer quand ce service est proposé (bleu). Le gris indique qu’il n’est pas proposé sur ce créneau. Les cases verrouillées suivent tes horaires et ton calendrier.",
+      "availabilityLegend": {
+        "open": "Créneau proposé pour ce service",
+        "closed": "Créneau non proposé",
+        "readOnly": "Hors horaires ou fermé sur ton calendrier"
+      }
     },
     "slug": {
       "title": "Quelle sera l’URL de ton Bookido ?",
@@ -1450,6 +1536,8 @@
       "summaryTitle": "Veuillez corriger les champs suivants :",
       "nameRequired": "Le nom est obligatoire.",
       "descriptionRequired": "La description est obligatoire.",
+      "descriptionMax": "La description ne peut pas dépasser 300 caractères.",
+      "descriptionCharCount": "{current} / {max}",
       "durationNumber": "La durée doit être un nombre valide.",
       "durationMin30": "La durée doit être d’au moins 30 minutes.",
       "durationMultipleOf30": "La durée doit être un multiple de 30 minutes (30, 60, 90…).",

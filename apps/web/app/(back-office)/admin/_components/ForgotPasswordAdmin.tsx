@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -29,6 +30,7 @@ function getResetRedirectURL() {
 
 export default function ForgotPasswordAdmin() {
   const t = useTranslations();
+  const searchParams = useSearchParams();
   const [emailSent, setEmailSent] = useState(false);
 
   const schema = useMemo(
@@ -43,6 +45,16 @@ export default function ForgotPasswordAdmin() {
     resolver: zodResolver(schema),
     defaultValues: { email: "" },
   });
+
+  useEffect(() => {
+    const emailFromUrl = searchParams.get("email") ?? "";
+    if (!emailFromUrl) return;
+    form.setValue("email", emailFromUrl, {
+      shouldDirty: false,
+      shouldTouch: false,
+      shouldValidate: true,
+    });
+  }, [form, searchParams]);
 
   const onSubmit = async (values: ForgotPasswordFormValues) => {
     form.clearErrors("root");

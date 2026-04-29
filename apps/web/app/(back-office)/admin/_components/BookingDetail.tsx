@@ -9,10 +9,8 @@ import {
   ArrowLeft,
   User,
   Mail,
-  Phone,
   Clock,
   Calendar,
-  MapPin,
   MessageCircle,
   CalendarIcon,
   XCircle,
@@ -132,6 +130,7 @@ export default function BookingDetail() {
   const durationLabel = t("services.durationValue", { minutes: booking.durationMinutes });
   const contactMailHref = `mailto:${booking.clientEmail}?subject=${encodeURIComponent(`Booking ${booking.id} - ${booking.serviceName}`)}`;
   const payment = paymentKindFromAmounts(booking.paidAmount, booking.price);
+  const paymentMethodLabel = booking.paymentMethod === "Stripe Checkout" ? t("booking.detail.payment.onlineMethod") : booking.paymentMethod;
 
   const handleAcceptHostValidation = () => {
     updateMutation.mutate({
@@ -328,20 +327,6 @@ export default function BookingDetail() {
               <div className="font-medium text-slate-900">{booking.clientEmail}</div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Phone className="w-5 h-5 text-slate-400" />
-            <div>
-              <div className="text-sm text-slate-600">{t("users.phone")}</div>
-              <div className="font-medium text-slate-900">{booking.clientPhone}</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <MapPin className="w-5 h-5 text-slate-400" />
-            <div>
-              <div className="text-sm text-slate-600">{t("user.detail.address")}</div>
-              <div className="font-medium text-slate-900">{booking.location.length ? booking.location : "—"}</div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -353,7 +338,7 @@ export default function BookingDetail() {
       <div className="space-y-3">
         <div className="flex justify-between">
           <span className="text-slate-600">{t("booking.detail.payment.method")}</span>
-          <span className="font-medium text-slate-900">{booking.paymentMethod}</span>
+          <span className="font-medium text-slate-900">{paymentMethodLabel}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-slate-600">{t("booking.detail.payment.status")}</span>

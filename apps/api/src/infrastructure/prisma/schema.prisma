@@ -22,7 +22,7 @@ model User {
   /// URL path segment for public booking, e.g. `jonathan-malro-coach` → /jonathan-malro-coach/services
   publicBookingSlug String? @unique
   /// Minimum notice (hours) required before a public booking can start.
-  publicBookingMinNoticeHours Int @default(24)
+  publicBookingMinNoticeHours Int @default(12)
   archivedAt    DateTime?
   /// Weekly opening hours (Mon–Sun) for the admin calendar grid.
   calendarWeekHours       Json?
@@ -32,6 +32,8 @@ model User {
   bookingsLastViewedAt    DateTime?
   /// First-time admin checklist finished at; null means show onboarding after sign-in.
   adminOnboardingCompletedAt DateTime?
+  /// Last reached onboarding step index (0-based) to resume flow when unfinished.
+  adminOnboardingStep Int @default(0)
   stripeAccountId         String?   @unique
   /// Platform Stripe Customer id (Bookido subscription / SaaS billing), not Connect.
   stripeBillingCustomerId String?
@@ -130,6 +132,8 @@ model Booking {
   hostValidationAccepted Boolean  @default(true)
   /// True when the booking was created by the end client (public flow), not from the host admin UI.
   createdByClient        Boolean  @default(false)
+  /// When this booking notification has been seen in admin bookings list.
+  adminViewedAt          DateTime?
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 

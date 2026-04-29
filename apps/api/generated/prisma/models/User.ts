@@ -28,10 +28,12 @@ export type AggregateUser = {
 
 export type UserAvgAggregateOutputType = {
   publicBookingMinNoticeHours: number | null
+  adminOnboardingStep: number | null
 }
 
 export type UserSumAggregateOutputType = {
   publicBookingMinNoticeHours: number | null
+  adminOnboardingStep: number | null
 }
 
 export type UserMinAggregateOutputType = {
@@ -47,6 +49,7 @@ export type UserMinAggregateOutputType = {
   archivedAt: Date | null
   bookingsLastViewedAt: Date | null
   adminOnboardingCompletedAt: Date | null
+  adminOnboardingStep: number | null
   stripeAccountId: string | null
   stripeBillingCustomerId: string | null
   stripeOnboardingComplete: boolean | null
@@ -73,6 +76,7 @@ export type UserMaxAggregateOutputType = {
   archivedAt: Date | null
   bookingsLastViewedAt: Date | null
   adminOnboardingCompletedAt: Date | null
+  adminOnboardingStep: number | null
   stripeAccountId: string | null
   stripeBillingCustomerId: string | null
   stripeOnboardingComplete: boolean | null
@@ -101,6 +105,7 @@ export type UserCountAggregateOutputType = {
   calendarClosedSlotKeys: number
   bookingsLastViewedAt: number
   adminOnboardingCompletedAt: number
+  adminOnboardingStep: number
   stripeAccountId: number
   stripeBillingCustomerId: number
   stripeOnboardingComplete: number
@@ -118,10 +123,12 @@ export type UserCountAggregateOutputType = {
 
 export type UserAvgAggregateInputType = {
   publicBookingMinNoticeHours?: true
+  adminOnboardingStep?: true
 }
 
 export type UserSumAggregateInputType = {
   publicBookingMinNoticeHours?: true
+  adminOnboardingStep?: true
 }
 
 export type UserMinAggregateInputType = {
@@ -137,6 +144,7 @@ export type UserMinAggregateInputType = {
   archivedAt?: true
   bookingsLastViewedAt?: true
   adminOnboardingCompletedAt?: true
+  adminOnboardingStep?: true
   stripeAccountId?: true
   stripeBillingCustomerId?: true
   stripeOnboardingComplete?: true
@@ -163,6 +171,7 @@ export type UserMaxAggregateInputType = {
   archivedAt?: true
   bookingsLastViewedAt?: true
   adminOnboardingCompletedAt?: true
+  adminOnboardingStep?: true
   stripeAccountId?: true
   stripeBillingCustomerId?: true
   stripeOnboardingComplete?: true
@@ -191,6 +200,7 @@ export type UserCountAggregateInputType = {
   calendarClosedSlotKeys?: true
   bookingsLastViewedAt?: true
   adminOnboardingCompletedAt?: true
+  adminOnboardingStep?: true
   stripeAccountId?: true
   stripeBillingCustomerId?: true
   stripeOnboardingComplete?: true
@@ -306,6 +316,7 @@ export type UserGroupByOutputType = {
   calendarClosedSlotKeys: runtime.JsonValue | null
   bookingsLastViewedAt: Date | null
   adminOnboardingCompletedAt: Date | null
+  adminOnboardingStep: number
   stripeAccountId: string | null
   stripeBillingCustomerId: string | null
   stripeOnboardingComplete: boolean
@@ -357,6 +368,7 @@ export type UserWhereInput = {
   calendarClosedSlotKeys?: Prisma.JsonNullableFilter<"User">
   bookingsLastViewedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   adminOnboardingCompletedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  adminOnboardingStep?: Prisma.IntFilter<"User"> | number
   stripeAccountId?: Prisma.StringNullableFilter<"User"> | string | null
   stripeBillingCustomerId?: Prisma.StringNullableFilter<"User"> | string | null
   stripeOnboardingComplete?: Prisma.BoolFilter<"User"> | boolean
@@ -391,6 +403,7 @@ export type UserOrderByWithRelationInput = {
   calendarClosedSlotKeys?: Prisma.SortOrderInput | Prisma.SortOrder
   bookingsLastViewedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   adminOnboardingCompletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  adminOnboardingStep?: Prisma.SortOrder
   stripeAccountId?: Prisma.SortOrderInput | Prisma.SortOrder
   stripeBillingCustomerId?: Prisma.SortOrderInput | Prisma.SortOrder
   stripeOnboardingComplete?: Prisma.SortOrder
@@ -429,6 +442,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   calendarClosedSlotKeys?: Prisma.JsonNullableFilter<"User">
   bookingsLastViewedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   adminOnboardingCompletedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  adminOnboardingStep?: Prisma.IntFilter<"User"> | number
   stripeBillingCustomerId?: Prisma.StringNullableFilter<"User"> | string | null
   stripeOnboardingComplete?: Prisma.BoolFilter<"User"> | boolean
   stripeChargesEnabled?: Prisma.BoolFilter<"User"> | boolean
@@ -462,6 +476,7 @@ export type UserOrderByWithAggregationInput = {
   calendarClosedSlotKeys?: Prisma.SortOrderInput | Prisma.SortOrder
   bookingsLastViewedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   adminOnboardingCompletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  adminOnboardingStep?: Prisma.SortOrder
   stripeAccountId?: Prisma.SortOrderInput | Prisma.SortOrder
   stripeBillingCustomerId?: Prisma.SortOrderInput | Prisma.SortOrder
   stripeOnboardingComplete?: Prisma.SortOrder
@@ -498,6 +513,7 @@ export type UserScalarWhereWithAggregatesInput = {
   calendarClosedSlotKeys?: Prisma.JsonNullableWithAggregatesFilter<"User">
   bookingsLastViewedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   adminOnboardingCompletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+  adminOnboardingStep?: Prisma.IntWithAggregatesFilter<"User"> | number
   stripeAccountId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   stripeBillingCustomerId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   stripeOnboardingComplete?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
@@ -526,6 +542,7 @@ export type UserCreateInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
   adminOnboardingCompletedAt?: Date | string | null
+  adminOnboardingStep?: number
   stripeAccountId?: string | null
   stripeBillingCustomerId?: string | null
   stripeOnboardingComplete?: boolean
@@ -560,6 +577,7 @@ export type UserUncheckedCreateInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
   adminOnboardingCompletedAt?: Date | string | null
+  adminOnboardingStep?: number
   stripeAccountId?: string | null
   stripeBillingCustomerId?: string | null
   stripeOnboardingComplete?: boolean
@@ -594,6 +612,7 @@ export type UserUpdateInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeBillingCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeOnboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -628,6 +647,7 @@ export type UserUncheckedUpdateInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeBillingCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeOnboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -662,6 +682,7 @@ export type UserCreateManyInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
   adminOnboardingCompletedAt?: Date | string | null
+  adminOnboardingStep?: number
   stripeAccountId?: string | null
   stripeBillingCustomerId?: string | null
   stripeOnboardingComplete?: boolean
@@ -690,6 +711,7 @@ export type UserUpdateManyMutationInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeBillingCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeOnboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -718,6 +740,7 @@ export type UserUncheckedUpdateManyInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeBillingCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeOnboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -746,6 +769,7 @@ export type UserCountOrderByAggregateInput = {
   calendarClosedSlotKeys?: Prisma.SortOrder
   bookingsLastViewedAt?: Prisma.SortOrder
   adminOnboardingCompletedAt?: Prisma.SortOrder
+  adminOnboardingStep?: Prisma.SortOrder
   stripeAccountId?: Prisma.SortOrder
   stripeBillingCustomerId?: Prisma.SortOrder
   stripeOnboardingComplete?: Prisma.SortOrder
@@ -761,6 +785,7 @@ export type UserCountOrderByAggregateInput = {
 
 export type UserAvgOrderByAggregateInput = {
   publicBookingMinNoticeHours?: Prisma.SortOrder
+  adminOnboardingStep?: Prisma.SortOrder
 }
 
 export type UserMaxOrderByAggregateInput = {
@@ -776,6 +801,7 @@ export type UserMaxOrderByAggregateInput = {
   archivedAt?: Prisma.SortOrder
   bookingsLastViewedAt?: Prisma.SortOrder
   adminOnboardingCompletedAt?: Prisma.SortOrder
+  adminOnboardingStep?: Prisma.SortOrder
   stripeAccountId?: Prisma.SortOrder
   stripeBillingCustomerId?: Prisma.SortOrder
   stripeOnboardingComplete?: Prisma.SortOrder
@@ -802,6 +828,7 @@ export type UserMinOrderByAggregateInput = {
   archivedAt?: Prisma.SortOrder
   bookingsLastViewedAt?: Prisma.SortOrder
   adminOnboardingCompletedAt?: Prisma.SortOrder
+  adminOnboardingStep?: Prisma.SortOrder
   stripeAccountId?: Prisma.SortOrder
   stripeBillingCustomerId?: Prisma.SortOrder
   stripeOnboardingComplete?: Prisma.SortOrder
@@ -817,6 +844,7 @@ export type UserMinOrderByAggregateInput = {
 
 export type UserSumOrderByAggregateInput = {
   publicBookingMinNoticeHours?: Prisma.SortOrder
+  adminOnboardingStep?: Prisma.SortOrder
 }
 
 export type UserScalarRelationFilter = {
@@ -955,6 +983,7 @@ export type UserCreateWithoutUserAvatarInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
   adminOnboardingCompletedAt?: Date | string | null
+  adminOnboardingStep?: number
   stripeAccountId?: string | null
   stripeBillingCustomerId?: string | null
   stripeOnboardingComplete?: boolean
@@ -988,6 +1017,7 @@ export type UserUncheckedCreateWithoutUserAvatarInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
   adminOnboardingCompletedAt?: Date | string | null
+  adminOnboardingStep?: number
   stripeAccountId?: string | null
   stripeBillingCustomerId?: string | null
   stripeOnboardingComplete?: boolean
@@ -1037,6 +1067,7 @@ export type UserUpdateWithoutUserAvatarInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeBillingCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeOnboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1070,6 +1101,7 @@ export type UserUncheckedUpdateWithoutUserAvatarInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeBillingCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeOnboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1103,6 +1135,7 @@ export type UserCreateWithoutClientsInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
   adminOnboardingCompletedAt?: Date | string | null
+  adminOnboardingStep?: number
   stripeAccountId?: string | null
   stripeBillingCustomerId?: string | null
   stripeOnboardingComplete?: boolean
@@ -1136,6 +1169,7 @@ export type UserUncheckedCreateWithoutClientsInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
   adminOnboardingCompletedAt?: Date | string | null
+  adminOnboardingStep?: number
   stripeAccountId?: string | null
   stripeBillingCustomerId?: string | null
   stripeOnboardingComplete?: boolean
@@ -1185,6 +1219,7 @@ export type UserUpdateWithoutClientsInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeBillingCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeOnboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1218,6 +1253,7 @@ export type UserUncheckedUpdateWithoutClientsInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeBillingCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeOnboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1251,6 +1287,7 @@ export type UserCreateWithoutServicesInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
   adminOnboardingCompletedAt?: Date | string | null
+  adminOnboardingStep?: number
   stripeAccountId?: string | null
   stripeBillingCustomerId?: string | null
   stripeOnboardingComplete?: boolean
@@ -1284,6 +1321,7 @@ export type UserUncheckedCreateWithoutServicesInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
   adminOnboardingCompletedAt?: Date | string | null
+  adminOnboardingStep?: number
   stripeAccountId?: string | null
   stripeBillingCustomerId?: string | null
   stripeOnboardingComplete?: boolean
@@ -1333,6 +1371,7 @@ export type UserUpdateWithoutServicesInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeBillingCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeOnboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1366,6 +1405,7 @@ export type UserUncheckedUpdateWithoutServicesInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeBillingCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeOnboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1399,6 +1439,7 @@ export type UserCreateWithoutBookingsInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
   adminOnboardingCompletedAt?: Date | string | null
+  adminOnboardingStep?: number
   stripeAccountId?: string | null
   stripeBillingCustomerId?: string | null
   stripeOnboardingComplete?: boolean
@@ -1432,6 +1473,7 @@ export type UserUncheckedCreateWithoutBookingsInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
   adminOnboardingCompletedAt?: Date | string | null
+  adminOnboardingStep?: number
   stripeAccountId?: string | null
   stripeBillingCustomerId?: string | null
   stripeOnboardingComplete?: boolean
@@ -1481,6 +1523,7 @@ export type UserUpdateWithoutBookingsInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeBillingCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeOnboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1514,6 +1557,7 @@ export type UserUncheckedUpdateWithoutBookingsInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeBillingCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeOnboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1547,6 +1591,7 @@ export type UserCreateWithoutSessionsInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
   adminOnboardingCompletedAt?: Date | string | null
+  adminOnboardingStep?: number
   stripeAccountId?: string | null
   stripeBillingCustomerId?: string | null
   stripeOnboardingComplete?: boolean
@@ -1580,6 +1625,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
   adminOnboardingCompletedAt?: Date | string | null
+  adminOnboardingStep?: number
   stripeAccountId?: string | null
   stripeBillingCustomerId?: string | null
   stripeOnboardingComplete?: boolean
@@ -1629,6 +1675,7 @@ export type UserUpdateWithoutSessionsInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeBillingCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeOnboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1662,6 +1709,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeBillingCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeOnboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1695,6 +1743,7 @@ export type UserCreateWithoutAccountsInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
   adminOnboardingCompletedAt?: Date | string | null
+  adminOnboardingStep?: number
   stripeAccountId?: string | null
   stripeBillingCustomerId?: string | null
   stripeOnboardingComplete?: boolean
@@ -1728,6 +1777,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
   adminOnboardingCompletedAt?: Date | string | null
+  adminOnboardingStep?: number
   stripeAccountId?: string | null
   stripeBillingCustomerId?: string | null
   stripeOnboardingComplete?: boolean
@@ -1777,6 +1827,7 @@ export type UserUpdateWithoutAccountsInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeBillingCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeOnboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1810,6 +1861,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeBillingCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeOnboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1910,6 +1962,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   calendarClosedSlotKeys?: boolean
   bookingsLastViewedAt?: boolean
   adminOnboardingCompletedAt?: boolean
+  adminOnboardingStep?: boolean
   stripeAccountId?: boolean
   stripeBillingCustomerId?: boolean
   stripeOnboardingComplete?: boolean
@@ -1945,6 +1998,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   calendarClosedSlotKeys?: boolean
   bookingsLastViewedAt?: boolean
   adminOnboardingCompletedAt?: boolean
+  adminOnboardingStep?: boolean
   stripeAccountId?: boolean
   stripeBillingCustomerId?: boolean
   stripeOnboardingComplete?: boolean
@@ -1973,6 +2027,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   calendarClosedSlotKeys?: boolean
   bookingsLastViewedAt?: boolean
   adminOnboardingCompletedAt?: boolean
+  adminOnboardingStep?: boolean
   stripeAccountId?: boolean
   stripeBillingCustomerId?: boolean
   stripeOnboardingComplete?: boolean
@@ -2001,6 +2056,7 @@ export type UserSelectScalar = {
   calendarClosedSlotKeys?: boolean
   bookingsLastViewedAt?: boolean
   adminOnboardingCompletedAt?: boolean
+  adminOnboardingStep?: boolean
   stripeAccountId?: boolean
   stripeBillingCustomerId?: boolean
   stripeOnboardingComplete?: boolean
@@ -2014,7 +2070,7 @@ export type UserSelectScalar = {
   banExpires?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "image" | "bio" | "address" | "publicBookingSlug" | "publicBookingMinNoticeHours" | "archivedAt" | "calendarWeekHours" | "calendarClosedSlotKeys" | "bookingsLastViewedAt" | "adminOnboardingCompletedAt" | "stripeAccountId" | "stripeBillingCustomerId" | "stripeOnboardingComplete" | "stripeChargesEnabled" | "stripePayoutsEnabled" | "createdAt" | "updatedAt" | "role" | "banned" | "banReason" | "banExpires", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "image" | "bio" | "address" | "publicBookingSlug" | "publicBookingMinNoticeHours" | "archivedAt" | "calendarWeekHours" | "calendarClosedSlotKeys" | "bookingsLastViewedAt" | "adminOnboardingCompletedAt" | "adminOnboardingStep" | "stripeAccountId" | "stripeBillingCustomerId" | "stripeOnboardingComplete" | "stripeChargesEnabled" | "stripePayoutsEnabled" | "createdAt" | "updatedAt" | "role" | "banned" | "banReason" | "banExpires", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
@@ -2073,6 +2129,10 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
      * First-time admin checklist finished at; null means show onboarding after sign-in.
      */
     adminOnboardingCompletedAt: Date | null
+    /**
+     * Last reached onboarding step index (0-based) to resume flow when unfinished.
+     */
+    adminOnboardingStep: number
     stripeAccountId: string | null
     /**
      * Platform Stripe Customer id (Bookido subscription / SaaS billing), not Connect.
@@ -2530,6 +2590,7 @@ export interface UserFieldRefs {
   readonly calendarClosedSlotKeys: Prisma.FieldRef<"User", 'Json'>
   readonly bookingsLastViewedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly adminOnboardingCompletedAt: Prisma.FieldRef<"User", 'DateTime'>
+  readonly adminOnboardingStep: Prisma.FieldRef<"User", 'Int'>
   readonly stripeAccountId: Prisma.FieldRef<"User", 'String'>
   readonly stripeBillingCustomerId: Prisma.FieldRef<"User", 'String'>
   readonly stripeOnboardingComplete: Prisma.FieldRef<"User", 'Boolean'>

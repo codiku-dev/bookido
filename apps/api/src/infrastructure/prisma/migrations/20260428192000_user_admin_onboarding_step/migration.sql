@@ -1,0 +1,2 @@
+ALTER TABLE "user"
+ADD COLUMN "adminOnboardingStep" INTEGER NOT NULL DEFAULT 0;

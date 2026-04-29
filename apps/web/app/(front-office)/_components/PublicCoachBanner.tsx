@@ -47,7 +47,7 @@ export function PublicCoachBanner(p: { name: string; bio: string | null; imageUr
     <div className="min-w-0 flex-1 text-left">
       <p className="text-xs font-medium uppercase tracking-wide text-blue-700">{t("public.booking.coachSectionLabel")}</p>
       <h1 className="mt-1 text-xl font-bold text-slate-900 sm:text-2xl md:text-3xl">{p.name}</h1>
-      <p className="mt-2 line-clamp-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-600 sm:line-clamp-3 md:mt-3 md:line-clamp-none md:text-base">
+      <p className="mt-2 line-clamp-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-600 sm:line-clamp-3 md:mt-3 md:line-clamp-3 md:text-base">
         {bioText}
       </p>
     </div>

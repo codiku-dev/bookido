@@ -4,7 +4,7 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, type Resolver } from "react-hook-form";
+import { useForm, useWatch, type Resolver } from "react-hook-form";
 import { z } from "zod";
 import {
   Calendar,
@@ -58,6 +58,8 @@ import { CalendarSlotHoverHint, WeeklyTimeGrid } from "#/components/calendar/Wee
 import type { inferRouterOutputs } from "@trpc/server";
 import type { AppRouter } from "@repo/trpc/router";
 import { trpc } from "@web/libs/trpc-client";
+import { SERVICE_DESCRIPTION_MAX_CHARS } from "#/utils/service-description-limit";
+import { GooglePlacesAddressField } from "#/components/GooglePlacesAddressField";
 
 type ServiceRow = inferRouterOutputs<AppRouter>["services"]["list"][number];
 
@@ -70,6 +72,7 @@ const timeSlots = [
 const buildServiceFormSchema = (p: {
   nameRequired: string;
   descriptionRequired: string;
+  descriptionMax: string;
   addressRequired: string;
   durationNumber: string;
   durationMin30: string;
@@ -85,7 +88,11 @@ const buildServiceFormSchema = (p: {
 
   return z.object({
     name: z.string().min(1, p.nameRequired),
-    description: z.string().trim().min(1, p.descriptionRequired),
+    description: z
+      .string()
+      .trim()
+      .min(1, p.descriptionRequired)
+      .max(SERVICE_DESCRIPTION_MAX_CHARS, p.descriptionMax),
     duration: normalizedNumeric
       .refine((value) => value.length > 0, p.durationNumber)
       .refine((value) => /^\d+$/.test(value), p.durationNumber)
@@ -111,6 +118,7 @@ const buildServiceFormSchema = (p: {
       .min(1, p.imageRequired)
       .refine((value) => value.startsWith("data:image/"), p.imageInvalidType),
     address: z.string().trim().min(1, p.addressRequired).max(500),
+    addressFromPlaces: z.boolean(),
     requiresValidation: z.boolean(),
     allowsDirectPayment: z.boolean(),
     isPublished: z.boolean(),
@@ -131,6 +139,7 @@ function getServiceFormDefaults(): ServiceFormValues {
     isFree: false,
     imageUrl: "",
     address: "",
+    addressFromPlaces: false,
     requiresValidation: false,
     allowsDirectPayment: false,
     isPublished: true,
@@ -191,6 +200,8 @@ export default function ServicesManagement() {
   const [priceMaxInput, setPriceMaxInput] = useState("");
   const [paymentFilter, setPaymentFilter] = useState<"" | "card" | "direct">("");
   const [durationFilter, setDurationFilter] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<25 | 50 | 100>(25);
   const showDevFill = process.env.NODE_ENV === "development";
   const imageUploadInputRef = useRef<HTMLInputElement | null>(null);
   const availabilityDragRef = useRef<{
@@ -208,6 +219,7 @@ export default function ServicesManagement() {
       buildServiceFormSchema({
         nameRequired: t("services.validation.nameRequired"),
         descriptionRequired: t("services.validation.descriptionRequired"),
+        descriptionMax: t("services.validation.descriptionMax"),
         addressRequired: t("services.validation.addressRequired"),
         durationNumber: t("services.validation.durationNumber"),
         durationMin30: t("services.validation.durationMin30"),
@@ -222,14 +234,26 @@ export default function ServicesManagement() {
     [t],
   );
 
-  const listQuery = trpc.services.list.useQuery(undefined, { retry: false });
+  const listQuery = trpc.services.listPaginated.useQuery(
+    {
+      page,
+      pageSize,
+      search: listSearch.trim().length > 0 ? listSearch.trim() : undefined,
+      published: publishedFilter || undefined,
+      payment: paymentFilter || undefined,
+      durationMinutes: durationFilter.trim().length > 0 ? Number.parseInt(durationFilter, 10) : undefined,
+      priceMin: priceMinInput.trim().length > 0 ? Number.parseFloat(priceMinInput.replace(",", ".")) : undefined,
+      priceMax: priceMaxInput.trim().length > 0 ? Number.parseFloat(priceMaxInput.replace(",", ".")) : undefined,
+    },
+    { retry: false },
+  );
   const availabilityQuery = trpc.profile.getCalendarAvailability.useQuery(undefined, { retry: false });
   const profilePresenceQuery = trpc.profile.getPublicBookingPresence.useQuery(undefined, { retry: false });
   const createMutation = trpc.services.create.useMutation({
     onSuccess: async () => {
       setMutationError(null);
       toast.success(t("common.save"));
-      await utils.services.list.invalidate();
+      await utils.services.listPaginated.invalidate();
       resetFormUi();
     },
     onError: () => setMutationError(t("services.errors.save")),
@@ -238,7 +262,7 @@ export default function ServicesManagement() {
     onSuccess: async () => {
       setMutationError(null);
       toast.success(t("common.save"));
-      await utils.services.list.invalidate();
+      await utils.services.listPaginated.invalidate();
       resetFormUi();
     },
     onError: () => setMutationError(t("services.errors.save")),
@@ -247,7 +271,7 @@ export default function ServicesManagement() {
     onSuccess: async () => {
       setMutationError(null);
       setDeleteTarget(null);
-      await utils.services.list.invalidate();
+      await utils.services.listPaginated.invalidate();
     },
     onError: () => setMutationError(t("services.errors.delete")),
   });
@@ -257,13 +281,21 @@ export default function ServicesManagement() {
     defaultValues: getServiceFormDefaults(),
   });
 
-  const getNewServiceFormDefaults = useCallback(
-    (): ServiceFormValues => ({
+  const googleMapsPlacesApiKey = process.env["NEXT_PUBLIC_GOOGLE_MAPS_API_KEY"]?.trim() ?? "";
+  const watchedAddressFromPlaces = useWatch<ServiceFormValues, "addressFromPlaces">({
+    control: form.control,
+    name: "addressFromPlaces",
+    defaultValue: false,
+  });
+
+  const getNewServiceFormDefaults = useCallback((): ServiceFormValues => {
+    const def = profilePresenceQuery.data?.defaultAddress ?? "";
+    return {
       ...getServiceFormDefaults(),
-      address: profilePresenceQuery.data?.defaultAddress ?? "",
-    }),
-    [profilePresenceQuery.data?.defaultAddress],
-  );
+      address: def,
+      addressFromPlaces: def.trim().length > 0,
+    };
+  }, [profilePresenceQuery.data?.defaultAddress]);
 
   const resetFormUi = useCallback(() => {
     form.reset(getNewServiceFormDefaults());
@@ -290,6 +322,7 @@ export default function ServicesManagement() {
       isFree: true,
       imageUrl: "https://example.com/image.jpg",
       address: "123 Demo Street, Paris",
+      addressFromPlaces: false,
       requiresValidation: false,
       allowsDirectPayment: true,
     });
@@ -307,6 +340,7 @@ export default function ServicesManagement() {
       isFree: service.isFree,
       imageUrl: service.imageUrl ?? "",
       address: service.address ?? "",
+      addressFromPlaces: true,
       requiresValidation: service.requiresValidation,
       allowsDirectPayment: service.allowsDirectPayment,
       isPublished: service.isPublished,
@@ -460,6 +494,16 @@ export default function ServicesManagement() {
 
   const onSubmit = (values: ServiceFormValues) => {
     setMutationError(null);
+    const addressDirty = form.formState.dirtyFields.address === true;
+    if (
+      googleMapsPlacesApiKey.length > 0 &&
+      values.address.trim().length > 0 &&
+      !values.addressFromPlaces &&
+      (!editingId || addressDirty)
+    ) {
+      toast.error(t("onboarding.address.mustPickFromMap"));
+      return;
+    }
     const trimmedImage = values.imageUrl.trim();
     const parsedDuration = Number.parseInt(values.duration, 10);
     const parsedPackSize = Number.parseInt(values.packSize, 10);
@@ -486,45 +530,10 @@ export default function ServicesManagement() {
   };
 
   const isSaving = createMutation.isPending || updateMutation.isPending;
-  const servicesRows = listQuery.data ?? [];
+  const servicesRows = listQuery.data?.items ?? [];
   const isFormMode = isAdding || editingId;
 
-  const filteredServices = useMemo(() => {
-    const q = listSearch.trim().toLowerCase();
-    const minRaw = priceMinInput.trim().replace(",", ".");
-    const maxRaw = priceMaxInput.trim().replace(",", ".");
-    const minP = minRaw.length > 0 ? Number.parseFloat(minRaw) : Number.NaN;
-    const maxP = maxRaw.length > 0 ? Number.parseFloat(maxRaw) : Number.NaN;
-    const hasMin = minRaw.length > 0 && !Number.isNaN(minP);
-    const hasMax = maxRaw.length > 0 && !Number.isNaN(maxP);
-    const durationTarget = durationFilter.trim().length > 0 ? Number.parseInt(durationFilter, 10) : Number.NaN;
-    const hasDuration = durationFilter.trim().length > 0 && !Number.isNaN(durationTarget);
-
-    return servicesRows.filter((service) => {
-      if (q.length > 0) {
-        const inName = service.name.toLowerCase().includes(q);
-        const inDesc = service.description.toLowerCase().includes(q);
-        if (!inName && !inDesc) return false;
-      }
-      if (publishedFilter === "published" && !service.isPublished) return false;
-      if (publishedFilter === "draft" && service.isPublished) return false;
-      if (paymentFilter === "direct" && !service.allowsDirectPayment) return false;
-      if (paymentFilter === "card" && service.allowsDirectPayment) return false;
-      const effectivePrice = service.isFree ? 0 : service.price;
-      if (hasMin && effectivePrice < minP) return false;
-      if (hasMax && effectivePrice > maxP) return false;
-      if (hasDuration && service.durationMinutes !== durationTarget) return false;
-      return true;
-    });
-  }, [
-    servicesRows,
-    listSearch,
-    publishedFilter,
-    priceMinInput,
-    priceMaxInput,
-    paymentFilter,
-    durationFilter,
-  ]);
+  const filteredServices = servicesRows;
 
   const distinctDurationMinutes = useMemo(() => {
     const set = new Set<number>();
@@ -550,6 +559,10 @@ export default function ServicesManagement() {
     setPaymentFilter("");
     setDurationFilter("");
   };
+
+  useEffect(() => {
+    setPage(1);
+  }, [listSearch, publishedFilter, priceMinInput, priceMaxInput, paymentFilter, durationFilter, pageSize]);
 
   const listFilterSelectClass =
     "w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-600";
@@ -866,7 +879,7 @@ export default function ServicesManagement() {
             </div>
           ) : null}
           {mutationError ? <p className="text-sm text-red-600 mb-4">{mutationError}</p> : null}
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid gap-6 md:grid-cols-2">
             <FormField
               control={form.control}
               name="name"
@@ -890,13 +903,25 @@ export default function ServicesManagement() {
               name="description"
               render={({ field }) => (
                 <FormItem className="md:col-span-2">
-                  <FormLabel>{t("services.description")}</FormLabel>
+                  <div className="flex items-end justify-between gap-2">
+                    <FormLabel>{t("services.description")}</FormLabel>
+                    <span className="text-xs text-slate-500 tabular-nums">
+                      {t("services.validation.descriptionCharCount", {
+                        current: field.value.length,
+                        max: SERVICE_DESCRIPTION_MAX_CHARS,
+                      })}
+                    </span>
+                  </div>
                   <FormControl>
                     <Textarea
                       {...field}
+                      maxLength={SERVICE_DESCRIPTION_MAX_CHARS}
                       placeholder={t("services.form.placeholders.description")}
                       rows={3}
                       className="rounded-xl min-h-[96px]"
+                      onChange={(e) => {
+                        field.onChange(e.target.value.slice(0, SERVICE_DESCRIPTION_MAX_CHARS));
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -908,18 +933,23 @@ export default function ServicesManagement() {
               control={form.control}
               name="address"
               render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <FormLabel>{t("services.address.label")}</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder={t("services.address.placeholder")}
-                      className="rounded-xl h-11"
-                    />
-                  </FormControl>
-                  <p className="text-xs text-slate-500">{t("services.address.hint")}</p>
-                  <FormMessage />
-                </FormItem>
+                <GooglePlacesAddressField
+                  apiKey={googleMapsPlacesApiKey}
+                  placesActive={isAdding || editingId !== null}
+                  addressField={{
+                    value: field.value,
+                    onChange: field.onChange,
+                    onBlur: field.onBlur,
+                    name: field.name,
+                    ref: field.ref,
+                  }}
+                  fromPlaces={watchedAddressFromPlaces}
+                  setFromPlaces={(value, options) => form.setValue("addressFromPlaces", value, options)}
+                  label={t("services.address.label")}
+                  hint={t("services.address.hint")}
+                  placeholder={t("services.address.placeholder")}
+                  inputClassName="h-11"
+                />
               )}
             />
 
@@ -927,7 +957,7 @@ export default function ServicesManagement() {
               control={form.control}
               name="duration"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex h-full min-h-0 flex-col gap-2">
                   <FormLabel>
                     {t("services.duration")} ({t("services.minutes")})
                   </FormLabel>
@@ -941,10 +971,11 @@ export default function ServicesManagement() {
                         field.onChange(next);
                       }}
                       placeholder={t("services.durationPlaceholder")}
-                      className="rounded-xl h-11"
+                      className="h-11 rounded-xl"
                     />
                   </FormControl>
-                  <p className="text-xs text-slate-500">{t("services.durationHint")}</p>
+                  <div className="min-h-0 flex-1 basis-0" aria-hidden />
+                  <p className="text-xs leading-snug text-slate-500">{t("services.durationHint")}</p>
                   <FormMessage />
                 </FormItem>
               )}
@@ -954,7 +985,7 @@ export default function ServicesManagement() {
               control={form.control}
               name="packSize"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex h-full min-h-0 flex-col gap-2">
                   <FormLabel>{t("services.packSize")}</FormLabel>
                   <FormControl>
                     <Input
@@ -966,9 +997,10 @@ export default function ServicesManagement() {
                         field.onChange(next);
                       }}
                       placeholder="1"
-                      className="rounded-xl h-11"
+                      className="h-11 rounded-xl"
                     />
                   </FormControl>
+                  <div className="min-h-0 flex-1 basis-0" aria-hidden />
                   <FormMessage />
                 </FormItem>
               )}
@@ -978,8 +1010,8 @@ export default function ServicesManagement() {
               control={form.control}
               name="requiresValidation"
               render={({ field }) => (
-                <FormItem>
-                  <div className="flex items-start gap-3 p-4 border border-slate-200 rounded-xl hover:bg-slate-50">
+                <FormItem className="md:col-span-2">
+                  <div className="flex items-start gap-3 rounded-xl border border-slate-200 p-4 hover:bg-slate-50">
                     <FormControl>
                       <Checkbox checked={field.value} onCheckedChange={(v) => field.onChange(v === true)} />
                     </FormControl>
@@ -1000,8 +1032,8 @@ export default function ServicesManagement() {
               name="allowsDirectPayment"
               defaultValue={false}
               render={({ field }) => (
-                <FormItem>
-                  <div className="flex items-start gap-3 p-4 border border-slate-200 rounded-xl hover:bg-slate-50">
+                <FormItem className="md:col-span-2">
+                  <div className="flex items-start gap-3 rounded-xl border border-slate-200 p-4 hover:bg-slate-50">
                     <FormControl>
                       <Checkbox checked={field.value === true} onCheckedChange={(v) => field.onChange(v === true)} />
                     </FormControl>
@@ -1037,7 +1069,7 @@ export default function ServicesManagement() {
                           field.onChange(next);
                         }}
                         placeholder="50"
-                        className="rounded-xl h-11"
+                        className="h-11 w-full max-w-[11rem] rounded-xl"
                       />
                     </FormControl>
                     <FormMessage />
@@ -1309,11 +1341,40 @@ export default function ServicesManagement() {
         ? servicesLoadingPanel
         : listQuery.isError
           ? servicesErrorPanel
-          : servicesRows.length === 0
+          : (listQuery.data?.total ?? 0) === 0
             ? servicesEmptyPanel
             : filteredServices.length === 0
               ? servicesFilteredEmptyPanel
               : servicesCardsGrid;
+
+  const totalPages = listQuery.data?.totalPages ?? 1;
+  const pagination = isFormMode ? null : (
+    <div className="mt-4 flex items-center justify-between gap-3">
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-slate-600">{t("common.pagination.perPage")}</span>
+        <select
+          value={String(pageSize)}
+          onChange={(event) => setPageSize(Number(event.target.value) as 25 | 50 | 100)}
+          className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm"
+        >
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </div>
+      <div className="flex items-center gap-2">
+        <Button type="button" variant="outline" disabled={page <= 1} onClick={() => setPage((prev) => Math.max(1, prev - 1))}>
+          {t("common.pagination.previous")}
+        </Button>
+        <span className="text-sm text-slate-600">
+          {t("common.pagination.page")} {page}/{totalPages}
+        </span>
+        <Button type="button" variant="outline" disabled={page >= totalPages} onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}>
+          {t("common.pagination.next")}
+        </Button>
+      </div>
+    </div>
+  );
 
   const mainWhitePanel = (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg md:p-8">
@@ -1329,6 +1390,7 @@ export default function ServicesManagement() {
     <div className="mx-auto w-full max-w-7xl p-8">
       {renderHeader()}
       {servicesFiltersPanel}
+      {pagination}
       {visibilityTopBanner}
       {mainWhitePanel}
       {renderDeleteDialog()}

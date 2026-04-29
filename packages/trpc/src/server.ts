@@ -1,6 +1,15 @@
 import { initTRPC } from "@trpc/server";
 import { z } from "zod";
 
+/** Mirrors `apps/api` profile schema for client-side router typing. */
+const publicBookingSlugSchema = z
+  .string()
+  .min(2)
+  .max(96)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "INVALID_SLUG_FORMAT");
+
+const PROFILE_AVATAR_DATA_URL_MAX_LEN = 8_388_608;
+
 const t = initTRPC.create();
 const publicProcedure = t.procedure;
 
@@ -249,6 +258,36 @@ const appRouter = t.router({
       nextBookingDate: z.string().nullable(),
       nextBookingService: z.string().nullable(),
     }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    listPaginated: publicProcedure.input(z.object({
+      page: z.number().int().min(1).default(1),
+      pageSize: z.union([z.literal(25), z.literal(50), z.literal(100)]).default(25),
+      search: z.string().trim().max(200).optional(),
+      nextBookingFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+      nextBookingTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    })).output(z.object({
+      items: z.array(z.object({
+        id: z.string(),
+        ownerId: z.string(),
+        name: z.string(),
+        email: z.string().email(),
+        phone: z.string(),
+        address: z.string().nullable(),
+        notes: z.string().nullable(),
+        createdAt: z.coerce.date(),
+        updatedAt: z.coerce.date(),
+      }).extend({
+        totalBookings: z.number(),
+        totalSpent: z.number(),
+        status: z.enum(["active", "inactive"]),
+        lastBooking: z.string().nullable(),
+        nextBookingDate: z.string().nullable(),
+        nextBookingService: z.string().nullable(),
+      })),
+      total: z.number().int().nonnegative(),
+      page: z.number().int().min(1),
+      pageSize: z.union([z.literal(25), z.literal(50), z.literal(100)]),
+      totalPages: z.number().int().min(1),
+    })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     getById: publicProcedure.input(z.object({ id: z.string() })).output(z.object({
       id: z.string(),
       ownerId: z.string(),
@@ -320,12 +359,16 @@ const appRouter = t.router({
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     delete: publicProcedure.input(z.object({ id: z.string() })).output(z.object({ id: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   }),
-  profile: t.router({ ,
+  profile: t.router({
     getAdminOnboardingStatus: publicProcedure.output(z.object({
       needsOnboarding: z.boolean(),
       bio: z.string().nullable(),
+      currentStep: z.number().int().min(0).max(8),
     })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     completeAdminOnboarding: publicProcedure.input(z.object({})).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    saveAdminOnboardingStep: publicProcedure.input(z.object({
+      step: z.number().int().min(0).max(8),
+    })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     getCalendarAvailability: publicProcedure.output(z.object({
       weekHours: z.object({
         Monday: z.object({
@@ -436,7 +479,7 @@ const appRouter = t.router({
     })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     updateProfileBasics: publicProcedure.input(z.object({
       name: z.string().min(1).max(200),
-      bio: z.string().max(4000).nullable().optional(),
+      bio: z.string().max(320).nullable().optional(),
       defaultAddress: z.string().max(500).nullable().optional(),
       publicBookingMinNoticeHours: z.number().int().min(0).max(168).optional(),
     })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
@@ -454,7 +497,7 @@ const appRouter = t.router({
       password: z.string().optional(),
     })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   }),
-  services: t.router({ ,
+  services: t.router({
     list: publicProcedure.output(z.array(z.object({
       id: z.string(),
       userId: z.string(),
@@ -473,9 +516,42 @@ const appRouter = t.router({
       createdAt: z.coerce.date(),
       updatedAt: z.coerce.date(),
     }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    listPaginated: publicProcedure.input(z.object({
+      page: z.number().int().min(1).default(1),
+      pageSize: z.union([z.literal(25), z.literal(50), z.literal(100)]).default(25),
+      search: z.string().trim().max(200).optional(),
+      published: z.union([z.literal("published"), z.literal("draft")]).optional(),
+      payment: z.union([z.literal("card"), z.literal("direct")]).optional(),
+      durationMinutes: z.number().int().positive().optional(),
+      priceMin: z.number().nonnegative().optional(),
+      priceMax: z.number().nonnegative().optional(),
+    })).output(z.object({
+      items: z.array(z.object({
+        id: z.string(),
+        userId: z.string(),
+        name: z.string(),
+        description: z.string(),
+        durationMinutes: z.number().int(),
+        price: z.number(),
+        isFree: z.boolean(),
+        packSize: z.number().int(),
+        imageUrl: z.string().nullable(),
+        address: z.string(),
+        availableSlotKeys: z.array(z.string()),
+        isPublished: z.boolean(),
+        requiresValidation: z.boolean(),
+        allowsDirectPayment: z.boolean(),
+        createdAt: z.coerce.date(),
+        updatedAt: z.coerce.date(),
+      })),
+      total: z.number().int().nonnegative(),
+      page: z.number().int().min(1),
+      pageSize: z.union([z.literal(25), z.literal(50), z.literal(100)]),
+      totalPages: z.number().int().min(1),
+    })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     create: publicProcedure.input(z.object({
       name: z.string().min(1),
-      description: z.string().trim().min(1),
+      description: z.string().trim().min(1).max(300),
       durationMinutes: z
         .number()
         .int()
@@ -512,7 +588,7 @@ const appRouter = t.router({
       id: z.string(),
       data: z.object({
         name: z.string().min(1),
-        description: z.string().trim().min(1),
+        description: z.string().trim().min(1).max(300),
         durationMinutes: z
           .number()
           .int()
@@ -568,6 +644,7 @@ const appRouter = t.router({
       requiresHostValidation: z.boolean(),
       hostValidationAccepted: z.boolean(),
       createdByClient: z.boolean(),
+      isUnseenInAdmin: z.boolean(),
       createdAt: z.coerce.date(),
       updatedAt: z.coerce.date(),
       clientName: z.string(),
@@ -576,6 +653,45 @@ const appRouter = t.router({
       serviceName: z.string(),
       allowsDirectPayment: z.boolean(),
     }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    listPaginated: publicProcedure.input(z.object({
+      page: z.number().int().min(1).default(1),
+      pageSize: z.union([z.literal(25), z.literal(50), z.literal(100)]).default(25),
+      search: z.string().trim().max(200).optional(),
+      status: z.enum(["confirmed", "pending", "cancelled"]).optional(),
+      payment: z.union([z.literal("paid"), z.literal("partial"), z.literal("unpaid")]).optional(),
+      dateFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+      dateTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    })).output(z.object({
+      items: z.array(z.object({
+        id: z.string(),
+        ownerId: z.string(),
+        clientId: z.string(),
+        serviceId: z.string(),
+        startsAt: z.coerce.date(),
+        durationMinutes: z.number().int(),
+        price: z.number(),
+        paidAmount: z.number(),
+        status: z.enum(["confirmed", "pending", "cancelled"]),
+        notes: z.string().nullable(),
+        location: z.string(),
+        paymentMethod: z.string(),
+        requiresHostValidation: z.boolean(),
+        hostValidationAccepted: z.boolean(),
+        createdByClient: z.boolean(),
+        isUnseenInAdmin: z.boolean(),
+        createdAt: z.coerce.date(),
+        updatedAt: z.coerce.date(),
+        clientName: z.string(),
+        clientEmail: z.string(),
+        clientPhone: z.string(),
+        serviceName: z.string(),
+        allowsDirectPayment: z.boolean(),
+      })),
+      total: z.number().int().nonnegative(),
+      page: z.number().int().min(1),
+      pageSize: z.union([z.literal(25), z.literal(50), z.literal(100)]),
+      totalPages: z.number().int().min(1),
+    })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     getById: publicProcedure.input(z.object({ id: z.string() })).output(z.object({
       id: z.string(),
       ownerId: z.string(),
@@ -592,6 +708,7 @@ const appRouter = t.router({
       requiresHostValidation: z.boolean(),
       hostValidationAccepted: z.boolean(),
       createdByClient: z.boolean(),
+      isUnseenInAdmin: z.boolean(),
       createdAt: z.coerce.date(),
       updatedAt: z.coerce.date(),
       clientName: z.string(),
@@ -630,6 +747,7 @@ const appRouter = t.router({
       requiresHostValidation: z.boolean(),
       hostValidationAccepted: z.boolean(),
       createdByClient: z.boolean(),
+      isUnseenInAdmin: z.boolean(),
       createdAt: z.coerce.date(),
       updatedAt: z.coerce.date(),
       clientName: z.string(),
@@ -664,6 +782,7 @@ const appRouter = t.router({
       requiresHostValidation: z.boolean(),
       hostValidationAccepted: z.boolean(),
       createdByClient: z.boolean(),
+      isUnseenInAdmin: z.boolean(),
       createdAt: z.coerce.date(),
       updatedAt: z.coerce.date(),
       clientName: z.string(),
@@ -673,6 +792,7 @@ const appRouter = t.router({
       allowsDirectPayment: z.boolean(),
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     delete: publicProcedure.input(z.object({ id: z.string() })).output(z.object({ id: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    markBookingViewed: publicProcedure.input(z.object({ id: z.string() })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     markBookingsListViewed: publicProcedure.input(z.object({})).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   }),
   dashboard: t.router({
@@ -824,6 +944,7 @@ const appRouter = t.router({
       clientName: z.string().min(1).max(200),
       clientEmail: z.string().email().max(320),
       clientPhone: z.string().max(80).optional(),
+      locale: z.enum(["fr", "en"]).optional(),
     })).output(z.object({
       id: z.string(),
       ownerId: z.string(),
@@ -840,6 +961,7 @@ const appRouter = t.router({
       requiresHostValidation: z.boolean(),
       hostValidationAccepted: z.boolean(),
       createdByClient: z.boolean(),
+      isUnseenInAdmin: z.boolean(),
       createdAt: z.coerce.date(),
       updatedAt: z.coerce.date(),
       clientName: z.string(),
@@ -847,6 +969,32 @@ const appRouter = t.router({
       clientPhone: z.string(),
       serviceName: z.string(),
       allowsDirectPayment: z.boolean(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    createCheckoutSession: publicProcedure.input(z.object({
+      coachSlug: z
+        .string()
+        .min(2)
+        .max(96)
+        .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "INVALID_SLUG_FORMAT"),
+      serviceId: z.string().uuid(),
+      /** One ISO start per session; length must match the service `packSize`. */
+      sessionsStartsAt: z.array(z.string().datetime()).min(1).max(32),
+      clientName: z.string().min(1).max(200),
+      clientEmail: z.string().email().max(320),
+      clientPhone: z.string().max(80).optional(),
+      locale: z.enum(["fr", "en"]).optional(),
+    })).output(z.object({
+      url: z.string().url(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    confirmCheckout: publicProcedure.input(z.object({
+      coachSlug: z
+        .string()
+        .min(2)
+        .max(96)
+        .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "INVALID_SLUG_FORMAT"),
+      sessionId: z.string().min(1),
+    })).output(z.object({
+      ok: z.literal(true),
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   })
 });

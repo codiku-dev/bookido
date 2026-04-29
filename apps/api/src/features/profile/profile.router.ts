@@ -11,6 +11,7 @@ import {
   stripeConnectStatusOutputSchema,
   updateCalendarAvailabilityInputSchema,
   adminOnboardingStatusOutputSchema,
+  saveAdminOnboardingStepInputSchema,
   updateProfileAvatarInputSchema,
   updateProfileBasicsInputSchema,
   updatePublicBookingPresenceInputSchema,
@@ -48,6 +49,18 @@ export class ProfileRouter {
   completeAdminOnboarding(@Ctx() ctx: BaseUserSession) {
     const { id } = this.requireUser(ctx);
     return this.profileService.completeAdminOnboarding(id);
+  }
+
+  @Mutation({
+    input: saveAdminOnboardingStepInputSchema,
+    output: z.object({ ok: z.literal(true) }),
+  })
+  saveAdminOnboardingStep(
+    @Ctx() ctx: BaseUserSession,
+    @Input() input: z.infer<typeof saveAdminOnboardingStepInputSchema>,
+  ) {
+    const { id } = this.requireUser(ctx);
+    return this.profileService.saveAdminOnboardingStep(id, input.step);
   }
 
   @Query({
