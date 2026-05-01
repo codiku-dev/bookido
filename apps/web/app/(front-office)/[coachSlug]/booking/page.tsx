@@ -39,6 +39,7 @@ import {
   SelectValue,
 } from "#/components/ui/select";
 import { trpc } from "@web/libs/trpc-client";
+import { isPublicCoachStorefrontNotFoundError } from "#/utils/trpc-public-coach-not-found";
 import { DEFAULT_CALENDAR_WEEK_HOURS, type WeekHours } from "#/utils/calendar-availability";
 import {
   BOOKING_PAGE_GRID_SLOTS,
@@ -545,7 +546,12 @@ export default function BookingPage() {
   const coachNotFoundBlock = (
     <div className="mx-auto max-w-lg rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center text-amber-950">
       <p className="font-medium">{t("public.booking.coachNotFoundTitle")}</p>
-      <p className="mt-2 text-sm text-amber-900/90">{t("public.booking.coachNotFoundHint")}</p>
+      <Link
+        href="/"
+        className="mt-3 inline-block text-sm font-medium text-blue-700 underline underline-offset-2 hover:text-blue-800"
+      >
+        {t("public.booking.coachNotFoundHome")}
+      </Link>
     </div>
   );
 
@@ -1581,7 +1587,7 @@ export default function BookingPage() {
     invalidSlugBlock
   ) : storefrontQuery.isLoading ? (
     loadingBlock
-  ) : storefrontQuery.isError && storefrontQuery.error?.data?.httpStatus === 404 ? (
+  ) : storefrontQuery.isError && isPublicCoachStorefrontNotFoundError(storefrontQuery.error) ? (
     coachNotFoundBlock
   ) : storefrontQuery.isError ? (
     loadErrorBlock

@@ -17,6 +17,10 @@ import { ServicesService } from "./services.service";
 export class ServiceRouter {
   constructor(private readonly servicesService: ServicesService) {}
 
+  private devSimulateStripeReady(ctx: BaseUserSession): boolean {
+    return Boolean((ctx as BaseUserSession & { devSimulateStripeReady?: boolean }).devSimulateStripeReady);
+  }
+
   private requireUser(ctx: BaseUserSession): { id: string } {
     const user = ctx.user;
     if (!user?.id) {
@@ -48,7 +52,7 @@ export class ServiceRouter {
   })
   async create(@Ctx() ctx: BaseUserSession, @Input() input: z.infer<typeof createServiceSchema>) {
     const { id } = this.requireUser(ctx);
-    return this.servicesService.create(id, input);
+    return this.servicesService.create(id, input, { devSimulateStripeReady: this.devSimulateStripeReady(ctx) });
   }
 
   @Mutation({
@@ -64,7 +68,7 @@ export class ServiceRouter {
     @Input("data") data: z.infer<typeof updateServiceSchema>,
   ) {
     const { id: userId } = this.requireUser(ctx);
-    return this.servicesService.update(userId, id, data);
+    return this.servicesService.update(userId, id, data, { devSimulateStripeReady: this.devSimulateStripeReady(ctx) });
   }
 
   @Mutation({

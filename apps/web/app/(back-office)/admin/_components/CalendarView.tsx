@@ -21,6 +21,8 @@ import {
   SquareArrowOutUpRight,
   CalendarClock,
   Trash2,
+  LayoutGrid,
+  List,
 } from "lucide-react";
 import type { inferRouterOutputs } from "@trpc/server";
 import type { AppRouter } from "@repo/trpc/router";
@@ -48,6 +50,11 @@ import { CalendarSlotHoverHint } from "#/components/calendar/WeeklyTimeGrid";
 import { trpc } from "@web/libs/trpc-client";
 import { bookingLocalDateKey, totalMinutesToTimeHm } from "#/utils/booking-dates";
 import { cn } from "@repo/ui/utils/cn";
+import {
+  getAdminCalendarPlanningView,
+  setAdminCalendarPlanningView,
+  type AdminCalendarPlanningView,
+} from "#/utils/admin-calendar-planning-view";
 import {
   DEFAULT_CALENDAR_WEEK_HOURS,
   type WeekHours,
@@ -205,6 +212,11 @@ export default function CalendarView(p: CalendarViewProps = {}) {
 
   const [closedSlotKeys, setClosedSlotKeys] = useState<string[]>([]);
   const [isAvailabilityMode, setIsAvailabilityMode] = useState(false);
+  const [planningView, setPlanningView] = useState<AdminCalendarPlanningView>(() => getAdminCalendarPlanningView());
+  const persistPlanningView = useCallback((next: AdminCalendarPlanningView) => {
+    setPlanningView(next);
+    setAdminCalendarPlanningView(next);
+  }, []);
   const [weekHours, setWeekHours] = useState<WeekHours>(DEFAULT_CALENDAR_WEEK_HOURS);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<{
@@ -1273,16 +1285,16 @@ export default function CalendarView(p: CalendarViewProps = {}) {
       </div>
     ) : null;
 
-  const calendarBodyOutsideAvailabilitySection = mode === "planning" && isAvailabilityMode ? null : calendarBody;
+  const calendarBodyOutsideAvailabilitySection =
+    mode === "planning" && isAvailabilityMode
+      ? null
+      : mode === "planning" && !isAvailabilityMode && planningView === "list"
+        ? null
+        : calendarBody;
 
   const planningListSection =
-    mode === "planning" && !isAvailabilityMode ? (
+    mode === "planning" && !isAvailabilityMode && planningView === "list" ? (
       <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="mb-4">
-          <h2 className="text-lg font-bold text-slate-900">{t("calendar.listView.title")}</h2>
-          <p className="text-sm text-slate-600">{t("calendar.listView.subtitle")}</p>
-        </div>
-
         {planningListRows.length === 0 ? (
           <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
             {t("calendar.listView.empty")}
@@ -1396,6 +1408,34 @@ export default function CalendarView(p: CalendarViewProps = {}) {
       </Popover>
     );
 
+  const planningViewToggleBar =
+    mode === "planning" && !isAvailabilityMode ? (
+      <div className="mb-4" role="tablist" aria-label={t("calendar.viewMode.ariaLabel")}>
+        <div className="inline-flex rounded-xl border border-slate-200 bg-slate-100/80 p-1">
+          <Button
+            type="button"
+            variant={planningView === "calendar" ? "default" : "ghost"}
+            size="sm"
+            className="gap-2 rounded-lg"
+            onClick={() => persistPlanningView("calendar")}
+          >
+            <LayoutGrid className="size-4 shrink-0" aria-hidden />
+            {t("calendar.viewMode.calendar")}
+          </Button>
+          <Button
+            type="button"
+            variant={planningView === "list" ? "default" : "ghost"}
+            size="sm"
+            className="gap-2 rounded-lg"
+            onClick={() => persistPlanningView("list")}
+          >
+            <List className="size-4 shrink-0" aria-hidden />
+            {t("calendar.viewMode.list")}
+          </Button>
+        </div>
+      </div>
+    ) : null;
+
   const deleteBookingConfirmDialog = (
     <AlertDialog
       open={bookingPendingDelete !== null}
@@ -1450,6 +1490,8 @@ export default function CalendarView(p: CalendarViewProps = {}) {
             {availabilityToolbar}
           </div>
         ) : null}
+
+        {planningViewToggleBar}
 
         {weekNavigation}
 

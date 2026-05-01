@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Prisma } from "@api/generated/prisma/client";
 import { PrismaService } from "@api/src/infrastructure/prisma/prisma.service";
 import { z } from "zod";
@@ -19,6 +19,32 @@ function slotKeysFromJson(value: Prisma.JsonValue): string[] {
 @Injectable()
 export class ServicesService {
   constructor(private readonly db: PrismaService) {}
+
+  private paidServiceNeedsOnlineCardPayment(isFree: boolean, price: number): boolean {
+    return !isFree && price > 0;
+  }
+
+  private async assertStripeReadyWhenPublishingPaidService(
+    userId: string,
+    isPublished: boolean,
+    isFree: boolean,
+    price: number,
+    devSimulateStripeReady?: boolean,
+  ) {
+    if (devSimulateStripeReady && process.env["NODE_ENV"] === "development") {
+      return;
+    }
+    if (!isPublished || !this.paidServiceNeedsOnlineCardPayment(isFree, price)) {
+      return;
+    }
+    const owner = await this.db.user.findUnique({
+      where: { id: userId },
+      select: { stripeAccountId: true, stripeChargesEnabled: true },
+    });
+    if (!owner?.stripeAccountId || !owner.stripeChargesEnabled) {
+      throw new BadRequestException("STRIPE_REQUIRED_TO_PUBLISH_PAID_SERVICE");
+    }
+  }
 
   private mapRow(row: {
     id: string;
@@ -112,7 +138,18 @@ export class ServicesService {
     };
   }
 
-  async create(userId: string, input: CreateServiceInput) {
+  async create(userId: string, input: CreateServiceInput, opts?: { devSimulateStripeReady?: boolean }) {
+    const willPublish = input.isPublished ?? true;
+    const effectiveIsFree = input.isFree;
+    const effectivePrice = input.isFree ? 0 : input.price;
+    await this.assertStripeReadyWhenPublishingPaidService(
+      userId,
+      willPublish,
+      effectiveIsFree,
+      effectivePrice,
+      opts?.devSimulateStripeReady,
+    );
+
     const row = await this.db.service.create({
       data: {
         userId,
@@ -133,7 +170,7 @@ export class ServicesService {
     return this.mapRow(row);
   }
 
-  async update(userId: string, id: string, data: UpdateServiceInput) {
+  async update(userId: string, id: string, data: UpdateServiceInput, opts?: { devSimulateStripeReady?: boolean }) {
     const existing = await this.db.service.findFirst({
       where: { id, userId },
     });
@@ -146,6 +183,14 @@ export class ServicesService {
       : data.price !== undefined
         ? data.price
         : existing.price;
+    const nextPublished = data.isPublished !== undefined ? data.isPublished : existing.isPublished;
+    await this.assertStripeReadyWhenPublishingPaidService(
+      userId,
+      nextPublished,
+      nextIsFree,
+      nextPrice,
+      opts?.devSimulateStripeReady,
+    );
 
     const row = await this.db.service.update({
       where: { id },

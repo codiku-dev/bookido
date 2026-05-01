@@ -53,6 +53,15 @@ export const messages: Record<EmailLocale, Record<string, string>> = {
     "booking.paymentRequired.fallback": "If the button does not work, copy and paste this link into your browser:",
     "booking.paymentRequired.footer":
       "If you did not make this request, you can ignore this email.",
+    "booking.proNew.preview": "New client booking",
+    "booking.proNew.heading": "New booking",
+    "booking.proNew.intro":
+      "{client} booked {service}. Status: {status}.",
+    "booking.proNew.sessionsHeading": "Scheduled times",
+    "booking.proNew.sessionLine": "Session {number}: {when}",
+    "booking.proNew.cta": "Open in Bookido",
+    "booking.proNew.footer":
+      "You can turn these emails off anytime in Profile → Preferences.",
   },
   fr: {
     "email.brand.tagline": "Bookez simplement avec un pro.",
@@ -108,6 +117,15 @@ export const messages: Record<EmailLocale, Record<string, string>> = {
       "Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :",
     "booking.paymentRequired.footer":
       "Si vous n'etes pas a l'origine de cette demande, vous pouvez ignorer cet e-mail.",
+    "booking.proNew.preview": "Nouvelle reservation client",
+    "booking.proNew.heading": "Nouvelle reservation",
+    "booking.proNew.intro":
+      "{client} a reserve {service}. Statut : {status}.",
+    "booking.proNew.sessionsHeading": "Horaires",
+    "booking.proNew.sessionLine": "Seance {number} : {when}",
+    "booking.proNew.cta": "Ouvrir dans Bookido",
+    "booking.proNew.footer":
+      "Tu peux desactiver ces e-mails dans Profil → Preferences.",
   },
 };
 

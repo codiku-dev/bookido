@@ -12,9 +12,11 @@ import { PrismaService } from "@api/src/infrastructure/prisma/prisma.service";
 import { StripeService } from "@api/src/features/stripe/stripe.service";
 
 import type {
+  UpdateEmailBookingNotificationsInput,
   UpdateProfileAvatarInput,
   UpdateProfileBasicsInput,
   UpdatePublicBookingPresenceInput,
+  UpdatePublicBookingSitePublishedInput,
   WeekHoursInput,
 } from "./profile.schema";
 
@@ -223,6 +225,22 @@ export class ProfileService {
     };
   }
 
+  async updateEmailBookingNotifications(userId: string, input: UpdateEmailBookingNotificationsInput) {
+    await this.db.user.update({
+      where: { id: userId },
+      data: { emailBookingNotificationsEnabled: input.enabled },
+    });
+    return { ok: true as const };
+  }
+
+  async updatePublicBookingSitePublished(userId: string, input: UpdatePublicBookingSitePublishedInput) {
+    await this.db.user.update({
+      where: { id: userId },
+      data: { publicBookingSitePublished: input.published },
+    });
+    return { ok: true as const };
+  }
+
   async getPublicBookingPresence(userId: string) {
     const row = await this.db.user.findUnique({
       where: { id: userId },
@@ -232,6 +250,8 @@ export class ProfileService {
         name: true,
         address: true,
         publicBookingMinNoticeHours: true,
+        emailBookingNotificationsEnabled: true,
+        publicBookingSitePublished: true,
         userAvatar: { select: { imageData: true } },
       },
     });
@@ -246,6 +266,8 @@ export class ProfileService {
         image: displayImage,
         defaultAddress: row.address,
         publicBookingMinNoticeHours: row.publicBookingMinNoticeHours,
+        emailBookingNotificationsEnabled: row.emailBookingNotificationsEnabled,
+        publicBookingSitePublished: row.publicBookingSitePublished,
       };
     }
     const maxPersistAttempts = 5;
@@ -261,6 +283,8 @@ export class ProfileService {
           image: displayImage,
           defaultAddress: row.address,
           publicBookingMinNoticeHours: row.publicBookingMinNoticeHours,
+          emailBookingNotificationsEnabled: row.emailBookingNotificationsEnabled,
+          publicBookingSitePublished: row.publicBookingSitePublished,
         };
       } catch (e) {
         if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
@@ -275,16 +299,25 @@ export class ProfileService {
     });
   }
 
-  async getStripeConnectStatus(userId: string) {
-    return this.stripeService.getConnectStatus(userId);
+  async getStripeConnectStatus(userId: string, options?: { devSimulateStripeReady?: boolean }) {
+    const real = await this.stripeService.getConnectStatus(userId);
+    if (options?.devSimulateStripeReady) {
+      return {
+        stripeAccountId: real.stripeAccountId ?? "__bookido_dev_simulate__",
+        stripeOnboardingComplete: true,
+        stripeChargesEnabled: true,
+        stripePayoutsEnabled: true,
+      };
+    }
+    return real;
   }
 
   async getPlatformBillingHistory(userId: string) {
     return this.stripeService.getPlatformBillingHistory(userId);
   }
 
-  async createStripeOnboardingLink(userId: string) {
-    return this.stripeService.createOrRefreshOnboardingLink({ userId });
+  async createStripeOnboardingLink(userId: string, input: { returnTo: "profile" | "onboarding" }) {
+    return this.stripeService.createOrRefreshOnboardingLink({ userId, returnTo: input.returnTo });
   }
 
   async createStripeConnectAccountUpdateLink(userId: string) {

@@ -12,12 +12,17 @@ import {
   updateCalendarAvailabilityInputSchema,
   adminOnboardingStatusOutputSchema,
   saveAdminOnboardingStepInputSchema,
+  createStripeOnboardingLinkInputSchema,
   updateProfileAvatarInputSchema,
   updateProfileBasicsInputSchema,
   updatePublicBookingPresenceInputSchema,
+  updateEmailBookingNotificationsInputSchema,
+  updatePublicBookingSitePublishedInputSchema,
   type UpdateProfileAvatarInput,
   type UpdateProfileBasicsInput,
   type UpdatePublicBookingPresenceInput,
+  type UpdateEmailBookingNotificationsInput,
+  type UpdatePublicBookingSitePublishedInput,
 } from "./profile.schema";
 import { ProfileService } from "./profile.service";
 
@@ -76,7 +81,10 @@ export class ProfileRouter {
   })
   getStripeConnectStatus(@Ctx() ctx: BaseUserSession) {
     const { id } = this.requireUser(ctx);
-    return this.profileService.getStripeConnectStatus(id);
+    const devSimulateStripeReady = Boolean(
+      (ctx as BaseUserSession & { devSimulateStripeReady?: boolean }).devSimulateStripeReady,
+    );
+    return this.profileService.getStripeConnectStatus(id, { devSimulateStripeReady });
   }
 
   @Query({
@@ -108,6 +116,30 @@ export class ProfileRouter {
   }
 
   @Mutation({
+    input: updateEmailBookingNotificationsInputSchema,
+    output: z.object({ ok: z.literal(true) }),
+  })
+  updateEmailBookingNotifications(
+    @Ctx() ctx: BaseUserSession,
+    @Input() input: UpdateEmailBookingNotificationsInput,
+  ) {
+    const { id } = this.requireUser(ctx);
+    return this.profileService.updateEmailBookingNotifications(id, input);
+  }
+
+  @Mutation({
+    input: updatePublicBookingSitePublishedInputSchema,
+    output: z.object({ ok: z.literal(true) }),
+  })
+  updatePublicBookingSitePublished(
+    @Ctx() ctx: BaseUserSession,
+    @Input() input: UpdatePublicBookingSitePublishedInput,
+  ) {
+    const { id } = this.requireUser(ctx);
+    return this.profileService.updatePublicBookingSitePublished(id, input);
+  }
+
+  @Mutation({
     input: updatePublicBookingPresenceInputSchema,
     output: z.object({ ok: z.literal(true) }),
   })
@@ -135,12 +167,12 @@ export class ProfileRouter {
   }
 
   @Mutation({
-    input: z.object({}),
+    input: createStripeOnboardingLinkInputSchema,
     output: z.object({ url: z.string().url() }),
   })
-  createStripeOnboardingLink(@Ctx() ctx: BaseUserSession) {
+  createStripeOnboardingLink(@Ctx() ctx: BaseUserSession, @Input() input: z.infer<typeof createStripeOnboardingLinkInputSchema>) {
     const { id } = this.requireUser(ctx);
-    return this.profileService.createStripeOnboardingLink(id);
+    return this.profileService.createStripeOnboardingLink(id, input);
   }
 
   @Mutation({

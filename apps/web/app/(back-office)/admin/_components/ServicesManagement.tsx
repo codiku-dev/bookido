@@ -4,6 +4,7 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { TRPCClientError } from "@trpc/client";
 import { useForm, useWatch, type Resolver } from "react-hook-form";
 import { z } from "zod";
 import {
@@ -249,6 +250,7 @@ export default function ServicesManagement() {
   );
   const availabilityQuery = trpc.profile.getCalendarAvailability.useQuery(undefined, { retry: false });
   const profilePresenceQuery = trpc.profile.getPublicBookingPresence.useQuery(undefined, { retry: false });
+  const stripeConnectQuery = trpc.profile.getStripeConnectStatus.useQuery(undefined, { retry: false });
   const createMutation = trpc.services.create.useMutation({
     onSuccess: async () => {
       setMutationError(null);
@@ -256,7 +258,15 @@ export default function ServicesManagement() {
       await utils.services.listPaginated.invalidate();
       resetFormUi();
     },
-    onError: () => setMutationError(t("services.errors.save")),
+    onError: (e) => {
+      if (e instanceof TRPCClientError && e.message === "STRIPE_REQUIRED_TO_PUBLISH_PAID_SERVICE") {
+        const msg = t("services.visibility.stripeRequiredAlert");
+        setMutationError(msg);
+        toast.error(msg);
+        return;
+      }
+      setMutationError(t("services.errors.save"));
+    },
   });
   const updateMutation = trpc.services.update.useMutation({
     onSuccess: async () => {
@@ -265,7 +275,15 @@ export default function ServicesManagement() {
       await utils.services.listPaginated.invalidate();
       resetFormUi();
     },
-    onError: () => setMutationError(t("services.errors.save")),
+    onError: (e) => {
+      if (e instanceof TRPCClientError && e.message === "STRIPE_REQUIRED_TO_PUBLISH_PAID_SERVICE") {
+        const msg = t("services.visibility.stripeRequiredAlert");
+        setMutationError(msg);
+        toast.error(msg);
+        return;
+      }
+      setMutationError(t("services.errors.save"));
+    },
   });
   const deleteMutation = trpc.services.delete.useMutation({
     onSuccess: async () => {
@@ -280,6 +298,14 @@ export default function ServicesManagement() {
     resolver: zodResolver(serviceFormSchema) as Resolver<ServiceFormValues>,
     defaultValues: getServiceFormDefaults(),
   });
+
+  const watchedPrice = useWatch({ control: form.control, name: "price", defaultValue: "0" });
+  const stripeReadyForPaidPublish = Boolean(
+    stripeConnectQuery.data?.stripeAccountId && stripeConnectQuery.data?.stripeChargesEnabled,
+  );
+  const parsedWatchedPrice = Number.parseFloat(String(watchedPrice ?? "").replace(",", "."));
+  const formPaidServiceBlocksPublish =
+    Number.isFinite(parsedWatchedPrice) && parsedWatchedPrice > 0 && !stripeReadyForPaidPublish;
 
   const googleMapsPlacesApiKey = process.env["NEXT_PUBLIC_GOOGLE_MAPS_API_KEY"]?.trim() ?? "";
   const watchedAddressFromPlaces = useWatch<ServiceFormValues, "addressFromPlaces">({
@@ -366,7 +392,7 @@ export default function ServicesManagement() {
       availableSlotKeys: Array.isArray(service.availableSlotKeys) ? [...service.availableSlotKeys] : [],
       requiresValidation: service.requiresValidation,
       allowsDirectPayment: service.allowsDirectPayment,
-      isPublished: service.isPublished,
+      isPublished: false,
     });
   };
 
@@ -508,13 +534,18 @@ export default function ServicesManagement() {
     const parsedDuration = Number.parseInt(values.duration, 10);
     const parsedPackSize = Number.parseInt(values.packSize, 10);
     const parsedPrice = Number.parseFloat(values.price.replace(",", "."));
+    const payloadIsFree = parsedPrice === 0;
+    if (values.isPublished && parsedPrice > 0 && !stripeReadyForPaidPublish) {
+      toast.error(t("services.visibility.stripeRequiredAlert"));
+      return;
+    }
     const payload = {
       name: values.name.trim(),
       description: values.description.trim(),
       durationMinutes: parsedDuration,
       packSize: parsedPackSize,
       price: parsedPrice,
-      isFree: parsedPrice === 0,
+      isFree: payloadIsFree,
       imageUrl: trimmedImage.length > 0 ? trimmedImage : null,
       address: values.address.trim(),
       availableSlotKeys: values.availableSlotKeys,
@@ -800,6 +831,13 @@ export default function ServicesManagement() {
             <DropdownMenuItem
               onSelect={(event) => {
                 event.preventDefault();
+                if (!service.isPublished) {
+                  const paid = service.price > 0;
+                  if (paid && !stripeReadyForPaidPublish) {
+                    toast.error(t("services.visibility.stripeRequiredAlert"));
+                    return;
+                  }
+                }
                 updateMutation.mutate({
                   id: service.id,
                   data: { isPublished: !service.isPublished },
@@ -1321,7 +1359,14 @@ export default function ServicesManagement() {
       <div className="flex items-start gap-3">
         <Checkbox
           checked={isPublished === true}
-          onCheckedChange={(value) => form.setValue("isPublished", value === true, { shouldDirty: true })}
+          onCheckedChange={(value) => {
+            const next = value === true;
+            if (next && formPaidServiceBlocksPublish) {
+              toast.error(t("services.visibility.stripeRequiredAlert"));
+              return;
+            }
+            form.setValue("isPublished", next, { shouldDirty: true });
+          }}
           aria-label={t("services.visibility.title")}
         />
         <div className="space-y-1">

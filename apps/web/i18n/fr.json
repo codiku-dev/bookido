@@ -192,6 +192,7 @@
       "cta": "Réserver maintenant"
     },
     "services": {
+      "eyebrow": "Réservation en ligne",
       "title": "Choisissez votre service",
       "loadError": "Impossible de charger les services. Réessayez plus tard.",
       "empty": "Aucun service n’est encore disponible pour la réservation en ligne.",
@@ -273,8 +274,8 @@
       "noSlotsChosenYet": "Aucun créneau sélectionné pour l’instant.",
       "confirmDisabledHint": "Sélectionnez un horaire pour chaque séance avant de confirmer.",
       "invalidSlugTitle": "Ce lien de réservation n’est pas valide.",
-      "coachNotFoundTitle": "Nous n’avons trouvé aucun coach à cette adresse.",
-      "coachNotFoundHint": "Vérifiez le lien envoyé par votre coach ou demandez-lui son URL publique de réservation.",
+      "coachNotFoundTitle": "Ce professionnel n'existe pas.",
+      "coachNotFoundHome": "Retour à l'accueil",
       "weekPrev": "Semaine précédente",
       "weekNext": "Semaine suivante",
       "selectMonth": "Mois",
@@ -347,6 +348,7 @@
     },
     "landing": {
       "nav": {
+        "brandSubtitle": "Bookez un pro",
         "howItWorks": "Comment ça marche",
         "pricing": "Prix",
         "try": "Essayer",
@@ -354,7 +356,7 @@
         "adminAccess": "Accéder à l'admin"
       },
       "hero": {
-        "badge": "La planification pour les indépendants",
+        "badge": "L'outil de réservation pour les pro",
         "titleBefore": "Transformez le temps libre en",
         "titleAccent": "temps réservé",
         "subtitle": "La façon simple pour les indépendants de vendre leurs services.",
@@ -416,7 +418,8 @@
           "f1": "Page publique de réservation",
           "f2": "Services & calendrier",
           "f3": "Confirmations par e-mail",
-          "f4": "1,5 % de frais sur les ventes"
+          "f4": "1,5 % de frais sur les ventes",
+          "f5": "Dashboard de suivi des revenus"
         },
         "pro": {
           "badge": "Le plus choisi",
@@ -791,9 +794,12 @@
       "today": "Aujourd'hui"
     },
     "listView": {
-      "title": "Vue liste",
-      "subtitle": "Les réservations de la semaine affichée, triées par date et heure.",
       "empty": "Aucune réservation sur cette semaine."
+    },
+    "viewMode": {
+      "calendar": "Calendrier",
+      "list": "Liste",
+      "ariaLabel": "Affichage du planning"
     },
     "search": {
       "client": "Rechercher un client"
@@ -1065,6 +1071,19 @@
       "confirm": "Se déconnecter",
       "cancel": "Rester connecté",
       "inProgress": "Déconnexion…"
+    },
+    "publicSite": {
+      "published": "Site publié",
+      "unpublished": "Site non publié",
+      "loading": "…"
+    }
+  },
+  "dev": {
+    "debugger": {
+      "open": "Débogueur dev",
+      "title": "Outils de développement",
+      "simulateStripe": "Paiement Stripe configuré (simulation)",
+      "hint": "Uniquement en local. Envoie un en-tête pour que l’API considère Stripe Connect comme prêt (publication de prestations payantes, etc.)."
     }
   },
   "notes": {
@@ -1206,7 +1225,7 @@
     "emailReadOnlyHelp": "L'e-mail ne peut pas être modifié depuis cet écran.",
     "defaultAddress": {
       "label": "Adresse des prestations",
-      "hint": "Appliquée à toutes vos prestations par défaut. Vous pouvez la surcharger sur chaque prestation."
+      "hint": "Appliquée à toutes vos prestations par défaut. Vous pouvez la remplacer sur chaque prestation."
     },
     "full": {
       "name": "Nom complet"
@@ -1214,9 +1233,10 @@
     "information": "Information",
     "language": "Langue",
     "notifications": {
-      "desc": "Recevoir les nouvelles réservations et rappels par email",
-      "notPersistedHint": "Ce réglage n'est pas encore enregistré — bientôt disponible.",
-      "toggleAriaLabel": "Activer ou désactiver les notifications par email"
+      "desc": "Recevoir un e-mail lorsqu'un client réserve via votre page publique (pas les autres e-mails système).",
+      "saved": "Préférence enregistrée",
+      "saveError": "Impossible d'enregistrer cette préférence. Réessayez.",
+      "toggleAriaLabel": "Activer ou désactiver les e-mails pour les nouvelles réservations"
     },
     "password": {
       "confirm": "Confirmer le mot de passe",
@@ -1254,6 +1274,26 @@
     "bioTitle": "Bio / Description",
     "passwordTitle": "Changer le mot de passe",
     "notificationsTitle": "Notifications par email",
+    "publicSite": {
+      "publish": "Publier le site",
+      "unpublish": "Dépublier le site",
+      "toastPublished": "Votre site public est en ligne.",
+      "toastUnpublished": "Votre site public est hors ligne.",
+      "saveError": "Impossible de mettre à jour la visibilité du site. Réessayez.",
+      "urlOfflineHint": "Cette adresse est hors ligne tant que vous n'avez pas publié le site (bouton ci-dessus).",
+      "confirmDialog": {
+        "publish": {
+          "title": "Publier votre site public ?",
+          "description": "Votre lien de réservation sera accessible à toute personne qui le possède. Les visiteurs pourront consulter vos prestations et réserver selon vos disponibilités et règles.",
+          "confirm": "Publier"
+        },
+        "unpublish": {
+          "title": "Dépublier votre site public ?",
+          "description": "L’URL de réservation ne fonctionnera plus pour les visiteurs tant que vous n’aurez pas republié le site. Les réservations déjà prises ne sont pas annulées.",
+          "confirm": "Dépublier"
+        }
+      }
+    },
     "publicBooking": {
       "title": "Lien de réservation public",
       "subtitle": "Vos clients utilisent cette adresse pour réserver avec vous.",
@@ -1389,8 +1429,8 @@
     },
     "stripe": {
       "title": "Configure Stripe pour recevoir des paiements",
-      "subtitle": "Connecte Stripe pour encaisser en ligne. Tu pourras terminer plus tard depuis ton profil.",
-      "publishBlocked": "Tant que Stripe n’est pas configuré et que les paiements ne sont pas activés, tu ne pourras pas publier les réservations payantes par carte sur ton site public.",
+      "subtitle": "Connecte Stripe pour encaisser en ligne.",
+      "publishBlocked": "Tant que Stripe n'est pas configuré, tu ne pourras pas publier tes services en ligne.",
       "ready": "Stripe semble prêt — tu peux tout de même ouvrir le tableau de bord pour vérifier.",
       "cta": "Ouvrir la configuration Stripe"
     },
@@ -1477,7 +1517,7 @@
     "actions": {
       "openMenu": "Ouvrir le menu du service",
       "duplicate": "Dupliquer",
-      "publish": "Passer en publié",
+      "publish": "Publier",
       "unpublish": "Dé-publier"
     },
     "status": {
@@ -1487,7 +1527,8 @@
     "visibility": {
       "title": "Visibilité publique",
       "publishedHint": "Ce service est publié et visible sur votre page de réservation publique.",
-      "draftHint": "Ce service est en brouillon et caché de votre page de réservation publique."
+      "draftHint": "Ce service est en brouillon et caché de votre page de réservation publique.",
+      "stripeRequiredAlert": "Activez le paiement par carte (Stripe) dans votre profil avant de publier une prestation payante."
     },
     "sessions": "séances",
     "subtitle": "Créez et gérez vos prestations, tarifs et disponibilités",

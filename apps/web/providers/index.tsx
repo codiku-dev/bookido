@@ -1,4 +1,5 @@
 "use client";
+import { DevDebuggerFloatingPanel } from "#/components/dev/DevDebuggerFloatingPanel";
 import { DevFormFillFloatingButton } from "#/components/dev/DevFormFillFloatingButton";
 import { PublicStorefrontNavOriginTracker } from "@web/app/(front-office)/_components/PublicStorefrontNavOriginTracker";
 import { ReactQueryProvider } from "./react-query-provider";
@@ -11,6 +12,7 @@ export const Providers = ({ children }: { children: React.ReactNode }) => {
         <PublicStorefrontNavOriginTracker />
         {children}
         <DevFormFillFloatingButton />
+        <DevDebuggerFloatingPanel />
       </ReactQueryProvider>
     </TrpcProvider>
   );

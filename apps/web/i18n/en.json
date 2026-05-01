@@ -192,6 +192,7 @@
       "cta": "Book Now"
     },
     "services": {
+      "eyebrow": "Book online",
       "title": "Choose Your Service",
       "loadError": "Could not load services. Try again later.",
       "empty": "No services are available for online booking yet.",
@@ -273,8 +274,8 @@
       "noSlotsChosenYet": "No time slots selected yet.",
       "confirmDisabledHint": "Select a time for every session before confirming.",
       "invalidSlugTitle": "This booking link is not valid.",
-      "coachNotFoundTitle": "We could not find a coach at this address.",
-      "coachNotFoundHint": "Check the link your coach sent you, or ask them for their public booking URL.",
+      "coachNotFoundTitle": "This professional does not exist.",
+      "coachNotFoundHome": "Back to home",
       "weekPrev": "Previous week",
       "weekNext": "Next week",
       "selectMonth": "Month",
@@ -347,6 +348,7 @@
     },
     "landing": {
       "nav": {
+        "brandSubtitle": "Book a pro",
         "howItWorks": "How it works",
         "pricing": "Pricing",
         "try": "Try",
@@ -354,7 +356,7 @@
         "adminAccess": "Go to admin"
       },
       "hero": {
-        "badge": "Scheduling for independent professionals",
+        "badge": "The booking tool for professionals",
         "titleBefore": "Turn open time into",
         "titleAccent": "booked time",
         "subtitle": "The simple way for independents to sell their services.",
@@ -416,7 +418,8 @@
           "f1": "Public booking page",
           "f2": "Services & calendar",
           "f3": "Email confirmations",
-          "f4": "1.5% fee on sales"
+          "f4": "1.5% fee on sales",
+          "f5": "Revenue tracking dashboard"
         },
         "pro": {
           "badge": "Popular",
@@ -791,9 +794,12 @@
       "today": "Today"
     },
     "listView": {
-      "title": "List view",
-      "subtitle": "Bookings for the displayed week, sorted by date and time.",
       "empty": "No bookings for this week."
+    },
+    "viewMode": {
+      "calendar": "Calendar",
+      "list": "List",
+      "ariaLabel": "Planning display"
     },
     "search": {
       "client": "Search for a client"
@@ -1065,6 +1071,19 @@
       "confirm": "Sign out",
       "cancel": "Stay signed in",
       "inProgress": "Signing out…"
+    },
+    "publicSite": {
+      "published": "Site published",
+      "unpublished": "Site unpublished",
+      "loading": "…"
+    }
+  },
+  "dev": {
+    "debugger": {
+      "open": "Dev debugger",
+      "title": "Dev tools",
+      "simulateStripe": "Stripe payments ready (simulated)",
+      "hint": "Local development only. Sends a header so the API treats Stripe Connect as live for checks and publishing paid services."
     }
   },
   "notes": {
@@ -1206,7 +1225,7 @@
     "emailReadOnlyHelp": "Email cannot be changed from this screen.",
     "defaultAddress": {
       "label": "Service address",
-      "hint": "Used for all services by default. You can override it on each service."
+      "hint": "Used for all services by default. You can replace it on each service."
     },
     "full": {
       "name": "Full name"
@@ -1214,9 +1233,10 @@
     "information": "Information",
     "language": "Language",
     "notifications": {
-      "desc": "Receive new bookings and reminders by email",
-      "notPersistedHint": "This setting is not saved yet — coming soon.",
-      "toggleAriaLabel": "Enable or disable email notifications"
+      "desc": "Get an email when a client books you via your public page (not other system emails).",
+      "saved": "Notification preference saved",
+      "saveError": "Could not save this preference. Try again.",
+      "toggleAriaLabel": "Enable or disable booking notification emails"
     },
     "password": {
       "confirm": "Confirm password",
@@ -1254,6 +1274,26 @@
     "bioTitle": "Bio / Description",
     "passwordTitle": "Change Password",
     "notificationsTitle": "Email Notifications",
+    "publicSite": {
+      "publish": "Publish site",
+      "unpublish": "Unpublish site",
+      "toastPublished": "Your public site is now online.",
+      "toastUnpublished": "Your public site is now offline.",
+      "saveError": "Could not update site visibility. Try again.",
+      "urlOfflineHint": "This address is offline until you publish your site (button above).",
+      "confirmDialog": {
+        "publish": {
+          "title": "Publish your public site?",
+          "description": "Your booking link will be reachable by anyone who has it. Visitors can browse your services and book according to your availability and rules.",
+          "confirm": "Publish"
+        },
+        "unpublish": {
+          "title": "Unpublish your public site?",
+          "description": "Your booking URL will stop working for visitors until you publish again. Existing bookings are not cancelled.",
+          "confirm": "Unpublish"
+        }
+      }
+    },
     "publicBooking": {
       "title": "Public booking link",
       "subtitle": "Clients open this address to book with you.",
@@ -1389,8 +1429,8 @@
     },
     "stripe": {
       "title": "Set up Stripe to get paid",
-      "subtitle": "Connect Stripe so clients can pay online. You can finish this later from your profile.",
-      "publishBlocked": "Until Stripe is set up and charges are enabled, you cannot publish paid card bookings on your public site.",
+      "subtitle": "Connect Stripe so clients can pay online.",
+      "publishBlocked": "Until Stripe is set up, you won't be able to publish your services online.",
       "ready": "Stripe looks ready — you can still open the dashboard to double-check.",
       "cta": "Open Stripe setup"
     },
@@ -1477,7 +1517,7 @@
     "actions": {
       "openMenu": "Open service menu",
       "duplicate": "Duplicate",
-      "publish": "Publish service",
+      "publish": "Publish",
       "unpublish": "Move to draft"
     },
     "status": {
@@ -1487,7 +1527,8 @@
     "visibility": {
       "title": "Public visibility",
       "publishedHint": "This service is published and visible on your public booking page.",
-      "draftHint": "This service is currently a draft and hidden from your public booking page."
+      "draftHint": "This service is currently a draft and hidden from your public booking page.",
+      "stripeRequiredAlert": "Activate card payments (Stripe) in your profile before publishing a paid service."
     },
     "sessions": "sessions",
     "subtitle": "Create and manage your services, pricing, and availability",

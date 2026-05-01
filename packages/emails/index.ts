@@ -6,4 +6,6 @@ export { default as BookingPaidConfirmation } from "./emails/booking-paid-confir
 export type { BookingPaidConfirmationProps } from "./emails/booking-paid-confirmation";
 export { default as BookingPaymentRequired } from "./emails/booking-payment-required";
 export type { BookingPaymentRequiredProps } from "./emails/booking-payment-required";
+export { default as BookingProNewReservation } from "./emails/booking-pro-new-reservation";
+export type { BookingProNewReservationProps } from "./emails/booking-pro-new-reservation";
 export { EMAIL_BOOKIDO_LOGO_CID, emailBookidoLogoCidSrc } from "./email-brand-logo";

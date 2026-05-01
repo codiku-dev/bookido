@@ -29,6 +29,8 @@ test.describe("Profile Stripe Connect", () => {
                 image: null,
                 defaultAddress: "10 rue de Paris",
                 publicBookingMinNoticeHours: 24,
+                emailBookingNotificationsEnabled: true,
+                publicBookingSitePublished: true,
               },
             },
           },

@@ -20,6 +20,7 @@ import { z } from "zod";
 
 import {
   AlertDialog,
+  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -107,7 +108,6 @@ export default function ProfileSettings() {
 
   const user = sessionPayload?.user as AuthUser | undefined;
 
-  const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
   const [publicSlugDraft, setPublicSlugDraft] = useState("");
   const [profileImageDraft, setProfileImageDraft] = useState("");
   const [profileImageSaving, setProfileImageSaving] = useState(false);
@@ -118,6 +118,32 @@ export default function ProfileSettings() {
   const utils = trpc.useUtils();
   const presenceQuery = trpc.profile.getPublicBookingPresence.useQuery(undefined, {
     enabled: Boolean(user?.id),
+  });
+  const sitePublished = presenceQuery.data?.publicBookingSitePublished ?? false;
+
+  const updatePublicBookingSitePublishedMutation = trpc.profile.updatePublicBookingSitePublished.useMutation({
+    onSuccess: async (_data, variables) => {
+      await Promise.all([
+        utils.profile.getPublicBookingPresence.invalidate(),
+        utils.publicBooking.getStorefront.invalidate(),
+      ]);
+      toast.success(
+        variables.published ? t("profile.publicSite.toastPublished") : t("profile.publicSite.toastUnpublished"),
+      );
+    },
+    onError: () => {
+      toast.error(t("profile.publicSite.saveError"));
+    },
+  });
+
+  const updateEmailBookingNotificationsMutation = trpc.profile.updateEmailBookingNotifications.useMutation({
+    onSuccess: async () => {
+      await utils.profile.getPublicBookingPresence.invalidate();
+      toast.success(t("profile.notifications.saved"));
+    },
+    onError: () => {
+      toast.error(t("profile.notifications.saveError"));
+    },
   });
 
   const updateProfileBasicsMutation = trpc.profile.updateProfileBasics.useMutation({
@@ -860,14 +886,21 @@ export default function ProfileSettings() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
           <div className="min-w-0 flex-1">
             <p className="font-medium text-slate-800">{t("profile.publicBooking.publicUrl")}</p>
-            <Link
-              href={`/${publicSlugSegment}`}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-1 block break-all text-blue-700 hover:underline"
-            >
-              {fullPublicBookingUrl}
-            </Link>
+            {sitePublished ? (
+              <Link
+                href={`/${publicSlugSegment}`}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-1 block break-all text-blue-700 hover:underline"
+              >
+                {fullPublicBookingUrl}
+              </Link>
+            ) : (
+              <>
+                <span className="mt-1 block break-all font-mono text-sm text-slate-600">{fullPublicBookingUrl}</span>
+                <p className="mt-2 text-xs font-medium text-amber-900">{t("profile.publicSite.urlOfflineHint")}</p>
+              </>
+            )}
           </div>
           <div className="flex shrink-0 sm:justify-end">{saveSlugButtonElement}</div>
         </div>
@@ -976,20 +1009,25 @@ export default function ProfileSettings() {
   const emailNotificationsToggle = (
     <Switch
       id="email-notifications"
-      checked={emailNotificationsEnabled}
-      onCheckedChange={setEmailNotificationsEnabled}
+      checked={presenceQuery.data?.emailBookingNotificationsEnabled ?? true}
+      disabled={
+        presenceQuery.isLoading ||
+        presenceQuery.isFetching ||
+        !presenceQuery.data ||
+        updateEmailBookingNotificationsMutation.isPending
+      }
+      onCheckedChange={(enabled) => {
+        void updateEmailBookingNotificationsMutation.mutateAsync({ enabled });
+      }}
       aria-label={t("profile.notifications.toggleAriaLabel")}
     />
   );
 
   const emailNotificationsRow = (
-    <div className="space-y-2">
-      <div className="flex items-center gap-3 rounded-xl border border-slate-200 p-4">
-        {emailNotificationsIcon}
-        {emailNotificationsCopy}
-        <div className="flex shrink-0 items-center self-center pl-2">{emailNotificationsToggle}</div>
-      </div>
-      <p className="text-xs text-slate-500">{t("profile.notifications.notPersistedHint")}</p>
+    <div className="flex items-center gap-3 rounded-xl border border-slate-200 p-4">
+      {emailNotificationsIcon}
+      {emailNotificationsCopy}
+      <div className="flex shrink-0 items-center self-center pl-2">{emailNotificationsToggle}</div>
     </div>
   );
 
@@ -1114,14 +1152,74 @@ export default function ProfileSettings() {
     );
   }
 
-  return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">
-          {t("profile.title")}
-        </h1>
+  const publicSiteDialogTitle = sitePublished
+    ? t("profile.publicSite.confirmDialog.unpublish.title")
+    : t("profile.publicSite.confirmDialog.publish.title");
+
+  const publicSiteDialogDescription = sitePublished
+    ? t("profile.publicSite.confirmDialog.unpublish.description")
+    : t("profile.publicSite.confirmDialog.publish.description");
+
+  const publicSiteDialogConfirmLabel = sitePublished
+    ? t("profile.publicSite.confirmDialog.unpublish.confirm")
+    : t("profile.publicSite.confirmDialog.publish.confirm");
+
+  const profilePageHeaderActions = (
+    <div className="flex w-full shrink-0 flex-col items-stretch gap-2 sm:w-auto sm:items-end">
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button
+            type="button"
+            variant={sitePublished ? "outline" : "default"}
+            disabled={
+              presenceQuery.isLoading ||
+              presenceQuery.isFetching ||
+              updatePublicBookingSitePublishedMutation.isPending
+            }
+          >
+            {sitePublished ? t("profile.publicSite.unpublish") : t("profile.publicSite.publish")}
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{publicSiteDialogTitle}</AlertDialogTitle>
+            <AlertDialogDescription>{publicSiteDialogDescription}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel type="button">{t("cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              type="button"
+              className={
+                sitePublished ? "bg-red-600 text-white hover:bg-red-600/90 focus-visible:ring-red-600/30" : undefined
+              }
+              disabled={updatePublicBookingSitePublishedMutation.isPending}
+              onClick={() => {
+                void updatePublicBookingSitePublishedMutation.mutateAsync({ published: !sitePublished });
+              }}
+            >
+              {updatePublicBookingSitePublishedMutation.isPending
+                ? t("profile.save.pending")
+                : publicSiteDialogConfirmLabel}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+
+  const profileTitleRow = (
+    <div className="mb-8 flex flex-col gap-4 border-b border-slate-200 pb-6 sm:flex-row sm:items-start sm:justify-between">
+      <div className="min-w-0 flex-1">
+        <h1 className="mb-2 text-3xl font-bold text-slate-900">{t("profile.title")}</h1>
         <p className="text-slate-600">{t("profile.subtitle")}</p>
       </div>
+      {profilePageHeaderActions}
+    </div>
+  );
+
+  return (
+    <div className="p-8">
+      {profileTitleRow}
 
       <div className="w-full space-y-6">
         {renderProfileInformationSection()}

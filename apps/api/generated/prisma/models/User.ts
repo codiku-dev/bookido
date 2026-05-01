@@ -45,9 +45,11 @@ export type UserMinAggregateOutputType = {
   bio: string | null
   address: string | null
   publicBookingSlug: string | null
+  publicBookingSitePublished: boolean | null
   publicBookingMinNoticeHours: number | null
   archivedAt: Date | null
   bookingsLastViewedAt: Date | null
+  emailBookingNotificationsEnabled: boolean | null
   adminOnboardingCompletedAt: Date | null
   adminOnboardingStep: number | null
   stripeAccountId: string | null
@@ -72,9 +74,11 @@ export type UserMaxAggregateOutputType = {
   bio: string | null
   address: string | null
   publicBookingSlug: string | null
+  publicBookingSitePublished: boolean | null
   publicBookingMinNoticeHours: number | null
   archivedAt: Date | null
   bookingsLastViewedAt: Date | null
+  emailBookingNotificationsEnabled: boolean | null
   adminOnboardingCompletedAt: Date | null
   adminOnboardingStep: number | null
   stripeAccountId: string | null
@@ -99,11 +103,13 @@ export type UserCountAggregateOutputType = {
   bio: number
   address: number
   publicBookingSlug: number
+  publicBookingSitePublished: number
   publicBookingMinNoticeHours: number
   archivedAt: number
   calendarWeekHours: number
   calendarClosedSlotKeys: number
   bookingsLastViewedAt: number
+  emailBookingNotificationsEnabled: number
   adminOnboardingCompletedAt: number
   adminOnboardingStep: number
   stripeAccountId: number
@@ -140,9 +146,11 @@ export type UserMinAggregateInputType = {
   bio?: true
   address?: true
   publicBookingSlug?: true
+  publicBookingSitePublished?: true
   publicBookingMinNoticeHours?: true
   archivedAt?: true
   bookingsLastViewedAt?: true
+  emailBookingNotificationsEnabled?: true
   adminOnboardingCompletedAt?: true
   adminOnboardingStep?: true
   stripeAccountId?: true
@@ -167,9 +175,11 @@ export type UserMaxAggregateInputType = {
   bio?: true
   address?: true
   publicBookingSlug?: true
+  publicBookingSitePublished?: true
   publicBookingMinNoticeHours?: true
   archivedAt?: true
   bookingsLastViewedAt?: true
+  emailBookingNotificationsEnabled?: true
   adminOnboardingCompletedAt?: true
   adminOnboardingStep?: true
   stripeAccountId?: true
@@ -194,11 +204,13 @@ export type UserCountAggregateInputType = {
   bio?: true
   address?: true
   publicBookingSlug?: true
+  publicBookingSitePublished?: true
   publicBookingMinNoticeHours?: true
   archivedAt?: true
   calendarWeekHours?: true
   calendarClosedSlotKeys?: true
   bookingsLastViewedAt?: true
+  emailBookingNotificationsEnabled?: true
   adminOnboardingCompletedAt?: true
   adminOnboardingStep?: true
   stripeAccountId?: true
@@ -310,11 +322,13 @@ export type UserGroupByOutputType = {
   bio: string | null
   address: string | null
   publicBookingSlug: string | null
+  publicBookingSitePublished: boolean
   publicBookingMinNoticeHours: number
   archivedAt: Date | null
   calendarWeekHours: runtime.JsonValue | null
   calendarClosedSlotKeys: runtime.JsonValue | null
   bookingsLastViewedAt: Date | null
+  emailBookingNotificationsEnabled: boolean
   adminOnboardingCompletedAt: Date | null
   adminOnboardingStep: number
   stripeAccountId: string | null
@@ -362,11 +376,13 @@ export type UserWhereInput = {
   bio?: Prisma.StringNullableFilter<"User"> | string | null
   address?: Prisma.StringNullableFilter<"User"> | string | null
   publicBookingSlug?: Prisma.StringNullableFilter<"User"> | string | null
+  publicBookingSitePublished?: Prisma.BoolFilter<"User"> | boolean
   publicBookingMinNoticeHours?: Prisma.IntFilter<"User"> | number
   archivedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   calendarWeekHours?: Prisma.JsonNullableFilter<"User">
   calendarClosedSlotKeys?: Prisma.JsonNullableFilter<"User">
   bookingsLastViewedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  emailBookingNotificationsEnabled?: Prisma.BoolFilter<"User"> | boolean
   adminOnboardingCompletedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   adminOnboardingStep?: Prisma.IntFilter<"User"> | number
   stripeAccountId?: Prisma.StringNullableFilter<"User"> | string | null
@@ -397,11 +413,13 @@ export type UserOrderByWithRelationInput = {
   bio?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrderInput | Prisma.SortOrder
   publicBookingSlug?: Prisma.SortOrderInput | Prisma.SortOrder
+  publicBookingSitePublished?: Prisma.SortOrder
   publicBookingMinNoticeHours?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   calendarWeekHours?: Prisma.SortOrderInput | Prisma.SortOrder
   calendarClosedSlotKeys?: Prisma.SortOrderInput | Prisma.SortOrder
   bookingsLastViewedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  emailBookingNotificationsEnabled?: Prisma.SortOrder
   adminOnboardingCompletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   adminOnboardingStep?: Prisma.SortOrder
   stripeAccountId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -436,11 +454,13 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   image?: Prisma.StringNullableFilter<"User"> | string | null
   bio?: Prisma.StringNullableFilter<"User"> | string | null
   address?: Prisma.StringNullableFilter<"User"> | string | null
+  publicBookingSitePublished?: Prisma.BoolFilter<"User"> | boolean
   publicBookingMinNoticeHours?: Prisma.IntFilter<"User"> | number
   archivedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   calendarWeekHours?: Prisma.JsonNullableFilter<"User">
   calendarClosedSlotKeys?: Prisma.JsonNullableFilter<"User">
   bookingsLastViewedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  emailBookingNotificationsEnabled?: Prisma.BoolFilter<"User"> | boolean
   adminOnboardingCompletedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   adminOnboardingStep?: Prisma.IntFilter<"User"> | number
   stripeBillingCustomerId?: Prisma.StringNullableFilter<"User"> | string | null
@@ -470,11 +490,13 @@ export type UserOrderByWithAggregationInput = {
   bio?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrderInput | Prisma.SortOrder
   publicBookingSlug?: Prisma.SortOrderInput | Prisma.SortOrder
+  publicBookingSitePublished?: Prisma.SortOrder
   publicBookingMinNoticeHours?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   calendarWeekHours?: Prisma.SortOrderInput | Prisma.SortOrder
   calendarClosedSlotKeys?: Prisma.SortOrderInput | Prisma.SortOrder
   bookingsLastViewedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  emailBookingNotificationsEnabled?: Prisma.SortOrder
   adminOnboardingCompletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   adminOnboardingStep?: Prisma.SortOrder
   stripeAccountId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -507,11 +529,13 @@ export type UserScalarWhereWithAggregatesInput = {
   bio?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   address?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   publicBookingSlug?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  publicBookingSitePublished?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   publicBookingMinNoticeHours?: Prisma.IntWithAggregatesFilter<"User"> | number
   archivedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   calendarWeekHours?: Prisma.JsonNullableWithAggregatesFilter<"User">
   calendarClosedSlotKeys?: Prisma.JsonNullableWithAggregatesFilter<"User">
   bookingsLastViewedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+  emailBookingNotificationsEnabled?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   adminOnboardingCompletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   adminOnboardingStep?: Prisma.IntWithAggregatesFilter<"User"> | number
   stripeAccountId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
@@ -536,11 +560,13 @@ export type UserCreateInput = {
   bio?: string | null
   address?: string | null
   publicBookingSlug?: string | null
+  publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
+  emailBookingNotificationsEnabled?: boolean
   adminOnboardingCompletedAt?: Date | string | null
   adminOnboardingStep?: number
   stripeAccountId?: string | null
@@ -571,11 +597,13 @@ export type UserUncheckedCreateInput = {
   bio?: string | null
   address?: string | null
   publicBookingSlug?: string | null
+  publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
+  emailBookingNotificationsEnabled?: boolean
   adminOnboardingCompletedAt?: Date | string | null
   adminOnboardingStep?: number
   stripeAccountId?: string | null
@@ -606,11 +634,13 @@ export type UserUpdateInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailBookingNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -641,11 +671,13 @@ export type UserUncheckedUpdateInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailBookingNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -676,11 +708,13 @@ export type UserCreateManyInput = {
   bio?: string | null
   address?: string | null
   publicBookingSlug?: string | null
+  publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
+  emailBookingNotificationsEnabled?: boolean
   adminOnboardingCompletedAt?: Date | string | null
   adminOnboardingStep?: number
   stripeAccountId?: string | null
@@ -705,11 +739,13 @@ export type UserUpdateManyMutationInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailBookingNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -734,11 +770,13 @@ export type UserUncheckedUpdateManyInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailBookingNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -763,11 +801,13 @@ export type UserCountOrderByAggregateInput = {
   bio?: Prisma.SortOrder
   address?: Prisma.SortOrder
   publicBookingSlug?: Prisma.SortOrder
+  publicBookingSitePublished?: Prisma.SortOrder
   publicBookingMinNoticeHours?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrder
   calendarWeekHours?: Prisma.SortOrder
   calendarClosedSlotKeys?: Prisma.SortOrder
   bookingsLastViewedAt?: Prisma.SortOrder
+  emailBookingNotificationsEnabled?: Prisma.SortOrder
   adminOnboardingCompletedAt?: Prisma.SortOrder
   adminOnboardingStep?: Prisma.SortOrder
   stripeAccountId?: Prisma.SortOrder
@@ -797,9 +837,11 @@ export type UserMaxOrderByAggregateInput = {
   bio?: Prisma.SortOrder
   address?: Prisma.SortOrder
   publicBookingSlug?: Prisma.SortOrder
+  publicBookingSitePublished?: Prisma.SortOrder
   publicBookingMinNoticeHours?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrder
   bookingsLastViewedAt?: Prisma.SortOrder
+  emailBookingNotificationsEnabled?: Prisma.SortOrder
   adminOnboardingCompletedAt?: Prisma.SortOrder
   adminOnboardingStep?: Prisma.SortOrder
   stripeAccountId?: Prisma.SortOrder
@@ -824,9 +866,11 @@ export type UserMinOrderByAggregateInput = {
   bio?: Prisma.SortOrder
   address?: Prisma.SortOrder
   publicBookingSlug?: Prisma.SortOrder
+  publicBookingSitePublished?: Prisma.SortOrder
   publicBookingMinNoticeHours?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrder
   bookingsLastViewedAt?: Prisma.SortOrder
+  emailBookingNotificationsEnabled?: Prisma.SortOrder
   adminOnboardingCompletedAt?: Prisma.SortOrder
   adminOnboardingStep?: Prisma.SortOrder
   stripeAccountId?: Prisma.SortOrder
@@ -977,11 +1021,13 @@ export type UserCreateWithoutUserAvatarInput = {
   bio?: string | null
   address?: string | null
   publicBookingSlug?: string | null
+  publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
+  emailBookingNotificationsEnabled?: boolean
   adminOnboardingCompletedAt?: Date | string | null
   adminOnboardingStep?: number
   stripeAccountId?: string | null
@@ -1011,11 +1057,13 @@ export type UserUncheckedCreateWithoutUserAvatarInput = {
   bio?: string | null
   address?: string | null
   publicBookingSlug?: string | null
+  publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
+  emailBookingNotificationsEnabled?: boolean
   adminOnboardingCompletedAt?: Date | string | null
   adminOnboardingStep?: number
   stripeAccountId?: string | null
@@ -1061,11 +1109,13 @@ export type UserUpdateWithoutUserAvatarInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailBookingNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1095,11 +1145,13 @@ export type UserUncheckedUpdateWithoutUserAvatarInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailBookingNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1129,11 +1181,13 @@ export type UserCreateWithoutClientsInput = {
   bio?: string | null
   address?: string | null
   publicBookingSlug?: string | null
+  publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
+  emailBookingNotificationsEnabled?: boolean
   adminOnboardingCompletedAt?: Date | string | null
   adminOnboardingStep?: number
   stripeAccountId?: string | null
@@ -1163,11 +1217,13 @@ export type UserUncheckedCreateWithoutClientsInput = {
   bio?: string | null
   address?: string | null
   publicBookingSlug?: string | null
+  publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
+  emailBookingNotificationsEnabled?: boolean
   adminOnboardingCompletedAt?: Date | string | null
   adminOnboardingStep?: number
   stripeAccountId?: string | null
@@ -1213,11 +1269,13 @@ export type UserUpdateWithoutClientsInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailBookingNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1247,11 +1305,13 @@ export type UserUncheckedUpdateWithoutClientsInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailBookingNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1281,11 +1341,13 @@ export type UserCreateWithoutServicesInput = {
   bio?: string | null
   address?: string | null
   publicBookingSlug?: string | null
+  publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
+  emailBookingNotificationsEnabled?: boolean
   adminOnboardingCompletedAt?: Date | string | null
   adminOnboardingStep?: number
   stripeAccountId?: string | null
@@ -1315,11 +1377,13 @@ export type UserUncheckedCreateWithoutServicesInput = {
   bio?: string | null
   address?: string | null
   publicBookingSlug?: string | null
+  publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
+  emailBookingNotificationsEnabled?: boolean
   adminOnboardingCompletedAt?: Date | string | null
   adminOnboardingStep?: number
   stripeAccountId?: string | null
@@ -1365,11 +1429,13 @@ export type UserUpdateWithoutServicesInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailBookingNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1399,11 +1465,13 @@ export type UserUncheckedUpdateWithoutServicesInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailBookingNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1433,11 +1501,13 @@ export type UserCreateWithoutBookingsInput = {
   bio?: string | null
   address?: string | null
   publicBookingSlug?: string | null
+  publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
+  emailBookingNotificationsEnabled?: boolean
   adminOnboardingCompletedAt?: Date | string | null
   adminOnboardingStep?: number
   stripeAccountId?: string | null
@@ -1467,11 +1537,13 @@ export type UserUncheckedCreateWithoutBookingsInput = {
   bio?: string | null
   address?: string | null
   publicBookingSlug?: string | null
+  publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
+  emailBookingNotificationsEnabled?: boolean
   adminOnboardingCompletedAt?: Date | string | null
   adminOnboardingStep?: number
   stripeAccountId?: string | null
@@ -1517,11 +1589,13 @@ export type UserUpdateWithoutBookingsInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailBookingNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1551,11 +1625,13 @@ export type UserUncheckedUpdateWithoutBookingsInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailBookingNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1585,11 +1661,13 @@ export type UserCreateWithoutSessionsInput = {
   bio?: string | null
   address?: string | null
   publicBookingSlug?: string | null
+  publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
+  emailBookingNotificationsEnabled?: boolean
   adminOnboardingCompletedAt?: Date | string | null
   adminOnboardingStep?: number
   stripeAccountId?: string | null
@@ -1619,11 +1697,13 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   bio?: string | null
   address?: string | null
   publicBookingSlug?: string | null
+  publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
+  emailBookingNotificationsEnabled?: boolean
   adminOnboardingCompletedAt?: Date | string | null
   adminOnboardingStep?: number
   stripeAccountId?: string | null
@@ -1669,11 +1749,13 @@ export type UserUpdateWithoutSessionsInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailBookingNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1703,11 +1785,13 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailBookingNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1737,11 +1821,13 @@ export type UserCreateWithoutAccountsInput = {
   bio?: string | null
   address?: string | null
   publicBookingSlug?: string | null
+  publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
+  emailBookingNotificationsEnabled?: boolean
   adminOnboardingCompletedAt?: Date | string | null
   adminOnboardingStep?: number
   stripeAccountId?: string | null
@@ -1771,11 +1857,13 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   bio?: string | null
   address?: string | null
   publicBookingSlug?: string | null
+  publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Date | string | null
+  emailBookingNotificationsEnabled?: boolean
   adminOnboardingCompletedAt?: Date | string | null
   adminOnboardingStep?: number
   stripeAccountId?: string | null
@@ -1821,11 +1909,13 @@ export type UserUpdateWithoutAccountsInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailBookingNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1855,11 +1945,13 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   bookingsLastViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailBookingNotificationsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminOnboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   adminOnboardingStep?: Prisma.IntFieldUpdateOperationsInput | number
   stripeAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1956,11 +2048,13 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   bio?: boolean
   address?: boolean
   publicBookingSlug?: boolean
+  publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: boolean
   archivedAt?: boolean
   calendarWeekHours?: boolean
   calendarClosedSlotKeys?: boolean
   bookingsLastViewedAt?: boolean
+  emailBookingNotificationsEnabled?: boolean
   adminOnboardingCompletedAt?: boolean
   adminOnboardingStep?: boolean
   stripeAccountId?: boolean
@@ -1992,11 +2086,13 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   bio?: boolean
   address?: boolean
   publicBookingSlug?: boolean
+  publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: boolean
   archivedAt?: boolean
   calendarWeekHours?: boolean
   calendarClosedSlotKeys?: boolean
   bookingsLastViewedAt?: boolean
+  emailBookingNotificationsEnabled?: boolean
   adminOnboardingCompletedAt?: boolean
   adminOnboardingStep?: boolean
   stripeAccountId?: boolean
@@ -2021,11 +2117,13 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   bio?: boolean
   address?: boolean
   publicBookingSlug?: boolean
+  publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: boolean
   archivedAt?: boolean
   calendarWeekHours?: boolean
   calendarClosedSlotKeys?: boolean
   bookingsLastViewedAt?: boolean
+  emailBookingNotificationsEnabled?: boolean
   adminOnboardingCompletedAt?: boolean
   adminOnboardingStep?: boolean
   stripeAccountId?: boolean
@@ -2050,11 +2148,13 @@ export type UserSelectScalar = {
   bio?: boolean
   address?: boolean
   publicBookingSlug?: boolean
+  publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: boolean
   archivedAt?: boolean
   calendarWeekHours?: boolean
   calendarClosedSlotKeys?: boolean
   bookingsLastViewedAt?: boolean
+  emailBookingNotificationsEnabled?: boolean
   adminOnboardingCompletedAt?: boolean
   adminOnboardingStep?: boolean
   stripeAccountId?: boolean
@@ -2070,7 +2170,7 @@ export type UserSelectScalar = {
   banExpires?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "image" | "bio" | "address" | "publicBookingSlug" | "publicBookingMinNoticeHours" | "archivedAt" | "calendarWeekHours" | "calendarClosedSlotKeys" | "bookingsLastViewedAt" | "adminOnboardingCompletedAt" | "adminOnboardingStep" | "stripeAccountId" | "stripeBillingCustomerId" | "stripeOnboardingComplete" | "stripeChargesEnabled" | "stripePayoutsEnabled" | "createdAt" | "updatedAt" | "role" | "banned" | "banReason" | "banExpires", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "image" | "bio" | "address" | "publicBookingSlug" | "publicBookingSitePublished" | "publicBookingMinNoticeHours" | "archivedAt" | "calendarWeekHours" | "calendarClosedSlotKeys" | "bookingsLastViewedAt" | "emailBookingNotificationsEnabled" | "adminOnboardingCompletedAt" | "adminOnboardingStep" | "stripeAccountId" | "stripeBillingCustomerId" | "stripeOnboardingComplete" | "stripeChargesEnabled" | "stripePayoutsEnabled" | "createdAt" | "updatedAt" | "role" | "banned" | "banReason" | "banExpires", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
@@ -2109,6 +2209,10 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
      */
     publicBookingSlug: string | null
     /**
+     * When false, public routes under `/{publicBookingSlug}` return not found (site kept in draft).
+     */
+    publicBookingSitePublished: boolean
+    /**
      * Minimum notice (hours) required before a public booking can start.
      */
     publicBookingMinNoticeHours: number
@@ -2125,6 +2229,10 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
      * When the host last opened the admin bookings list; used for “new client booking” nav badge.
      */
     bookingsLastViewedAt: Date | null
+    /**
+     * When true, the professional receives emails for new client-side reservations (public booking flow only).
+     */
+    emailBookingNotificationsEnabled: boolean
     /**
      * First-time admin checklist finished at; null means show onboarding after sign-in.
      */
@@ -2584,11 +2692,13 @@ export interface UserFieldRefs {
   readonly bio: Prisma.FieldRef<"User", 'String'>
   readonly address: Prisma.FieldRef<"User", 'String'>
   readonly publicBookingSlug: Prisma.FieldRef<"User", 'String'>
+  readonly publicBookingSitePublished: Prisma.FieldRef<"User", 'Boolean'>
   readonly publicBookingMinNoticeHours: Prisma.FieldRef<"User", 'Int'>
   readonly archivedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly calendarWeekHours: Prisma.FieldRef<"User", 'Json'>
   readonly calendarClosedSlotKeys: Prisma.FieldRef<"User", 'Json'>
   readonly bookingsLastViewedAt: Prisma.FieldRef<"User", 'DateTime'>
+  readonly emailBookingNotificationsEnabled: Prisma.FieldRef<"User", 'Boolean'>
   readonly adminOnboardingCompletedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly adminOnboardingStep: Prisma.FieldRef<"User", 'Int'>
   readonly stripeAccountId: Prisma.FieldRef<"User", 'String'>

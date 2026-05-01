@@ -853,10 +853,13 @@ export default function Page() {
     <header className="fixed top-0 right-0 left-0 z-50 border-b border-slate-200/70 bg-white/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
         <Link href="/" className="flex shrink-0 items-center gap-2.5 text-slate-900">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white">
             <BookidoLogo className="h-5 w-5 brightness-0 invert" />
           </div>
-          <span className="text-lg font-bold tracking-tight">Bookido</span>
+          <div className="flex min-w-0 flex-col leading-tight">
+            <span className="text-lg font-bold tracking-tight">Bookido</span>
+            <span className="text-[11px] font-medium text-slate-500 sm:text-xs">{t("nav.brandSubtitle")}</span>
+          </div>
         </Link>
         <nav className="hidden items-center gap-5 text-sm font-medium text-slate-600 md:flex md:gap-6">
           <a href="#how-it-works" className="transition-colors hover:text-slate-900">
@@ -1061,6 +1064,7 @@ export default function Page() {
             {pricingBullet(t("pricing.starter.f2"))}
             {pricingBullet(t("pricing.starter.f3"))}
             {pricingBullet(t("pricing.starter.f4"))}
+            {pricingBullet(t("pricing.starter.f5"))}
           </ul>
           <Button variant="outline" className="mt-8 w-full rounded-xl border-slate-300" asChild>
             <Link href="/admin/signup">{t("nav.try")}</Link>
@@ -1070,6 +1074,7 @@ export default function Page() {
     </motion.div>
   );
 
+  /* Pro plan — temporarily hidden. Restore `md:grid-cols-2 md:items-stretch md:gap-6` on the pricing grid when uncommenting.
   const pricingProCard = (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -1109,6 +1114,7 @@ export default function Page() {
       </Card>
     </motion.div>
   );
+  */
 
   const pricingSectionHeader = (
     <div className="mx-auto max-w-2xl text-center">
@@ -1123,9 +1129,9 @@ export default function Page() {
   const pricingSection = (
     <section id="pricing" className="scroll-mt-28 border-t border-slate-200/80 bg-slate-50/50 py-20 sm:py-24">
       {pricingSectionHeader}
-      <div className="mx-auto mt-14 grid max-w-4xl gap-8 px-4 sm:px-6 md:grid-cols-2 md:items-stretch md:gap-6">
+      <div className="mx-auto mt-14 max-w-md px-4 sm:px-6">
         {pricingStarterCard}
-        {pricingProCard}
+        {/* {pricingProCard} */}
       </div>
     </section>
   );

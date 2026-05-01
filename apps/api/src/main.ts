@@ -57,7 +57,14 @@ async function bootstrap() {
     cors: {
       origin: corsOrigins.length > 0 ? corsOrigins : ["http://localhost:3000"],
       credentials: true,
-      allowedHeaders: ["Content-Type", "Authorization", "Cookie", "X-Bookido-Locale", "Accept-Language"],
+      allowedHeaders: [
+        "Content-Type",
+        "Authorization",
+        "Cookie",
+        "X-Bookido-Locale",
+        "Accept-Language",
+        "x-bookido-dev-simulate-stripe-ready",
+      ],
     },
   });
   app.useGlobalPipes(new ValidationPipe());

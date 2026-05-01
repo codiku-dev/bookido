@@ -147,6 +147,8 @@ export default function OnboardingWizard() {
 
   const utils = trpc.useUtils();
   const [step, setStep] = useState(0);
+  /** Highest onboarding step index (0–8) unlocked via Next / server resume; used for stepper checks and navigation. */
+  const [furthestOnboardingStep, setFurthestOnboardingStep] = useState(0);
   const [weekHours, setWeekHours] = useState<WeekHours>(DEFAULT_CALENDAR_WEEK_HOURS);
   const [closedSlotKeys, setClosedSlotKeys] = useState<string[]>([...DEFAULT_LUNCH_BREAK_CLOSED_SLOT_KEYS]);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -170,11 +172,15 @@ export default function OnboardingWizard() {
   const updateCalendarMutation = trpc.profile.updateCalendarAvailability.useMutation();
   const updateSlugMutation = trpc.profile.updatePublicBookingPresence.useMutation();
   const createServiceMutation = trpc.services.create.useMutation();
+  const updateServiceMutation = trpc.services.update.useMutation();
   const createStripeLinkMutation = trpc.profile.createStripeOnboardingLink.useMutation();
+  const createStripeOnboardingLinkAsyncRef = useRef(createStripeLinkMutation.mutateAsync);
+  createStripeOnboardingLinkAsyncRef.current = createStripeLinkMutation.mutateAsync;
   const completeOnboardingMutation = trpc.profile.completeAdminOnboarding.useMutation();
   const saveOnboardingStepMutation = trpc.profile.saveAdminOnboardingStep.useMutation();
   const onboardingStepSeededUserIdRef = useRef<string | null>(null);
   const onboardingPrevStepRef = useRef<number | null>(null);
+  const onboardingServiceSeededIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!calendarQuery.data) {
@@ -191,13 +197,13 @@ export default function OnboardingWizard() {
   }, [user]);
 
   useEffect(() => {
-    if (onboardingStatusQuery.isPending) {
+    if (onboardingStatusQuery.isPending || onboardingStatusQuery.isFetching) {
       return;
     }
     if (onboardingStatusQuery.data && !onboardingStatusQuery.data.needsOnboarding) {
       router.replace("/admin");
     }
-  }, [onboardingStatusQuery.isPending, onboardingStatusQuery.data, router]);
+  }, [onboardingStatusQuery.isPending, onboardingStatusQuery.isFetching, onboardingStatusQuery.data, router]);
 
   useEffect(() => {
     if (!presenceQuery.data) {
@@ -345,6 +351,14 @@ export default function OnboardingWizard() {
   });
 
   useEffect(() => {
+    if (onboardingStatusQuery.isPending || !onboardingStatusQuery.data) {
+      return;
+    }
+    const s = Math.min(8, Math.max(0, onboardingStatusQuery.data.currentStep));
+    setFurthestOnboardingStep((f) => Math.max(f, s));
+  }, [onboardingStatusQuery.isPending, onboardingStatusQuery.data?.currentStep]);
+
+  useEffect(() => {
     if (!user?.id || onboardingStatusQuery.isPending || !onboardingStatusQuery.data) {
       return;
     }
@@ -354,6 +368,7 @@ export default function OnboardingWizard() {
     onboardingStepSeededUserIdRef.current = user.id;
     const resumedStep = Math.min(8, Math.max(0, onboardingStatusQuery.data.currentStep));
     setStep(resumedStep);
+    setFurthestOnboardingStep((f) => Math.max(f, resumedStep));
     if (resumedStep === 6) {
       onboardingForm.setValue("isPublished", false, { shouldDirty: false, shouldTouch: false });
     }
@@ -558,7 +573,11 @@ export default function OnboardingWizard() {
     setStep((currentStep) => {
       const nextStep = Math.min(currentStep + 1, ONBOARDING_FLOW_STEPS);
       const persistedStep = Math.min(nextStep, 8);
-      void saveOnboardingStepMutation.mutateAsync({ step: persistedStep });
+      setFurthestOnboardingStep((f) => {
+        const nextFurthest = Math.max(f, persistedStep);
+        void saveOnboardingStepMutation.mutateAsync({ step: nextFurthest });
+        return nextFurthest;
+      });
       return nextStep;
     });
   }, [saveOnboardingStepMutation]);
@@ -639,6 +658,36 @@ export default function OnboardingWizard() {
       resetServiceAvailabilityDrag();
     }
   }, [step, resetServiceAvailabilityDrag]);
+
+  useEffect(() => {
+    if (step !== 6) {
+      return;
+    }
+    const existingService = servicesListQuery.data?.[0];
+    if (!existingService) {
+      onboardingServiceSeededIdRef.current = null;
+      return;
+    }
+    if (onboardingServiceSeededIdRef.current === existingService.id) {
+      return;
+    }
+    onboardingServiceSeededIdRef.current = existingService.id;
+    onboardingForm.reset({
+      ...onboardingForm.getValues(),
+      serviceName: existingService.name,
+      serviceDescription: existingService.description,
+      serviceAddress: existingService.address ?? "",
+      serviceAddressFromPlaces: true,
+      durationMinutes: existingService.durationMinutes,
+      packSize: existingService.packSize,
+      priceEuros: String(existingService.price),
+      isPublished: existingService.isPublished,
+      requiresValidation: existingService.requiresValidation,
+      allowsDirectPayment: existingService.allowsDirectPayment,
+      imageDataUrl: existingService.imageUrl ?? "",
+      availableSlotKeys: Array.isArray(existingService.availableSlotKeys) ? [...existingService.availableSlotKeys] : [],
+    });
+  }, [step, servicesListQuery.data, onboardingForm]);
 
   const paintOnboardingSlot = useCallback(
     (dayKey: string, time: string, shouldClose: boolean) => {
@@ -940,6 +989,7 @@ export default function OnboardingWizard() {
       return;
     }
     try {
+      const existingService = servicesListQuery.data?.[0];
       const addr =
         values.serviceAddress.trim().length > 0
           ? values.serviceAddress.trim()
@@ -948,7 +998,7 @@ export default function OnboardingWizard() {
       const parsedPrice = rawPrice === "" ? 0 : Number.parseFloat(rawPrice.replace(",", "."));
       const price = Number.isFinite(parsedPrice) ? Math.max(0, parsedPrice) : 0;
       const trimmedImage = values.imageDataUrl.trim();
-      await createServiceMutation.mutateAsync({
+      const servicePayload = {
         name: values.serviceName.trim(),
         description: values.serviceDescription.trim(),
         durationMinutes: values.durationMinutes,
@@ -961,10 +1011,19 @@ export default function OnboardingWizard() {
         isPublished: values.isPublished,
         requiresValidation: values.requiresValidation,
         allowsDirectPayment: values.allowsDirectPayment,
-      });
+      };
+      if (existingService?.id) {
+        await updateServiceMutation.mutateAsync({ id: existingService.id, data: servicePayload });
+      } else {
+        await createServiceMutation.mutateAsync(servicePayload);
+      }
       await utils.services.list.invalidate();
       goNext();
-    } catch {
+    } catch (e) {
+      if (e instanceof TRPCClientError && e.message === "STRIPE_REQUIRED_TO_PUBLISH_PAID_SERVICE") {
+        toast.error(t("services.visibility.stripeRequiredAlert"));
+        return;
+      }
       toast.error(t("services.errors.save"));
     }
   };
@@ -1013,7 +1072,7 @@ export default function OnboardingWizard() {
     let cancelled = false;
     void (async () => {
       try {
-        const result = await createStripeLinkMutation.mutateAsync({});
+        const result = await createStripeOnboardingLinkAsyncRef.current({ returnTo: "onboarding" });
         const url = result.url?.trim() ?? "";
         if (!cancelled && url.length > 0) {
           setStripePrefetchedUrl(url);
@@ -1027,7 +1086,7 @@ export default function OnboardingWizard() {
     return () => {
       cancelled = true;
     };
-  }, [step, user?.id, isPaymentsLive, createStripeLinkMutation]);
+  }, [step, user?.id, isPaymentsLive]);
 
   const openStripeOnboarding = async () => {
     const prefetched = stripePrefetchedUrl?.trim() ?? "";
@@ -1038,7 +1097,7 @@ export default function OnboardingWizard() {
     }
     setStripeBusy("fetching");
     try {
-      const result = await createStripeLinkMutation.mutateAsync({});
+      const result = await createStripeLinkMutation.mutateAsync({ returnTo: "onboarding" });
       const url = result.url?.trim() ?? "";
       if (typeof window !== "undefined" && url.length > 0) {
         setStripeBusy("navigating");
@@ -1357,28 +1416,61 @@ export default function OnboardingWizard() {
 
   const onboardingStepper = (
     <div className="mt-3 rounded-xl border border-blue-100 bg-white/70 px-2 py-2">
-      <div ref={stepperScrollContainerRef} className="overflow-x-auto scroll-smooth">
-        <div className="mx-auto flex w-fit min-w-max items-center justify-center">
+      <div ref={stepperScrollContainerRef} className="scroll-smooth">
+        <div className="flex w-full flex-wrap items-center justify-center gap-y-1">
           {ONBOARDING_STEPPER_KEYS.map((stepKey, index) => {
-            const isDone = index < onboardingStepperCurrentIndex;
             const isCurrent = index === onboardingStepperCurrentIndex;
-            const circleClassName = isCurrent
-              ? "border-blue-600 bg-blue-600"
-              : isDone
-                ? "border-blue-500 bg-blue-500"
-                : "border-blue-200 bg-white";
-            const lineClassName = isDone ? "bg-blue-500" : "bg-blue-200";
-            const labelClassName = isCurrent ? "text-blue-700" : "text-slate-500";
+            const isCompleted = index !== onboardingStepperCurrentIndex && index < furthestOnboardingStep;
+            const canNavigate = index <= furthestOnboardingStep;
+            const lineDone = index < furthestOnboardingStep;
+            const lineClassName = lineDone ? "bg-blue-500" : "bg-blue-200";
+            const labelClassName = isCurrent
+              ? "font-semibold text-blue-700"
+              : isCompleted
+                ? "text-blue-600"
+                : "text-slate-400";
+            const stepGlyph = isCurrent ? (
+              <span
+                className="flex size-5 shrink-0 items-center justify-center rounded-full border-2 border-blue-600 bg-blue-600 shadow-sm"
+                aria-hidden
+              >
+                <span className="size-1.5 rounded-full bg-white" />
+              </span>
+            ) : isCompleted ? (
+              <span
+                className="flex size-5 shrink-0 items-center justify-center rounded-full border border-blue-500 bg-blue-500 shadow-sm"
+                aria-hidden
+              >
+                <Check className="size-3 text-white" strokeWidth={2.8} />
+              </span>
+            ) : (
+              <span
+                className="flex size-5 shrink-0 items-center justify-center rounded-full border border-blue-200 bg-white"
+                aria-hidden
+              />
+            );
             return (
               <div key={stepKey} className="flex min-w-0 items-center">
-                <div className="flex w-[96px] flex-col items-center" data-onboarding-step={index}>
-                  <span className={`block h-2.5 w-2.5 rounded-full border ${circleClassName}`} />
+                <button
+                  type="button"
+                  className={`flex w-[86px] flex-col items-center rounded-md py-1 transition ${
+                    canNavigate ? "cursor-pointer hover:bg-blue-50" : "cursor-default opacity-60"
+                  }`}
+                  data-onboarding-step={index}
+                  onClick={() => {
+                    if (canNavigate) {
+                      setStep(index);
+                    }
+                  }}
+                  disabled={!canNavigate}
+                >
+                  {stepGlyph}
                   <span className={`mt-1 text-center text-[10px] font-medium ${labelClassName}`}>
                     {t(`onboarding.publicProfileIntro.steps.${stepKey}`)}
                   </span>
-                </div>
+                </button>
                 {index < ONBOARDING_STEPPER_KEYS.length - 1 ? (
-                  <span className={`mx-1 h-px w-8 ${lineClassName}`} />
+                  <span className={`mx-0.5 h-px w-5 ${lineClassName}`} />
                 ) : null}
               </div>
             );
@@ -1388,20 +1480,19 @@ export default function OnboardingWizard() {
     </div>
   );
 
-  const publicProfileIntro =
-    step < 9 ? (
-      <div className="mx-auto w-full max-w-5xl px-4 pt-6 md:px-8">
-        <div className="rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 px-5 py-4 md:px-6">
-          <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
-            {t("onboarding.publicProfileIntro.badge")}
-          </p>
-          <h2 className="mt-1 text-lg font-semibold text-slate-900 md:text-xl">
-            {t("onboarding.publicProfileIntro.title")}
-          </h2>
-          {onboardingStepper}
-        </div>
+  const publicProfileIntro = (
+    <div className="w-full px-4 pt-6 md:px-8">
+      <div className="rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 px-5 py-4 md:px-6">
+        <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
+          {t("onboarding.publicProfileIntro.badge")}
+        </p>
+        <h2 className="mt-1 text-lg font-semibold text-slate-900 md:text-xl">
+          {t("onboarding.publicProfileIntro.title")}
+        </h2>
+        {onboardingStepper}
       </div>
-    ) : null;
+    </div>
+  );
 
   const footerActions = (p: {
     onPrimary: () => void;
@@ -1428,6 +1519,20 @@ export default function OnboardingWizard() {
     </div>
   );
 
+  const footerDoneOnly = (
+    <div className="flex flex-col gap-2 border-t border-slate-200 bg-white/90 px-4 py-4 backdrop-blur sm:flex-row sm:justify-end md:px-8">
+      <Button
+        type="button"
+        className="w-full sm:w-auto sm:min-w-[220px]"
+        size="lg"
+        pending={completeOnboardingMutation.isPending}
+        onClick={() => void handleFinish()}
+      >
+        {t("onboarding.done.cta")}
+      </Button>
+    </div>
+  );
+
   const loadingGate =
     onboardingStatusQuery.isPending || !user || ((step === 3 || step === 5) && calendarQuery.isPending);
 
@@ -1437,15 +1542,6 @@ export default function OnboardingWizard() {
         <div className="mx-auto flex max-w-lg flex-col gap-6 px-4 py-10 text-center md:px-8">
           <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">{t("onboarding.done.title")}</h1>
           <p className="text-slate-600">{t("onboarding.done.subtitle")}</p>
-          <Button
-            type="button"
-            className="mx-auto w-full max-w-sm"
-            size="lg"
-            pending={completeOnboardingMutation.isPending}
-            onClick={() => void handleFinish()}
-          >
-            {t("onboarding.done.cta")}
-          </Button>
         </div>
       );
       return congrats;
@@ -1661,20 +1757,7 @@ export default function OnboardingWizard() {
     }
 
     if (step === 6) {
-      const hasService = (servicesListQuery.data?.length ?? 0) > 0;
-      const servicePlacesActive = step === 6 && !hasService;
-
-      if (hasService) {
-        return (
-          <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-10 md:px-8">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">{t("onboarding.service.title")}</h1>
-              <p className="mt-2 text-slate-600">{t("onboarding.service.subtitle")}</p>
-            </div>
-            <p className="text-sm font-medium text-emerald-800">{t("onboarding.service.alreadyHave")}</p>
-          </div>
-        );
-      }
+      const servicePlacesActive = step === 6;
 
       const serviceVisibilityBanner = (
         <div className="mb-6 rounded-2xl border-2 border-amber-300 bg-amber-50 px-5 py-4 shadow-sm">
@@ -2076,18 +2159,13 @@ export default function OnboardingWizard() {
       };
     }
     if (step === 6) {
-      const hasService = (servicesListQuery.data?.length ?? 0) > 0;
       return {
         label: t("onboarding.next"),
         action: () => {
-          if (hasService) {
-            goNext();
-            return;
-          }
           void handleServiceNext();
         },
-        pending: createServiceMutation.isPending,
-        disabled: hasService ? false : !isServiceStepFullyValid,
+        pending: createServiceMutation.isPending || updateServiceMutation.isPending,
+        disabled: !isServiceStepFullyValid,
       };
     }
     if (step === 7) {
@@ -2108,7 +2186,7 @@ export default function OnboardingWizard() {
 
   const shell = (
     <div className="flex min-h-screen flex-col bg-slate-50">
-      {step < 9 ? topBar : null}
+      {topBar}
       {publicProfileIntro}
       <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col overflow-y-auto px-0 pb-6 md:overflow-y-visible md:px-8">
         <div className="mt-4 rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -2119,14 +2197,14 @@ export default function OnboardingWizard() {
           )}
         </div>
       </div>
-      {step < 9
-        ? footerActions({
+      {step >= 9
+        ? footerDoneOnly
+        : footerActions({
             onPrimary: () => void primary.action(),
             primaryLabel: primary.label,
             primaryDisabled: primary.disabled,
             primaryPending: primary.pending,
-          })
-        : null}
+          })}
     </div>
   );
 

@@ -16,6 +16,7 @@ import {
 import { useTranslations } from "next-intl";
 import BookidoLogo from "#/components/BookidoLogo";
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/ui/avatar";
+import { Badge } from "#/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -68,6 +69,15 @@ export default function AdminLayout(p: { children: ReactNode }) {
     retry: false,
     staleTime: 30_000,
   });
+
+  const publicBookingPresenceQuery = trpc.profile.getPublicBookingPresence.useQuery(undefined, {
+    enabled: sessionReady,
+    retry: false,
+    staleTime: 30_000,
+  });
+  const sitePublishedBadgeLoading =
+    sessionReady && publicBookingPresenceQuery.isPending && publicBookingPresenceQuery.data === undefined;
+  const sitePublished = publicBookingPresenceQuery.data?.publicBookingSitePublished ?? false;
 
   useEffect(() => {
     if (!sessionReady || pathname === "/admin/onboarding") {
@@ -179,19 +189,48 @@ export default function AdminLayout(p: { children: ReactNode }) {
     </div>
   );
 
+  const sitePublishBadgeLabel = sitePublishedBadgeLoading
+    ? t("nav.publicSite.loading")
+    : sitePublished
+      ? t("nav.publicSite.published")
+      : t("nav.publicSite.unpublished");
+
+  const sitePublishBadgeVariant = sitePublishedBadgeLoading
+    ? "outline"
+    : sitePublished
+      ? "success"
+      : "secondary";
+
+  const sitePublishBadge = sessionReady ? (
+    <Badge
+      asChild
+      variant={sitePublishBadgeVariant}
+      className={sitePublishedBadgeLoading ? "animate-pulse" : undefined}
+    >
+      <Link href="/admin/profile" className="focus-visible:outline-none">
+        {sitePublishBadgeLabel}
+      </Link>
+    </Badge>
+  ) : null;
+
+  const sidebarBrandHeader = (
+    <div className="p-6 border-b border-slate-200">
+      <Link href="/" className="flex items-center gap-3">
+        <BookidoLogo className="w-10 h-10" />
+        <div>
+          <h1 className="text-xl font-bold text-slate-900">Bookido</h1>
+          <p className="text-sm text-slate-500">Admin Panel</p>
+        </div>
+      </Link>
+      {sitePublishBadge ? <div className="mt-2.5">{sitePublishBadge}</div> : null}
+    </div>
+  );
+
   return (
     <div className="relative flex h-screen bg-slate-50">
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-slate-200 flex flex-col">
-        <div className="p-6 border-b border-slate-200">
-          <Link href="/" className="flex items-center gap-3">
-            <BookidoLogo className="w-10 h-10" />
-            <div>
-              <h1 className="text-xl font-bold text-slate-900">Bookido</h1>
-              <p className="text-sm text-slate-500">Admin Panel</p>
-            </div>
-          </Link>
-        </div>
+        {sidebarBrandHeader}
         {accountIdentity}
 
         <nav className="flex-1 p-4">

@@ -4,13 +4,14 @@ import Link from "next/link";
 import { useLayoutEffect, useMemo, useState } from "react";
 import { useParams, usePathname } from "next/navigation";
 import { motion } from "motion/react";
-import { Clock, ImageIcon, Package } from "lucide-react";
+import { Clock, ImageIcon, Package, Sparkles } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
 import { BackButton } from "../../_components/BackButton";
 import { FrontOfficePageLayout } from "../../_components/FrontOfficePageLayout";
 import { PublicCoachBanner } from "../../_components/PublicCoachBanner";
 import { trpc } from "@web/libs/trpc-client";
+import { isPublicCoachStorefrontNotFoundError } from "#/utils/trpc-public-coach-not-found";
 import { getCalendarWeekDates } from "#/utils/booking-page-calendar";
 import { BOOKIDO_PUBLIC_SERVICES_BACK_FROM_HOME_KEY } from "#/utils/public-storefront-nav-origin";
 
@@ -73,7 +74,12 @@ export default function ServicesPage() {
   const coachNotFoundBlock = (
     <div className="max-w-lg mx-auto rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center text-amber-950">
       <p className="font-medium">{t("public.booking.coachNotFoundTitle")}</p>
-      <p className="mt-2 text-sm text-amber-900/90">{t("public.booking.coachNotFoundHint")}</p>
+      <Link
+        href="/"
+        className="mt-3 inline-block text-sm font-medium text-blue-700 underline underline-offset-2 hover:text-blue-800"
+      >
+        {t("public.booking.coachNotFoundHome")}
+      </Link>
     </div>
   );
 
@@ -90,8 +96,11 @@ export default function ServicesPage() {
   );
 
   const emptyBlock = (
-    <div className="max-w-lg mx-auto rounded-2xl border border-slate-200 bg-slate-50 p-6 text-center text-slate-700">
-      <p>{t("public.services.empty")}</p>
+    <div className="mx-auto max-w-lg rounded-3xl border border-dashed border-blue-200/90 bg-white/90 p-8 text-center shadow-md ring-1 ring-slate-900/[0.03] backdrop-blur-sm">
+      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 text-white shadow-md">
+        <Sparkles className="h-6 w-6" aria-hidden />
+      </div>
+      <p className="text-sm font-medium text-slate-800 sm:text-base">{t("public.services.empty")}</p>
     </div>
   );
 
@@ -133,7 +142,7 @@ export default function ServicesPage() {
         );
 
         const mobileCard = (
-          <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm md:hidden">
+          <div className="rounded-2xl border border-slate-200/90 bg-white p-3 shadow-md ring-1 ring-slate-900/[0.03] md:hidden">
             <div className="flex items-start gap-3">
               {mobileMedia}
               <div className="min-w-0 flex-1 space-y-1">
@@ -168,7 +177,7 @@ export default function ServicesPage() {
         );
 
         const desktopCard = (
-          <div className="group hidden h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 text-left transition-all duration-300 ease-out hover:border-blue-300 hover:bg-blue-50/40 md:flex md:p-6">
+          <div className="group hidden h-full flex-col rounded-2xl border border-slate-200/90 bg-white p-5 text-left shadow-md ring-1 ring-slate-900/[0.03] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-blue-300/80 hover:shadow-lg md:flex md:p-6">
             {desktopMedia}
             <h3 className="mb-1.5 text-lg font-bold text-slate-900 sm:text-xl">{service.name}</h3>
             {service.description ? (
@@ -215,7 +224,7 @@ export default function ServicesPage() {
     invalidSlugBlock
   ) : storefrontQuery.isLoading ? (
     loadingBlock
-  ) : storefrontQuery.isError && storefrontQuery.error?.data?.httpStatus === 404 ? (
+  ) : storefrontQuery.isError && isPublicCoachStorefrontNotFoundError(storefrontQuery.error) ? (
     coachNotFoundBlock
   ) : storefrontQuery.isError ? (
     errorBlock
@@ -229,16 +238,22 @@ export default function ServicesPage() {
     <BackButton label={t("common.back")} fallbackHref="/" />
   ) : null;
 
-  return (
-    <FrontOfficePageLayout
-      rootClassName="min-h-screen bg-white px-4 py-6 sm:px-6 sm:py-8"
-      topAction={topBackAction}
-    >
-      {coachBannerBlock}
-      <div className="mb-5 text-center sm:mb-8">
-        <h2 className="mb-2 text-3xl font-bold text-slate-900 sm:mb-3 sm:text-4xl">{t("public.services.title")}</h2>
-        <p className="text-sm text-slate-600 sm:text-base">{t("public.hero.subtitle")}</p>
+  const servicesSectionHeading = (
+    <div className="relative mx-auto mb-8 max-w-2xl text-center sm:mb-10">
+      <div className="mb-3 inline-flex items-center rounded-full border border-blue-200/90 bg-blue-50/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-800 shadow-sm">
+        {t("public.services.eyebrow")}
       </div>
+      <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl md:text-[2.5rem] md:leading-tight">
+        {t("public.services.title")}
+      </h2>
+      <p className="mt-3 text-sm text-slate-600 sm:text-base md:text-lg">{t("public.hero.subtitle")}</p>
+    </div>
+  );
+
+  return (
+    <FrontOfficePageLayout topAction={topBackAction}>
+      {coachBannerBlock}
+      {servicesSectionHeading}
       {mainContent}
     </FrontOfficePageLayout>
   );

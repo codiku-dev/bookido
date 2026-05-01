@@ -53,6 +53,8 @@ export const publicBookingPresenceOutputSchema = z.object({
   image: z.string().nullable(),
   defaultAddress: z.string().nullable(),
   publicBookingMinNoticeHours: z.number().int().min(0).max(168),
+  emailBookingNotificationsEnabled: z.boolean(),
+  publicBookingSitePublished: z.boolean(),
 });
 
 export const stripeConnectStatusOutputSchema = z.object({
@@ -104,3 +106,22 @@ export const adminOnboardingStatusOutputSchema = z.object({
 export const saveAdminOnboardingStepInputSchema = z.object({
   step: z.number().int().min(0).max(8),
 });
+
+/** Stripe Account Link refresh/return URL (Connect onboarding). */
+export const createStripeOnboardingLinkInputSchema = z.object({
+  returnTo: z.enum(["profile", "onboarding"]).default("profile"),
+});
+
+export type CreateStripeOnboardingLinkInput = z.infer<typeof createStripeOnboardingLinkInputSchema>;
+
+export const updateEmailBookingNotificationsInputSchema = z.object({
+  enabled: z.boolean(),
+});
+
+export type UpdateEmailBookingNotificationsInput = z.infer<typeof updateEmailBookingNotificationsInputSchema>;
+
+export const updatePublicBookingSitePublishedInputSchema = z.object({
+  published: z.boolean(),
+});
+
+export type UpdatePublicBookingSitePublishedInput = z.infer<typeof updatePublicBookingSitePublishedInputSchema>;

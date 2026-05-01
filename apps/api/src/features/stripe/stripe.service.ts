@@ -122,23 +122,12 @@ export class StripeService {
       contact_email: p.contactEmail,
     });
 
-    const account = await this.stripeClient.v2.core.accounts.create({
+    /** One `accounts.create` instead of create + duplicate identity update + second update (saves ~2 Stripe RTTs). */
+    return this.stripeClient.v2.core.accounts.create({
       account_token: accountToken.id,
       identity: {
         country: identityCountry,
       },
-      configuration: {
-        customer: {},
-      },
-    });
-
-    await this.stripeClient.v2.core.accounts.update(account.id, {
-      identity: {
-        country: identityCountry,
-      },
-    });
-
-    return this.stripeClient.v2.core.accounts.update(account.id, {
       dashboard: "full",
       defaults: {
         responsibilities: {
@@ -159,7 +148,11 @@ export class StripeService {
     });
   }
 
-  async createOrRefreshOnboardingLink(p: { userId: string }): Promise<{ url: string }> {
+  async createOrRefreshOnboardingLink(p: {
+    userId: string;
+    /** Stripe `return_url` / `refresh_url` path after Connect onboarding. */
+    returnTo?: "profile" | "onboarding";
+  }): Promise<{ url: string }> {
     const user = await this.db.user.findUnique({
       where: { id: p.userId },
       select: {
@@ -193,7 +186,9 @@ export class StripeService {
       });
     }
 
-    const profileUrl = `${baseUrl.replace(/\/+$/g, "")}/admin/profile`;
+    const returnTo = p.returnTo ?? "profile";
+    const returnPath = returnTo === "onboarding" ? "/admin/onboarding" : "/admin/profile";
+    const profileUrl = `${baseUrl.replace(/\/+$/g, "")}${returnPath}`;
     const businessPublicUrl = resolveConnectBusinessPublicUrl({
       frontendBaseUrl: baseUrl,
       publicBookingSlug: user.publicBookingSlug,

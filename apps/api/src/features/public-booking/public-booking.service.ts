@@ -1,5 +1,6 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
-import { BookingPaidConfirmation, emailBookidoLogoCidSrc } from "@repo/emails";
+import { BadRequestException, ConflictException, Injectable, Logger } from "@nestjs/common";
+import { TRPCError } from "@trpc/server";
+import { BookingPaidConfirmation, BookingProNewReservation, emailBookidoLogoCidSrc } from "@repo/emails";
 
 import { RESERVED_PUBLIC_BOOKING_SLUGS } from "@api/src/common/reserved-public-booking-slugs";
 import { PrismaService } from "@api/src/infrastructure/prisma/prisma.service";
@@ -18,6 +19,7 @@ import type {
 @Injectable()
 export class PublicBookingService {
   private static readonly APPLICATION_FEE_BPS = 150;
+  private readonly logger = new Logger(PublicBookingService.name);
 
   constructor(
     private readonly db: PrismaService,
@@ -35,13 +37,16 @@ export class PublicBookingService {
   private async resolveCoachBySlug(coachSlug: string) {
     const normalized = coachSlug.trim().toLowerCase();
     if (!normalized || RESERVED_PUBLIC_BOOKING_SLUGS.has(normalized)) {
-      throw new NotFoundException("COACH_NOT_FOUND");
+      throw new TRPCError({ code: "NOT_FOUND", message: "COACH_NOT_FOUND" });
     }
     const row = await this.db.user.findFirst({
       where: { publicBookingSlug: normalized, archivedAt: null },
       select: {
         id: true,
         name: true,
+        email: true,
+        emailBookingNotificationsEnabled: true,
+        publicBookingSitePublished: true,
         bio: true,
         address: true,
         publicBookingMinNoticeHours: true,
@@ -52,9 +57,14 @@ export class PublicBookingService {
       },
     });
     if (row) {
+      if (!row.publicBookingSitePublished) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "COACH_NOT_FOUND" });
+      }
       return {
         id: row.id,
         name: row.name,
+        email: row.email,
+        emailBookingNotificationsEnabled: row.emailBookingNotificationsEnabled,
         bio: row.bio,
         address: row.address,
         publicBookingMinNoticeHours: row.publicBookingMinNoticeHours,
@@ -69,6 +79,9 @@ export class PublicBookingService {
       select: {
         id: true,
         name: true,
+        email: true,
+        emailBookingNotificationsEnabled: true,
+        publicBookingSitePublished: true,
         bio: true,
         address: true,
         publicBookingMinNoticeHours: true,
@@ -82,9 +95,12 @@ export class PublicBookingService {
       (u) => this.profileService.initialPublicBookingSlugCandidate(u.id, u.name) === normalized,
     );
     if (hits.length !== 1) {
-      throw new NotFoundException("COACH_NOT_FOUND");
+      throw new TRPCError({ code: "NOT_FOUND", message: "COACH_NOT_FOUND" });
     }
     const u = hits[0]!;
+    if (!u.publicBookingSitePublished) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "COACH_NOT_FOUND" });
+    }
     const updated = await this.db.user.updateMany({
       where: { id: u.id, publicBookingSlug: null },
       data: { publicBookingSlug: normalized },
@@ -95,6 +111,9 @@ export class PublicBookingService {
         select: {
           id: true,
           name: true,
+          email: true,
+          emailBookingNotificationsEnabled: true,
+          publicBookingSitePublished: true,
           bio: true,
           address: true,
           publicBookingMinNoticeHours: true,
@@ -105,9 +124,14 @@ export class PublicBookingService {
         },
       });
       if (raced) {
+        if (!raced.publicBookingSitePublished) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "COACH_NOT_FOUND" });
+        }
         return {
           id: raced.id,
           name: raced.name,
+          email: raced.email,
+          emailBookingNotificationsEnabled: raced.emailBookingNotificationsEnabled,
           bio: raced.bio,
           address: raced.address,
           publicBookingMinNoticeHours: raced.publicBookingMinNoticeHours,
@@ -116,11 +140,13 @@ export class PublicBookingService {
           image: resolveUserDisplayImage(raced),
         };
       }
-      throw new NotFoundException("COACH_NOT_FOUND");
+      throw new TRPCError({ code: "NOT_FOUND", message: "COACH_NOT_FOUND" });
     }
     return {
       id: u.id,
       name: u.name,
+      email: u.email,
+      emailBookingNotificationsEnabled: u.emailBookingNotificationsEnabled,
       bio: u.bio,
       address: u.address,
       publicBookingMinNoticeHours: u.publicBookingMinNoticeHours,
@@ -188,6 +214,61 @@ export class PublicBookingService {
         paidAmountLabel: amountLabel,
         serviceAddress: p.serviceAddress,
         serviceMapsUrl: p.serviceMapsUrl,
+        sessions,
+      }),
+    });
+  }
+
+  private async sendProNewReservationEmail(p: {
+    locale: "fr" | "en";
+    proEmail: string;
+    coachName: string;
+    clientName: string;
+    serviceName: string;
+    status: "pending" | "confirmed";
+    sessionsStartsAt: Date[];
+  }) {
+    const frontendUrlRaw = process.env["FRONTEND_URL"]?.trim();
+    if (!frontendUrlRaw) {
+      this.logger.warn("sendProNewReservationEmail skipped: FRONTEND_URL_MISSING");
+      return;
+    }
+    const frontendUrl = frontendUrlRaw.replace(/\/+$/g, "");
+    const adminBookingsUrl = `${frontendUrl}/admin/bookings`;
+    const dateLocale = p.locale === "fr" ? "fr-FR" : "en-US";
+    const statusLabel =
+      p.locale === "fr"
+        ? p.status === "pending"
+          ? "En attente de validation"
+          : "Confirmée"
+        : p.status === "pending"
+          ? "Pending approval"
+          : "Confirmed";
+    const sessions = [...p.sessionsStartsAt]
+      .filter((d) => !Number.isNaN(d.getTime()))
+      .sort((a, b) => a.getTime() - b.getTime())
+      .map((value) => ({
+        whenLabel: new Intl.DateTimeFormat(dateLocale, {
+          weekday: "long",
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }).format(value),
+      }));
+
+    await sendEmail({
+      to: p.proEmail,
+      subject: p.locale === "fr" ? "Nouvelle reservation — Bookido" : "New booking — Bookido",
+      component: BookingProNewReservation({
+        locale: p.locale,
+        brandLogoSrc: emailBookidoLogoCidSrc(),
+        coachName: p.coachName,
+        clientName: p.clientName,
+        serviceName: p.serviceName,
+        statusLabel,
+        adminBookingsUrl,
         sessions,
       }),
     });
@@ -263,7 +344,7 @@ export class PublicBookingService {
       where: { id: input.serviceId, userId: ownerUserId },
     });
     if (!service) {
-      throw new NotFoundException("SERVICE_NOT_FOUND");
+      throw new TRPCError({ code: "NOT_FOUND", message: "SERVICE_NOT_FOUND" });
     }
 
     const packSize = Math.max(1, service.packSize);
@@ -337,7 +418,7 @@ export class PublicBookingService {
     const markAsPaid = options?.markAsPaid ?? false;
     const paymentMethodLabel = options?.paymentMethodLabel?.trim() || "—";
 
-    return this.db.$transaction(async (tx) => {
+    const lastRow = await this.db.$transaction(async (tx) => {
       const client = await tx.client.upsert({
         where: {
           ownerId_email: {
@@ -358,7 +439,7 @@ export class PublicBookingService {
         },
       });
 
-      let lastRow: Awaited<ReturnType<BookingsService["create"]>> | null = null;
+      let row: Awaited<ReturnType<BookingsService["create"]>> | null = null;
       for (let idx = 0; idx < sorted.length; idx += 1) {
         const startsAt = sorted[idx]!;
         // For multi-session packs, persist the full pack price on the first session
@@ -366,7 +447,7 @@ export class PublicBookingService {
         const sessionCents = service.isFree ? 0 : idx === 0 ? totalPackCents : 0;
         const sessionPrice = sessionCents / 100;
         const sessionPaidAmount = markAsPaid ? sessionPrice : 0;
-        lastRow = await this.bookingsService.create(
+        row = await this.bookingsService.create(
           ownerUserId,
           {
             clientId: client.id,
@@ -384,8 +465,31 @@ export class PublicBookingService {
           { tx },
         );
       }
-      return lastRow!;
+      return row!;
     });
+
+    const notifyLocale = input.locale ?? "fr";
+    if (coach.emailBookingNotificationsEnabled) {
+      const proEmail = coach.email.trim();
+      if (proEmail.length > 0) {
+        try {
+          await this.sendProNewReservationEmail({
+            locale: notifyLocale,
+            proEmail,
+            coachName: coach.name,
+            clientName: normalizedClientName,
+            serviceName: service.name,
+            status,
+            sessionsStartsAt: sorted,
+          });
+        } catch (e) {
+          const message = e instanceof Error ? e.message : String(e);
+          this.logger.warn(`sendProNewReservationEmail failed: ${message}`);
+        }
+      }
+    }
+
+    return lastRow;
   }
 
   async createCheckoutSession(input: PublicBookingCreateCheckoutSessionInput): Promise<{ url: string }> {
@@ -402,7 +506,7 @@ export class PublicBookingService {
       where: { id: input.serviceId, userId: coach.id },
     });
     if (!service) {
-      throw new NotFoundException("SERVICE_NOT_FOUND");
+      throw new TRPCError({ code: "NOT_FOUND", message: "SERVICE_NOT_FOUND" });
     }
     if (service.isFree || service.price <= 0) {
       throw new BadRequestException("SERVICE_IS_FREE");
@@ -619,7 +723,7 @@ export class PublicBookingService {
         },
       });
       if (!pendingBooking) {
-        throw new NotFoundException("BOOKING_NOT_FOUND");
+        throw new TRPCError({ code: "NOT_FOUND", message: "BOOKING_NOT_FOUND" });
       }
       if (pendingBooking.status === "cancelled") {
         throw new BadRequestException("BOOKING_CANCELLED");
