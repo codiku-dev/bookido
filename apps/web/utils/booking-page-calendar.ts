@@ -7,6 +7,7 @@ import {
   getCalendarDayKeyFromDate,
   getContiguousBookableMinutesFromSlot,
   isOutsideBusinessHours,
+  timeToMinutes,
 } from "#/utils/calendar-availability";
 
 const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
@@ -39,6 +40,42 @@ export const BOOKING_PAGE_GRID_SLOTS = [
   "19:30",
 ] as const;
 
+/** Row starts for the public booking grid: one row every `slotStepMinutes` from 00:00 (trimmed by `computeVisibleTimeSlots`). */
+export function buildPublicBookingGridSlotStarts(slotStepMinutes: number) {
+  const step =
+    Number.isFinite(slotStepMinutes) && slotStepMinutes >= 15 && slotStepMinutes <= 24 * 60 ? slotStepMinutes : 30;
+  const out: string[] = [];
+  for (let m = 0; m < 24 * 60; m += step) {
+    out.push(totalMinutesToTimeHm(m));
+  }
+  return out;
+}
+
+function columnServiceStartIntervalBlocked(
+  column: BookingPageDayColumn,
+  rowStartHm: string,
+  serviceDurationMinutes: number,
+  weekHours: WeekHours,
+  closedSlotKeys: Set<string>,
+  occupiedSlotKeys: Set<string>,
+) {
+  const t0 = timeToMinutes(rowStartHm);
+  const end = t0 + serviceDurationMinutes;
+  for (let u = Math.floor(t0 / 30) * 30; u < end; u += 30) {
+    const hm = totalMinutesToTimeHm(u);
+    if (isOutsideBusinessHours(column.weekdayName, hm, weekHours)) {
+      return true;
+    }
+    if (closedSlotKeys.has(buildCalendarSlotKey(column.dayKey, hm))) {
+      return true;
+    }
+    if (occupiedSlotKeys.has(buildCalendarSlotKey(column.dayKey, hm))) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export function getCalendarWeekDates(anchor: Date) {
   const currentDay = anchor.getDay();
   const monday = new Date(anchor);
@@ -59,6 +96,23 @@ export type BookingPageDayColumn = {
   fullDate: Date;
   dateIso: string;
 };
+
+/** All seven days of the week for the grid (includes closed days so “today” can still be highlighted). */
+export type BookingPageWeekGridColumn = BookingPageDayColumn & { dayEnabled: boolean };
+
+export function buildWeekGridColumns(weekDates: Date[], weekHours: WeekHours): BookingPageWeekGridColumn[] {
+  return weekDates.map((date) => {
+    const weekdayName = dayNames[date.getDay()] as CalendarWeekdayName;
+    const dayEnabled = Boolean(weekHours[weekdayName]?.enabled);
+    return {
+      dayKey: getCalendarDayKeyFromDate(date),
+      weekdayName,
+      fullDate: date,
+      dateIso: bookingLocalDateKey(date),
+      dayEnabled,
+    };
+  });
+}
 
 export function buildEnabledDayColumns(weekDates: Date[], weekHours: WeekHours): BookingPageDayColumn[] {
   return weekDates
@@ -113,6 +167,8 @@ export function computeVisibleTimeSlots(p: {
   weekHours: WeekHours;
   closedSlotKeys: Set<string>;
   occupiedSlotKeys: Set<string>;
+  /** When set, row visibility follows a service window of this length (coarse grid). */
+  serviceDurationMinutes?: number;
 }) {
   if (p.enabledColumns.length === 0) {
     return [];
@@ -124,9 +180,46 @@ export function computeVisibleTimeSlots(p: {
     return outside || p.closedSlotKeys.has(slotKey);
   };
 
-  const rowHasOpenSlot = (time: string) =>
-    p.enabledColumns.some((column) => !isSlotClosed(column, time)) ||
-    p.enabledColumns.some((column) => p.occupiedSlotKeys.has(buildCalendarSlotKey(column.dayKey, time)));
+  const rowIntervalHasOccupied = (time: string) => {
+    const d = p.serviceDurationMinutes;
+    if (!d) {
+      return false;
+    }
+    const t0 = timeToMinutes(time);
+    const end = t0 + d;
+    return p.enabledColumns.some((column) => {
+      for (let u = Math.floor(t0 / 30) * 30; u < end; u += 30) {
+        const hm = totalMinutesToTimeHm(u);
+        if (p.occupiedSlotKeys.has(buildCalendarSlotKey(column.dayKey, hm))) {
+          return true;
+        }
+      }
+      return false;
+    });
+  };
+
+  const rowHasOpenSlot = (time: string) => {
+    const durationMinutes = p.serviceDurationMinutes;
+    if (durationMinutes) {
+      return (
+        p.enabledColumns.some(
+          (column) =>
+            !columnServiceStartIntervalBlocked(
+              column,
+              time,
+              durationMinutes,
+              p.weekHours,
+              p.closedSlotKeys,
+              p.occupiedSlotKeys,
+            ),
+        ) || rowIntervalHasOccupied(time)
+      );
+    }
+    return (
+      p.enabledColumns.some((column) => !isSlotClosed(column, time)) ||
+      p.enabledColumns.some((column) => p.occupiedSlotKeys.has(buildCalendarSlotKey(column.dayKey, time)))
+    );
+  };
 
   let first = 0;
   while (first < p.allTimeSlots.length) {
@@ -186,16 +279,22 @@ export function isSlotSelectableForService(p: {
   weekHours: WeekHours;
   closedSlotKeys: Set<string>;
   occupiedSlotKeys: Set<string>;
+  /** Row step on the grid; when equal to `serviceDurationMinutes`, one row = one booking block. */
+  gridSlotMinutes?: number;
   /** Extra blocked half-hour rows on this column (e.g. other pack sessions). */
   slotBlockedPredicate?: (slotTime: string) => boolean;
 }) {
+  const gridStep = p.gridSlotMinutes ?? 30;
+  const intervalCheck =
+    gridStep === p.serviceDurationMinutes && p.serviceDurationMinutes > 0 ? p.serviceDurationMinutes : undefined;
   const { contiguousMinutes } = getContiguousBookableMinutesFromSlot({
     column: { dayKey: p.column.dayKey, weekdayName: p.column.weekdayName },
     startTime: p.startTime,
     allTimeSlots: p.allTimeSlots as unknown as string[],
-    slotMinutes: 30,
+    slotMinutes: gridStep,
     weekHours: p.weekHours,
     closedSlotKeys: p.closedSlotKeys,
+    intervalCheckMinutes: intervalCheck,
     hasBookingAtSlot: (dayKey, time) => {
       if (p.occupiedSlotKeys.has(buildCalendarSlotKey(dayKey, time))) {
         return true;
@@ -204,4 +303,65 @@ export function isSlotSelectableForService(p: {
     },
   });
   return contiguousMinutes >= p.serviceDurationMinutes;
+}
+
+const DEFAULT_FIRST_SELECTABLE_SLOT_SCAN_WEEKS = 52;
+
+/** First week (Mon-based, same as `getCalendarWeekDates`) that has at least one bookable slot; otherwise `null`. */
+export function findFirstWeekAnchorWithSelectableSlot(p: {
+  startWeekAnchor: Date;
+  maxWeeks?: number;
+  weekHours: WeekHours;
+  closedSlotKeys: Set<string>;
+  bookingSegments: { startsAt: string; durationMinutes: number; status: string }[];
+  allTimeSlots: readonly string[];
+  serviceDurationMinutes: number;
+  minStartMs: number;
+}): Date | null {
+  const maxWeeks = p.maxWeeks ?? DEFAULT_FIRST_SELECTABLE_SLOT_SCAN_WEEKS;
+  const monday0 = getCalendarWeekDates(p.startWeekAnchor)[0];
+  if (!monday0) {
+    return null;
+  }
+  for (let w = 0; w < maxWeeks; w += 1) {
+    const weekMonday = new Date(monday0);
+    weekMonday.setDate(monday0.getDate() + w * 7);
+    const weekDates = getCalendarWeekDates(weekMonday);
+    const occupiedKeys = buildOccupiedSlotKeySet(weekDates, p.bookingSegments);
+    const enabledColumns = buildEnabledDayColumns(weekDates, p.weekHours);
+    const visibleSlots = computeVisibleTimeSlots({
+      enabledColumns,
+      allTimeSlots: p.allTimeSlots,
+      weekHours: p.weekHours,
+      closedSlotKeys: p.closedSlotKeys,
+      occupiedSlotKeys: occupiedKeys,
+      serviceDurationMinutes: p.serviceDurationMinutes,
+    });
+    if (enabledColumns.length === 0 || visibleSlots.length === 0) {
+      continue;
+    }
+    for (const col of enabledColumns) {
+      for (const time of visibleSlots) {
+        const startsAt = new Date(`${col.dateIso}T${time}:00`);
+        if (startsAt.getTime() < p.minStartMs) {
+          continue;
+        }
+        if (
+          isSlotSelectableForService({
+            column: col,
+            startTime: time,
+            serviceDurationMinutes: p.serviceDurationMinutes,
+            allTimeSlots: p.allTimeSlots,
+            weekHours: p.weekHours,
+            closedSlotKeys: p.closedSlotKeys,
+            occupiedSlotKeys: occupiedKeys,
+            gridSlotMinutes: p.serviceDurationMinutes,
+          })
+        ) {
+          return new Date(weekMonday.getFullYear(), weekMonday.getMonth(), weekMonday.getDate(), 12, 0, 0, 0);
+        }
+      }
+    }
+  }
+  return null;
 }

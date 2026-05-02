@@ -1,6 +1,11 @@
 import { BadRequestException, ConflictException, Injectable, Logger } from "@nestjs/common";
 import { TRPCError } from "@trpc/server";
-import { BookingPaidConfirmation, BookingProNewReservation, emailBookidoLogoCidSrc } from "@repo/emails";
+import {
+  BookingPaidConfirmation,
+  BookingProNewReservation,
+  buildBookingSessionsIcs,
+  emailBookidoLogoCidSrc,
+} from "@repo/emails";
 
 import { RESERVED_PUBLIC_BOOKING_SLUGS } from "@api/src/common/reserved-public-booking-slugs";
 import { PrismaService } from "@api/src/infrastructure/prisma/prisma.service";
@@ -178,6 +183,10 @@ export class PublicBookingService {
     serviceMapsUrl?: string | null;
     sessionsStartsAtIso: string[];
   }) {
+    this.logger.log(
+      `[booking-paid-confirmation] start to=${p.clientEmail} locale=${p.locale} service="${p.serviceName}" rawSessionsIso=${p.sessionsStartsAtIso.length} paidEur=${p.paidAmountEur}`,
+    );
+
     const dateLocale = p.locale === "fr" ? "fr-FR" : "en-US";
     const amountLocale = p.locale === "fr" ? "fr-FR" : "en-US";
     const amountLabel = new Intl.NumberFormat(amountLocale, {
@@ -197,26 +206,73 @@ export class PublicBookingService {
           hour: "2-digit",
           minute: "2-digit",
         }).format(value),
+        startsAtIso: value.toISOString(),
       }));
 
-    await sendEmail({
-      to: p.clientEmail,
-      subject: p.locale === "fr" ? "Reservation confirmee - recapitulatif de votre reservation" : "Booking confirmed - your booking summary",
-      component: BookingPaidConfirmation({
-        locale: p.locale,
-        brandLogoSrc: emailBookidoLogoCidSrc(),
-        clientName: p.clientName,
-        coachName: p.coachName,
-        coachImageUrl: p.coachImageUrl,
-        serviceName: p.serviceName,
-        serviceDurationMinutes: p.serviceDurationMinutes,
-        servicePackSize: p.servicePackSize,
-        paidAmountLabel: amountLabel,
-        serviceAddress: p.serviceAddress,
-        serviceMapsUrl: p.serviceMapsUrl,
-        sessions,
-      }),
-    });
+    this.logger.log(
+      `[booking-paid-confirmation] prepared sessions=${sessions.length} to=${p.clientEmail} (invalid ISO dates were dropped)`,
+    );
+
+    const sessionsIso = sessions.map((s) => s.startsAtIso);
+    let icsContent: string | null = null;
+    if (sessionsIso.length > 0) {
+      const description =
+        p.locale === "fr"
+          ? `${p.serviceName} avec ${p.coachName} — ${sessions.length} séance(s) (Bookido).`
+          : `${p.serviceName} with ${p.coachName} — ${sessions.length} session(s) (Bookido).`;
+      const location = p.serviceAddress.trim().length > 0 ? p.serviceAddress.trim() : undefined;
+      icsContent = buildBookingSessionsIcs({
+        sessionsIso,
+        durationMinutes: p.serviceDurationMinutes,
+        summary: `${p.serviceName} — ${p.coachName}`,
+        description,
+        location,
+      });
+    }
+
+    const subject =
+      p.locale === "fr"
+        ? "Réservation confirmée — récapitulatif de votre réservation"
+        : "Booking confirmed — your booking summary";
+
+    try {
+      await sendEmail({
+        to: p.clientEmail,
+        subject,
+        fileAttachments:
+          icsContent !== null
+            ? [
+                {
+                  filename: "bookido-sessions.ics",
+                  content: icsContent,
+                  contentType: "text/calendar; charset=utf-8",
+                },
+              ]
+            : undefined,
+        component: BookingPaidConfirmation({
+          locale: p.locale,
+          brandLogoSrc: emailBookidoLogoCidSrc(),
+          clientName: p.clientName,
+          coachName: p.coachName,
+          coachImageUrl: p.coachImageUrl,
+          serviceName: p.serviceName,
+          serviceDurationMinutes: p.serviceDurationMinutes,
+          servicePackSize: p.servicePackSize,
+          paidAmountLabel: amountLabel,
+          serviceAddress: p.serviceAddress,
+          serviceMapsUrl: p.serviceMapsUrl,
+          sessions,
+        }),
+      });
+      this.logger.log(`[booking-paid-confirmation] sendEmail finished ok to=${p.clientEmail} subject="${subject}"`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      const stack = err instanceof Error ? err.stack : undefined;
+      this.logger.error(
+        `[booking-paid-confirmation] sendEmail failed to=${p.clientEmail} error=${message}${stack ? `\n${stack}` : ""}`,
+      );
+      throw err;
+    }
   }
 
   private async sendProNewReservationEmail(p: {
@@ -224,9 +280,17 @@ export class PublicBookingService {
     proEmail: string;
     coachName: string;
     clientName: string;
+    clientEmail: string;
+    clientPhone?: string;
     serviceName: string;
+    serviceDurationMinutes: number;
     status: "pending" | "confirmed";
     sessionsStartsAt: Date[];
+    isFree: boolean;
+    isPaid: boolean;
+    paidAmountEur?: number;
+    listPriceEur?: number;
+    paymentMethodLabel?: string;
   }) {
     const frontendUrlRaw = process.env["FRONTEND_URL"]?.trim();
     if (!frontendUrlRaw) {
@@ -258,18 +322,33 @@ export class PublicBookingService {
         }).format(value),
       }));
 
+    const amountLocale = p.locale === "fr" ? "fr-FR" : "en-US";
+    const formatEur = (n: number) =>
+      new Intl.NumberFormat(amountLocale, { style: "currency", currency: "EUR" }).format(n);
+    const paidAmountLabel =
+      p.isPaid && !p.isFree && p.paidAmountEur !== undefined ? formatEur(p.paidAmountEur) : null;
+    const listPriceLabel = !p.isFree && p.listPriceEur !== undefined ? formatEur(p.listPriceEur) : null;
+
     await sendEmail({
       to: p.proEmail,
-      subject: p.locale === "fr" ? "Nouvelle reservation — Bookido" : "New booking — Bookido",
+      subject: p.locale === "fr" ? "Nouvelle réservation — Bookido" : "New booking — Bookido",
       component: BookingProNewReservation({
         locale: p.locale,
         brandLogoSrc: emailBookidoLogoCidSrc(),
         coachName: p.coachName,
         clientName: p.clientName,
+        clientEmail: p.clientEmail,
+        clientPhone: p.clientPhone,
         serviceName: p.serviceName,
+        serviceDurationMinutes: p.serviceDurationMinutes,
         statusLabel,
         adminBookingsUrl,
         sessions,
+        isFree: p.isFree,
+        isPaid: p.isPaid,
+        paidAmountLabel,
+        listPriceLabel,
+        paymentMethodLabel: p.paymentMethodLabel != null ? p.paymentMethodLabel : null,
       }),
     });
   }
@@ -473,20 +552,73 @@ export class PublicBookingService {
       const proEmail = coach.email.trim();
       if (proEmail.length > 0) {
         try {
+          const phoneForEmail =
+            normalizedClientPhone.length > 0 && normalizedClientPhone !== "—" ? normalizedClientPhone : undefined;
           await this.sendProNewReservationEmail({
             locale: notifyLocale,
             proEmail,
             coachName: coach.name,
             clientName: normalizedClientName,
+            clientEmail: email,
+            clientPhone: phoneForEmail,
             serviceName: service.name,
+            serviceDurationMinutes: service.durationMinutes,
             status,
             sessionsStartsAt: sorted,
+            isFree: service.isFree,
+            isPaid: markAsPaid,
+            paidAmountEur: markAsPaid && !service.isFree ? totalPackCents / 100 : undefined,
+            listPriceEur: !service.isFree ? service.price : undefined,
+            paymentMethodLabel: markAsPaid ? paymentMethodLabel : undefined,
           });
         } catch (e) {
           const message = e instanceof Error ? e.message : String(e);
           this.logger.warn(`sendProNewReservationEmail failed: ${message}`);
         }
       }
+    }
+
+    const shouldSendClientConfirmationEmail =
+      markAsPaid || service.isFree || service.price <= 0;
+    const clientPaidAmountEur =
+      markAsPaid && !service.isFree ? totalPackCents / 100 : 0;
+
+    if (shouldSendClientConfirmationEmail) {
+      this.logger.log(
+        `[booking-paid-confirmation] requestBooking send client confirmation clientEmail=${email} markAsPaid=${markAsPaid} isFree=${service.isFree} serviceId=${input.serviceId} packSize=${packSize}`,
+      );
+      const clientLocale = input.locale === "en" ? "en" : "fr";
+      const bookingAddress = (service.address ?? coach.address ?? "").trim();
+      const bookingMapsUrl =
+        bookingAddress.length > 0
+          ? `https://www.google.com/maps?q=${encodeURIComponent(bookingAddress)}`
+          : null;
+      try {
+        await this.sendPaidBookingConfirmationEmail({
+          locale: clientLocale,
+          clientEmail: email,
+          clientName: normalizedClientName,
+          coachName: coach.name,
+          coachImageUrl: coach.image,
+          serviceName: service.name,
+          serviceDurationMinutes: service.durationMinutes,
+          servicePackSize: packSize,
+          paidAmountEur: clientPaidAmountEur,
+          serviceAddress: bookingAddress,
+          serviceMapsUrl: bookingMapsUrl,
+          sessionsStartsAtIso: sorted.map((d) => d.toISOString()),
+        });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        const stack = err instanceof Error ? err.stack : undefined;
+        this.logger.error(
+          `[booking-paid-confirmation] requestBooking catch after sendPaidBookingConfirmationEmail clientEmail=${email} error=${message}${stack ? `\n${stack}` : ""}`,
+        );
+      }
+    } else {
+      this.logger.log(
+        `[booking-paid-confirmation] requestBooking skip client email (unpaid priced service) clientEmail=${email} serviceId=${input.serviceId}`,
+      );
     }
 
     return lastRow;
@@ -698,7 +830,19 @@ export class PublicBookingService {
     const serviceId = metadata["serviceId"] ?? "";
     const sessionsStartsAtJson = metadata["sessionsStartsAtJson"] ?? "[]";
     const clientName = metadata["clientName"] ?? "";
-    const clientEmail = metadata["clientEmail"] ?? "";
+    const emailFromMeta = (metadata["clientEmail"] ?? "").trim();
+    const customerDetails = session.customer_details;
+    const emailFromDetails =
+      customerDetails && typeof customerDetails.email === "string" ? customerDetails.email.trim() : "";
+    const emailFromLegacy =
+      typeof session.customer_email === "string" ? session.customer_email.trim() : "";
+    const clientEmail = (
+      emailFromMeta.length > 0
+        ? emailFromMeta
+        : emailFromDetails.length > 0
+          ? emailFromDetails
+          : emailFromLegacy
+    ).toLowerCase();
     const clientPhone = metadata["clientPhone"] ?? "";
     const localeRaw = metadata["locale"] ?? "fr";
     const locale: "fr" | "en" = localeRaw === "en" ? "en" : "fr";
@@ -708,6 +852,9 @@ export class PublicBookingService {
       throw new BadRequestException("CHECKOUT_MISMATCH");
     }
     if (bookingCreated === "1") {
+      this.logger.log(
+        `[booking-paid-confirmation] confirmCheckout skipped (metadata bookingCreated=1) sessionId=${input.sessionId} clientEmail=${clientEmail || "n/a"}`,
+      );
       return { ok: true };
     }
 
@@ -742,6 +889,9 @@ export class PublicBookingService {
         pendingBooking.service.address.trim().length > 0
           ? `https://www.google.com/maps?q=${encodeURIComponent(pendingBooking.service.address)}`
           : null;
+      this.logger.log(
+        `[booking-paid-confirmation] confirmCheckout pending_booking_confirmation clientEmail=${pendingBooking.client.email} bookingId=${pendingBookingId}`,
+      );
       try {
         await this.sendPaidBookingConfirmationEmail({
           locale,
@@ -753,12 +903,16 @@ export class PublicBookingService {
           serviceDurationMinutes: pendingBooking.service.durationMinutes,
           servicePackSize: Math.max(1, pendingBooking.service.packSize),
           paidAmountEur: pendingBooking.price,
-          serviceAddress: pendingBooking.service.address,
+          serviceAddress: pendingBooking.service.address ?? "",
           serviceMapsUrl,
           sessionsStartsAtIso: [pendingBooking.startsAt.toISOString()],
         });
-      } catch {
-        // Keep booking confirmation resilient even if SMTP is temporarily unavailable.
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        const stack = err instanceof Error ? err.stack : undefined;
+        this.logger.error(
+          `[booking-paid-confirmation] pending flow send failed clientEmail=${pendingBooking.client.email} error=${message}${stack ? `\n${stack}` : ""}`,
+        );
       }
       await stripe.checkout.sessions.update(
         session.id,
@@ -782,6 +936,14 @@ export class PublicBookingService {
       sessionsStartsAt = parsed;
     } catch {
       throw new BadRequestException("CHECKOUT_METADATA_INVALID");
+    }
+
+    this.logger.log(
+      `[booking-paid-confirmation] confirmCheckout new_public_booking clientEmail=${clientEmail || "n/a"} metaEmailLen=${emailFromMeta.length} serviceId=${serviceId} sessionsJsonLen=${sessionsStartsAtJson.length}`,
+    );
+
+    if (clientEmail.length === 0) {
+      throw new BadRequestException("CHECKOUT_CLIENT_EMAIL_MISSING");
     }
 
     try {
@@ -818,41 +980,6 @@ export class PublicBookingService {
         return { ok: true };
       }
       throw error;
-    }
-
-    const service = await this.db.service.findFirst({
-      where: { id: serviceId, userId: coach.id },
-      select: {
-        name: true,
-        durationMinutes: true,
-        packSize: true,
-        address: true,
-        price: true,
-      },
-    });
-    if (service) {
-      const serviceMapsUrl =
-        service.address.trim().length > 0
-          ? `https://www.google.com/maps?q=${encodeURIComponent(service.address)}`
-          : null;
-      try {
-        await this.sendPaidBookingConfirmationEmail({
-          locale,
-          clientEmail,
-          clientName,
-          coachName: coach.name,
-          coachImageUrl: coach.image,
-          serviceName: service.name,
-          serviceDurationMinutes: service.durationMinutes,
-          servicePackSize: Math.max(1, service.packSize),
-          paidAmountEur: service.price,
-          serviceAddress: service.address,
-          serviceMapsUrl,
-          sessionsStartsAtIso: sessionsStartsAt,
-        });
-      } catch {
-        // Keep booking confirmation resilient even if SMTP is temporarily unavailable.
-      }
     }
 
     await stripe.checkout.sessions.update(

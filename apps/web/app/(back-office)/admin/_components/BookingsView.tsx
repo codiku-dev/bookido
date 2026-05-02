@@ -10,7 +10,7 @@ import { LocaleDatePicker } from "#/components/LocaleDatePicker";
 import { Button } from "#/components/ui/button";
 import { useLanguage } from "#/components/use-language";
 import { formatShortDate } from "#/utils/dateFormat";
-import { bookingLocalDateKey, bookingLocalTimeHm, paymentKindFromAmounts } from "#/utils/booking-dates";
+import { bookingLocalTimeHm, paymentKindFromAmounts } from "#/utils/booking-dates";
 import { trpc } from "@web/libs/trpc-client";
 import { useSession } from "@web/libs/auth-client";
 
@@ -277,6 +277,9 @@ export default function BookingsView() {
   const tableHead = (
     <thead className="bg-slate-50 border-b border-slate-200">
       <tr>
+        <th scope="col" className="w-8 align-top px-3 py-4 text-left">
+          <span className="sr-only">{t("booking.list.columns.unreadIndicator")}</span>
+        </th>
         <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">
           {t("booking.list.columns.reservationDate")}
         </th>
@@ -294,13 +297,13 @@ export default function BookingsView() {
 
   const tableBodyRows = paginatedListQuery.isLoading ? (
     <tr>
-      <td colSpan={7} className="px-6 py-10 text-center text-sm text-slate-500">
+      <td colSpan={8} className="px-6 py-10 text-center text-sm text-slate-500">
         {t("booking.list.loading")}
       </td>
     </tr>
   ) : paginatedListQuery.isError ? (
     <tr>
-      <td colSpan={7} className="px-6 py-10 text-center text-sm text-red-600">
+      <td colSpan={8} className="px-6 py-10 text-center text-sm text-red-600">
         {t("booking.list.loadError")}
       </td>
     </tr>
@@ -312,6 +315,10 @@ export default function BookingsView() {
         booking.sessionCount > 1
           ? `${booking.serviceName} (${t("public.services.packSessions", { count: booking.sessionCount })})`
           : booking.serviceName;
+      const showUnseenDot = booking.isUnseenInAdmin && !locallySeenBookingIds.includes(booking.id);
+      const unreadDot = showUnseenDot ? (
+        <span className="mt-0.5 inline-block size-2 shrink-0 rounded-full bg-red-500" aria-label={t("booking.list.columns.unreadIndicator")} />
+      ) : null;
       return (
         <tr
           key={booking.id}
@@ -321,6 +328,7 @@ export default function BookingsView() {
           }}
           className="cursor-pointer transition-colors hover:bg-blue-50"
         >
+          <td className="w-8 align-top px-3 py-4">{unreadDot}</td>
           <td className="px-6 py-4 text-slate-700">
             <div className="font-medium text-slate-900">{formatShortDate(booking.createdAt, locale)}</div>
             <div className="text-sm text-slate-500">{bookingLocalTimeHm(booking.createdAt)}</div>
@@ -329,14 +337,7 @@ export default function BookingsView() {
             <div className="font-medium text-slate-900">{formatShortDate(booking.startsAt, locale)}</div>
             <div className="text-sm text-slate-500">{tm}</div>
           </td>
-          <td className="px-6 py-4 font-medium text-slate-900">
-            <div className="flex items-center gap-2">
-              {booking.clientName}
-              {booking.isUnseenInAdmin && !locallySeenBookingIds.includes(booking.id) ? (
-                <span className="inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
-              ) : null}
-            </div>
-          </td>
+          <td className="px-6 py-4 font-medium text-slate-900">{booking.clientName}</td>
           <td className="px-6 py-4 text-slate-700">{serviceLabel}</td>
           <td className="px-6 py-4 font-medium text-slate-900">€{booking.price}</td>
           <td className="px-6 py-4">

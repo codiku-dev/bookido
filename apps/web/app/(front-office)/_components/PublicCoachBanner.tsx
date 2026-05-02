@@ -15,8 +15,9 @@ function initialsFromName(name: string) {
   return `${parts[0]!.charAt(0)}${parts[parts.length - 1]!.charAt(0)}`.toUpperCase();
 }
 
-export function PublicCoachBanner(p: { name: string; bio: string | null; imageUrl: string | null }) {
+export function PublicCoachBanner(p: { name: string; bio: string | null; imageUrl: string | null; compact?: boolean }) {
   const t = useTranslations();
+  const compact = p.compact === true;
   const bioText = p.bio?.trim() || t("public.booking.coachBioFallback");
 
   const mobileAvatarBlock = (
@@ -26,7 +27,14 @@ export function PublicCoachBanner(p: { name: string; bio: string | null; imageUr
     </Avatar>
   );
 
-  const desktopAvatarBlock = (
+  const desktopAvatarBlock = compact ? (
+    <Avatar className="size-12 shrink-0 border-2 border-white shadow-md ring-2 ring-blue-100/80 sm:size-14">
+      {p.imageUrl ? <AvatarImage src={p.imageUrl} alt="" className="object-cover" /> : null}
+      <AvatarFallback className="bg-gradient-to-br from-slate-100 to-slate-200 text-sm font-semibold text-slate-700">
+        {initialsFromName(p.name)}
+      </AvatarFallback>
+    </Avatar>
+  ) : (
     <Avatar className="size-16 shrink-0 border-2 border-white shadow-lg ring-4 ring-blue-100/80 sm:size-20">
       {p.imageUrl ? <AvatarImage src={p.imageUrl} alt="" className="object-cover" /> : null}
       <AvatarFallback className="bg-gradient-to-br from-slate-100 to-slate-200 text-base font-semibold text-slate-700 sm:text-lg md:text-xl">
@@ -43,7 +51,15 @@ export function PublicCoachBanner(p: { name: string; bio: string | null; imageUr
     </div>
   );
 
-  const desktopTextBlock = (
+  const desktopTextBlock = compact ? (
+    <div className="min-w-0 flex-1 text-left">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-blue-600/90">{t("public.booking.coachSectionLabel")}</p>
+      <h1 className="mt-1 text-lg font-bold tracking-tight text-slate-900 sm:text-xl">{p.name}</h1>
+      <p className="mt-1 max-w-2xl whitespace-pre-wrap text-xs leading-snug text-slate-600 sm:line-clamp-2 sm:text-sm">
+        {bioText}
+      </p>
+    </div>
+  ) : (
     <div className="min-w-0 flex-1 text-left">
       <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-blue-600/90">{t("public.booking.coachSectionLabel")}</p>
       <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl md:text-4xl">{p.name}</h1>
@@ -64,7 +80,16 @@ export function PublicCoachBanner(p: { name: string; bio: string | null; imageUr
     </div>
   );
 
-  const desktopBanner = (
+  const desktopBanner = compact ? (
+    <div className="relative mb-0 hidden overflow-hidden rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white via-white to-blue-50/60 p-4 shadow-sm ring-1 ring-slate-900/[0.03] md:flex md:items-start md:gap-4 md:p-4">
+      <div className="pointer-events-none absolute -right-8 top-0 h-28 w-28 rounded-full bg-blue-400/18 blur-2xl" aria-hidden />
+      <div className="pointer-events-none absolute bottom-0 left-1/3 h-24 w-24 rounded-full bg-cyan-400/12 blur-2xl" aria-hidden />
+      <div className="relative flex w-full items-start gap-3 sm:gap-4">
+        {desktopAvatarBlock}
+        {desktopTextBlock}
+      </div>
+    </div>
+  ) : (
     <div className="relative mb-6 hidden overflow-hidden rounded-3xl border border-slate-200/90 bg-gradient-to-br from-white via-white to-blue-50/70 p-5 shadow-lg ring-1 ring-slate-900/[0.04] sm:mb-8 sm:p-6 md:flex md:items-start md:gap-6 md:p-8">
       <div className="pointer-events-none absolute -right-12 top-0 h-48 w-48 rounded-full bg-blue-400/20 blur-3xl" aria-hidden />
       <div className="pointer-events-none absolute bottom-0 left-1/3 h-40 w-40 rounded-full bg-cyan-400/15 blur-3xl" aria-hidden />

@@ -4,13 +4,6 @@ import { z } from "zod";
 const t = initTRPC.create();
 const publicProcedure = t.procedure;
 
-const PROFILE_AVATAR_DATA_URL_MAX_LEN = 2_000_000;
-const publicBookingSlugSchema = z
-  .string()
-  .min(2)
-  .max(96)
-  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "INVALID_SLUG_FORMAT");
-
 const appRouter = t.router({
   app: t.router({
     hello: publicProcedure.output(z.object({ message: z.string() })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
@@ -357,7 +350,7 @@ const appRouter = t.router({
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     delete: publicProcedure.input(z.object({ id: z.string() })).output(z.object({ id: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   }),
-  profile: t.router({
+  profile: t.router({ ,
     getAdminOnboardingStatus: publicProcedure.output(z.object({
       needsOnboarding: z.boolean(),
       bio: z.string().nullable(),
@@ -503,9 +496,10 @@ const appRouter = t.router({
     archiveAccount: publicProcedure.input(z.object({
       confirmEmail: z.string().email(),
       password: z.string().optional(),
-    })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   }),
-  services: t.router({
+  services: t.router({ ,
+,
     list: publicProcedure.output(z.array(z.object({
       id: z.string(),
       userId: z.string(),
@@ -630,8 +624,7 @@ const appRouter = t.router({
       createdAt: z.coerce.date(),
       updatedAt: z.coerce.date(),
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    delete: publicProcedure.input(z.object({ id: z.string() })).output(z.object({ id: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
+    delete: publicProcedure.input(z.object({ id: z.string() })).output(z.object({ id: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any) }),
   bookings: t.router({
     list: publicProcedure.input(z.object({
       rangeFrom: z.string().datetime().optional(),
@@ -801,9 +794,9 @@ const appRouter = t.router({
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     delete: publicProcedure.input(z.object({ id: z.string() })).output(z.object({ id: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     markBookingViewed: publicProcedure.input(z.object({ id: z.string() })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    markBookingsListViewed: publicProcedure.input(z.object({})).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    markBookingsListViewed: publicProcedure.input(z.object({})).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   }),
-  dashboard: t.router({
+    dashboard: t.router({
       overview: publicProcedure.input(z.object({
         chartPeriod: z.enum(["weekly", "monthly", "yearly", "custom"]),
         customFrom: z
@@ -866,9 +859,9 @@ const appRouter = t.router({
         paidAmount: z.number(),
         amount: z.number(),
         status: z.enum(["confirmed", "pending", "cancelled"]),
-      }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-  }),
-  publicBooking: t.router({
+      }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+    }),
+      publicBooking: t.router({
         getStorefront: publicProcedure.input(z.object({
           coachSlug: z
             .string()
@@ -1003,8 +996,7 @@ const appRouter = t.router({
           sessionId: z.string().min(1),
         })).output(z.object({
           ok: z.literal(true),
-        })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-      }),
-});
+        })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+      })});
 export type AppRouter = typeof appRouter;
 

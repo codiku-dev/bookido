@@ -79,9 +79,9 @@ export function EmailBrandShell(p: EmailBrandShellProps): ReactElement {
                 Bookido
               </Text>
               <Text
-                className="m-0 mt-1 text-[13px] leading-snug text-blue-100"
+                className="m-0 mt-1 text-[13px] leading-snug text-white"
                 style={{
-                  opacity: 0.95,
+                  opacity: 0.92,
                   fontFamily:
                     'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
                 }}

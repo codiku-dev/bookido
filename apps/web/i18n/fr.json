@@ -305,7 +305,6 @@
       "submit": "Confirmer la réservation",
       "submitting": "Envoi…",
       "detailsTitle": "Vos coordonnées",
-      "serviceDetailsTitle": "Détail de la prestation",
       "continueToDetails": "Continuer",
       "pickSlotCta": "Choisir un créneau",
       "mapTitle": "Carte du lieu de la prestation",
@@ -597,6 +596,7 @@
         "pending": "En attente"
       },
       "columns": {
+        "unreadIndicator": "Non lu",
         "client": "Client",
         "service": "Service",
         "date": "Date",

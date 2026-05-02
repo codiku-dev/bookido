@@ -305,7 +305,6 @@
       "submit": "Confirm booking",
       "submitting": "Sending…",
       "detailsTitle": "Your details",
-      "serviceDetailsTitle": "Service details",
       "continueToDetails": "Continue",
       "pickSlotCta": "Choose an appointment time",
       "mapTitle": "Service location map",
@@ -597,6 +596,7 @@
         "pending": "Pending"
       },
       "columns": {
+        "unreadIndicator": "Unread",
         "client": "Client",
         "service": "Service",
         "date": "Date",

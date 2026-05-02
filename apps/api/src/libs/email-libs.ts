@@ -19,6 +19,12 @@ function logSmtpAuthDebug(context: string): void {
   );
 }
 
+export type SendEmailFileAttachment = {
+  filename: string;
+  content: string;
+  contentType?: string;
+};
+
 export type SendEmailParams = {
   to: string | string[];
   subject: string;
@@ -28,6 +34,8 @@ export type SendEmailParams = {
   cc?: string | string[];
   bcc?: string | string[];
   headers?: Record<string, string>;
+  /** Extra parts (e.g. text/calendar) merged after inline logo attachment. */
+  fileAttachments?: SendEmailFileAttachment[];
 };
 
 let cachedTransporter: nodemailer.Transporter | null = null;
@@ -68,13 +76,22 @@ function formatRecipients(to: string | string[]): string {
 function getInlineBookidoLogoAttachment():
   | { filename: string; path: string; cid: string }
   | undefined {
-  const fromCompiled = join(__dirname, '..', '..', 'assets', 'email', 'bookido-mark.png');
-  const fromSourceTree = join(__dirname, '..', 'assets', 'email', 'bookido-mark.png');
-  const logoPath = existsSync(fromCompiled) ? fromCompiled : fromSourceTree;
-  if (!existsSync(logoPath)) {
-    logger.warn(
-      `Email logo asset missing (tried ${fromCompiled} and ${fromSourceTree})`,
-    );
+  const baseDirs = [join(__dirname, '..', '..', 'assets', 'email'), join(__dirname, '..', 'assets', 'email')];
+  /** Blue mark on transparent — readable on the white chip in the email header. */
+  const candidates = ['bookido-mark.png', 'bookido-mark-white.png'];
+  let logoPath: string | undefined;
+  for (const name of candidates) {
+    for (const dir of baseDirs) {
+      const p = join(dir, name);
+      if (existsSync(p)) {
+        logoPath = p;
+        break;
+      }
+    }
+    if (logoPath) break;
+  }
+  if (!logoPath) {
+    logger.warn(`Email logo asset missing (tried white/blue under ${baseDirs.join(' ; ')})`);
     return undefined;
   }
   return {
@@ -99,6 +116,13 @@ export async function sendEmail(p: SendEmailParams) {
     const from = fromPreview;
 
     const logoAttachment = getInlineBookidoLogoAttachment();
+    const fileExtras =
+      p.fileAttachments?.map((f) => ({
+        filename: f.filename,
+        content: f.content,
+        contentType: f.contentType ?? "application/octet-stream",
+      })) ?? [];
+    const attachments = [...(logoAttachment ? [logoAttachment] : []), ...fileExtras];
 
     const result = await transporter.sendMail({
       from,
@@ -110,7 +134,7 @@ export async function sendEmail(p: SendEmailParams) {
       cc: p.cc,
       bcc: p.bcc,
       headers: p.headers,
-      attachments: logoAttachment ? [logoAttachment] : undefined,
+      attachments: attachments.length > 0 ? attachments : undefined,
     });
 
     logger.log(

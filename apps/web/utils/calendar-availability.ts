@@ -83,15 +83,38 @@ export function getContiguousBookableMinutesFromSlot(p: {
   weekHours: WeekHours;
   closedSlotKeys: Set<string>;
   hasBookingAtSlot: (dayKey: CalendarDayKey, time: string) => boolean;
+  /**
+   * When set, each grid step `time` is blocked if any 30‑minute slice in
+   * [time, time + intervalCheckMinutes) is outside hours, closed, or has a booking.
+   */
+  intervalCheckMinutes?: number;
 }) {
-  const isBlocked = (time: string) => {
-    if (isOutsideBusinessHours(p.column.weekdayName, time, p.weekHours)) {
+  const sliceStep = 30;
+  const isBlocked = (coarseTime: string) => {
+    if (p.intervalCheckMinutes !== undefined) {
+      const t0 = timeToMinutes(coarseTime);
+      const end = t0 + p.intervalCheckMinutes;
+      for (let u = Math.floor(t0 / sliceStep) * sliceStep; u < end; u += sliceStep) {
+        const hm = totalMinutesToTimeHm(u);
+        if (isOutsideBusinessHours(p.column.weekdayName, hm, p.weekHours)) {
+          return true;
+        }
+        if (p.closedSlotKeys.has(buildCalendarSlotKey(p.column.dayKey, hm))) {
+          return true;
+        }
+        if (p.hasBookingAtSlot(p.column.dayKey, hm)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    if (isOutsideBusinessHours(p.column.weekdayName, coarseTime, p.weekHours)) {
       return true;
     }
-    if (p.closedSlotKeys.has(buildCalendarSlotKey(p.column.dayKey, time))) {
+    if (p.closedSlotKeys.has(buildCalendarSlotKey(p.column.dayKey, coarseTime))) {
       return true;
     }
-    if (p.hasBookingAtSlot(p.column.dayKey, time)) {
+    if (p.hasBookingAtSlot(p.column.dayKey, coarseTime)) {
       return true;
     }
     return false;

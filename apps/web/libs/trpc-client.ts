@@ -26,12 +26,23 @@ function isExpectedPublicCoachNotFoundLog(opts: {
   );
 }
 
+/** High-frequency mutations (e.g. hover) — avoid dev console noise from loggerLink. */
+const TRPC_SILENT_DEV_LOGGER_PATHS = new Set<string>(["bookings.markBookingViewed", "bookings.markBookingsListViewed"]);
+
 export const trpcClient = trpc.createClient({
 
   links: [
     loggerLink({
       enabled: (opts) => {
         if (isExpectedPublicCoachNotFoundLog(opts)) {
+          return false;
+        }
+        if (
+          process.env["NODE_ENV"] === "development" &&
+          typeof window !== "undefined" &&
+          opts.path !== undefined &&
+          TRPC_SILENT_DEV_LOGGER_PATHS.has(opts.path)
+        ) {
           return false;
         }
         return (
