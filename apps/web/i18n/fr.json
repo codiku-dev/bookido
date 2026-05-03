@@ -316,6 +316,9 @@
       "slotTooSoon": "Ce créneau ne peut plus être réservé car le délai minimum avant réservation est dépassé.",
       "minNoticeHint": "Les créneaux avant {dateTime} sont indisponibles (délai minimum: {hours} h).",
       "minNoticeHoverHint": "Cette prestation a lieu dans trop peu de temps. Pour réserver avec ce professionnel, veuillez réserver {hours} heure(s) à l'avance.",
+      "refundPolicyAlways": "Annulations : en cas de paiement en ligne, un remboursement Stripe intégral peut s’appliquer même peu avant votre première séance, selon les conditions du professionnel.",
+      "refundPolicyHours24": "Annulations : en cas de paiement en ligne, un remboursement Stripe intégral n’est possible que si vous annulez au moins 24 heures avant le début de votre première séance prévue.",
+      "refundPolicyHours48": "Annulations : en cas de paiement en ligne, un remboursement Stripe intégral n’est possible que si vous annulez au moins 48 heures avant le début de votre première séance prévue.",
       "paymentCancelled": "Le paiement a été annulé.",
       "paymentStartError": "Impossible de démarrer le paiement Stripe.",
       "paymentConfirmError": "Le paiement n’a pas pu être confirmé.",
@@ -327,6 +330,41 @@
         "lastName": "Indiquez votre nom.",
         "name": "Indiquez votre nom.",
         "email": "Saisissez une adresse e-mail valide."
+      }
+    },
+    "cancelBooking": {
+      "pageTitle": "Annulation",
+      "confirmQuestion": "Voulez-vous annuler ce rendez-vous ?",
+      "missingToken": "Ouvrez le lien reçu dans votre e-mail de confirmation (bouton « Annuler ma réservation »), ou collez l’URL complète.",
+      "invalidSlugTitle": "Ce lien n’est pas valide",
+      "invalidSlugBody": "L’adresse semble incomplète. Utilisez le lien fourni dans votre e-mail de confirmation.",
+      "confirmCta": "Confirmer",
+      "confirming": "Annulation en cours…",
+      "previewLoading": "Vérification en cours…",
+      "refundHintFree": "Pas de paiement en ligne : rien à rembourser.",
+      "refundCardAmountCaption": "Payé en ligne",
+      "refundCardSessionCaption": "Premier rendez-vous",
+      "refundCardCutoffCaption": "Dernière limite pour annuler avec remboursement",
+      "refundVerdictYesTitle": "Remboursement prévu",
+      "refundVerdictYesDetail": "En général sous quelques jours ouvrés sur votre carte après confirmation.",
+      "refundVerdictNoTitle": "Sans remboursement",
+      "refundVerdictNoDetail": "Le délai ci-dessus est dépassé ; ce paiement en ligne ne sera pas remboursé.",
+      "paidOnlineAmount": "Montant payé en ligne : {amount}",
+      "firstSession": "Premier rendez-vous : {datetime}",
+      "refundCutoff": "Dernière date/heure pour annuler avec remboursement : {datetime}",
+      "refundWhenSettled": "Si vous confirmez, ce montant est en général remboursé sous quelques jours ouvrés sur votre carte.",
+      "noRefundBecauseLate": "Ce montant ne sera pas remboursé : le délai ci-dessus est dépassé.",
+      "successTitle": "C’est fait",
+      "success": "Votre réservation a été annulée.",
+      "successRefunded": "Votre paiement en ligne a été remboursé.",
+      "successNoRefund": "Aucun remboursement en ligne n’a été effectué.",
+      "alreadyCancelled": "Cette réservation avait déjà été annulée.",
+      "backToHome": "Retour à l’accueil",
+      "errors": {
+        "expired": "Ce lien d’annulation a expiré. Contactez votre professionnel pour modifier ou annuler votre réservation.",
+        "invalid": "Ce lien n’est pas valide ou n’est plus actif.",
+        "coachNotFound": "La page de ce professionnel est introuvable. Vérifiez le lien reçu par e-mail.",
+        "loadError": "Une erreur s’est produite. Réessayez dans un instant."
       }
     },
     "confirmation": {
@@ -499,6 +537,10 @@
         "title": "Paiements",
         "body": "Les paiements sont traités par Stripe. Les comptes connectés doivent terminer l’onboarding et respecter les exigences Stripe."
       },
+      "cancellations": {
+        "title": "Annulations et remboursements",
+        "body": "Chaque professionnel définit dans Bookido si un remboursement Stripe intégral est possible lorsqu’il annule une réservation payée en ligne : toujours, ou seulement s’il annule au moins 24 ou 48 heures avant la première séance prévue. Le client doit contacter le professionnel pour annuler ou reporter ; Bookido ne garantit pas un remboursement en dehors de la politique du professionnel et des règles Stripe."
+      },
       "liability": {
         "title": "Responsabilité",
         "body": "Bookido fournit la plateforme en l’état et n’est pas responsable des pertes causées par des prestataires de paiement externes ou par un mauvais usage."
@@ -651,8 +693,45 @@
       "amount": "Montant",
       "cancel": "Annuler la réservation",
       "cancelConfirm": {
-        "title": "Confirmer l'annulation",
-        "description": "Voulez-vous vraiment annuler cette réservation ? Cette action est irreversible."
+        "title": "Annuler le rendez-vous",
+        "question": "Voulez-vous annuler ce rendez-vous ?",
+        "paidOnlineAmount": "Montant payé en ligne : {amount}",
+        "firstSession": "Premier rendez-vous : {datetime}",
+        "refundCutoff": "Dernière date/heure pour annuler avec remboursement : {datetime}",
+        "refundWhenSettled": "Si vous confirmez avec remboursement Stripe, ce montant est en général remboursé sous quelques jours ouvrés.",
+        "noRefundBecauseLate": "Pas de remboursement de ce montant : le délai ci-dessus est dépassé.",
+        "noRefundChosen": "Vous annulez sans remboursement en ligne.",
+        "noOnlineRefund": "Pas de paiement en ligne à rembourser.",
+        "previewLoading": "Vérification des règles de remboursement…",
+        "refundCardAmountCaption": "Payé en ligne",
+        "refundCardSessionCaption": "Premier rendez-vous",
+        "refundCardCutoffCaption": "Dernière limite pour annuler avec remboursement",
+        "refundVerdictYesTitle": "Remboursement Stripe prévu",
+        "refundVerdictYesDetail": "En général sous quelques jours ouvrés après confirmation.",
+        "refundVerdictNoTitle": "Pas de remboursement Stripe",
+        "refundVerdictNoDetail": "Le délai ci-dessus pour un remboursement automatique est dépassé.",
+        "refundCheckbox": "Rembourser le client sur Stripe (montant intégral de ce paiement en ligne)",
+        "confirmWithRefund": "Annuler et rembourser",
+        "confirmNoRefund": "Annuler sans remboursement",
+        "refundedToast": "Réservation annulée et client remboursé sur Stripe."
+      },
+      "cancelErrors": {
+        "generic": "L'annulation n'a pas pu aboutir. Réessayez ou contactez le support.",
+        "outsidePolicy": "Le délai avant la première séance ne permet pas un remboursement Stripe dans ces conditions.",
+        "noStripe": "Cette réservation n'a pas de session Stripe Checkout à rembourser.",
+        "alreadyRefunded": "Ce paiement a déjà été remboursé sur Stripe.",
+        "alreadyCancelled": "Cette réservation est déjà annulée."
+      },
+      "refundPolicyCard": {
+        "title": "Remboursement en ligne (annulation client)",
+        "intro": "Par rapport à la première séance du pack :",
+        "always": "Remboursement possible à tout moment avant annulation.",
+        "hours24": "Remboursement seulement s’il reste au moins 24 h avant la première séance.",
+        "hours48": "Remboursement seulement s’il reste au moins 48 h avant la première séance."
+      },
+      "stripeRefund": {
+        "label": "Remboursement Stripe",
+        "refundedOn": "Remboursement Stripe effectué le {date}"
       },
       "client": {
         "info": "Informations client"
@@ -1230,7 +1309,7 @@
     "full": {
       "name": "Nom complet"
     },
-    "information": "Information",
+    "information": "Informations publiques",
     "language": "Langue",
     "notifications": {
       "desc": "Recevoir un e-mail lorsqu'un client réserve via votre page publique (pas les autres e-mails système).",
@@ -1295,7 +1374,7 @@
       }
     },
     "publicBooking": {
-      "title": "Lien de réservation public",
+      "title": "Configuration des réservations",
       "subtitle": "Vos clients utilisent cette adresse pour réserver avec vous.",
       "slugLabel": "Segment d’URL",
       "slugHelp": "Lettres minuscules, chiffres et tirets uniquement. Exemple : jonathan-malro-coach",
@@ -1322,6 +1401,15 @@
         "label": "Délai minimum avant réservation (heures)",
         "hint": "Les clients doivent réserver au moins ce nombre d’heures avant le début du créneau. 0 = aucune contrainte."
       }
+    },
+    "cancellationRefund": {
+      "title": "Remboursement si le client annule (paiement en ligne)",
+      "hint": "Choisissez à partir de quel délai avant la première séance un client qui a payé en ligne peut être remboursé intégralement. La même règle s’applique si vous déclenchez un remboursement depuis le détail d’une réservation.",
+      "optionAlways": "À tout moment : remboursement possible même peu avant la séance",
+      "option24": "Au moins 24 h avant la première séance",
+      "option48": "Au moins 48 h avant la première séance",
+      "saved": "Politique de remboursement enregistrée",
+      "saveError": "Impossible d’enregistrer la politique de remboursement"
     }
   },
   "onboarding": {

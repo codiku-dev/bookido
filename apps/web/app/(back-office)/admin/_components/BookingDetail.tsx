@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import type { inferRouterOutputs } from "@trpc/server";
 import type { AppRouter } from "@repo/trpc/router";
 import {
@@ -22,6 +23,7 @@ import {
 
 import { Alert, AlertDescription } from "#/components/ui/alert";
 import { Button } from "#/components/ui/button";
+import { Checkbox } from "#/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,6 +38,31 @@ import { useLanguage } from "#/components/use-language";
 import { formatShortDate } from "#/utils/dateFormat";
 import { bookingLocalTimeHm, getBookingAmountRemaining, paymentKindFromAmounts } from "#/utils/booking-dates";
 import { trpc } from "@web/libs/trpc-client";
+import {
+  CancelRefundPreviewPanel,
+  CancelRefundVerdictAlert,
+  type CancelRefundVerdict,
+} from "#/components/cancellation/cancel-refund-preview-panel";
+import {
+  formatRefundPreviewDateTime,
+  formatRefundPreviewMoney,
+} from "@web/utils/cancellation-refund-preview-format";
+
+function mapCancelTrpcMessage(raw: string, t: ReturnType<typeof useTranslations>): string {
+  if (raw.includes("BOOKING_REFUND_OUTSIDE_POLICY_WINDOW")) {
+    return t("booking.detail.cancelErrors.outsidePolicy");
+  }
+  if (raw.includes("BOOKING_REFUND_NO_STRIPE_SESSION")) {
+    return t("booking.detail.cancelErrors.noStripe");
+  }
+  if (raw.includes("BOOKING_ALREADY_REFUNDED")) {
+    return t("booking.detail.cancelErrors.alreadyRefunded");
+  }
+  if (raw.includes("BOOKING_ALREADY_CANCELLED")) {
+    return t("booking.detail.cancelErrors.alreadyCancelled");
+  }
+  return t("booking.detail.cancelErrors.generic");
+}
 
 type BookingRow = inferRouterOutputs<AppRouter>["bookings"]["getById"];
 type BookingStatus = BookingRow["status"];
@@ -52,6 +79,13 @@ export default function BookingDetail() {
   const bookingId =
     typeof rawId === "string" ? rawId : Array.isArray(rawId) && rawId[0] !== undefined ? rawId[0] : "";
 
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [refundStripeOnCancel, setRefundStripeOnCancel] = useState(true);
+  const [cancelDialogError, setCancelDialogError] = useState<string | null>(null);
+  const [markPaidOpen, setMarkPaidOpen] = useState(false);
+  const [markPaidInput, setMarkPaidInput] = useState("");
+  const [markPaidError, setMarkPaidError] = useState<string | null>(null);
+
   const bookingQuery = trpc.bookings.getById.useQuery(
     { id: bookingId },
     { enabled: bookingId.length > 0, retry: false },
@@ -64,12 +98,48 @@ export default function BookingDetail() {
     },
   });
 
-  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-  const [markPaidOpen, setMarkPaidOpen] = useState(false);
-  const [markPaidInput, setMarkPaidInput] = useState("");
-  const [markPaidError, setMarkPaidError] = useState<string | null>(null);
+  const cancelWithRefundMutation = trpc.bookings.cancelWithRefund.useMutation({
+    onSuccess: async (data) => {
+      await utils.bookings.getById.invalidate({ id: bookingId });
+      await utils.bookings.list.invalidate();
+      setIsCancelModalOpen(false);
+      setCancelDialogError(null);
+      if (data.stripeRefunded) {
+        toast.success(t("booking.detail.cancelConfirm.refundedToast"));
+      }
+      router.push("/admin/bookings");
+    },
+    onError: (e) => {
+      const raw = e instanceof Error ? e.message : String(e);
+      setCancelDialogError(mapCancelTrpcMessage(raw, t));
+    },
+  });
 
   const booking = bookingQuery.data ?? null;
+
+  const cancelPreviewQuery = trpc.bookings.getCancelRefundPreview.useQuery(
+    { id: bookingId },
+    {
+      enabled:
+        isCancelModalOpen &&
+        bookingId.length > 0 &&
+        booking !== null &&
+        booking.status !== "cancelled",
+      retry: false,
+    },
+  );
+
+  useEffect(() => {
+    if (!booking || !isCancelModalOpen) {
+      return;
+    }
+    const canOffer =
+      booking.status !== "cancelled" &&
+      !booking.stripeRefundedAt &&
+      (booking.stripeCheckoutSessionId ?? "").trim().length > 0;
+    setRefundStripeOnCancel(canOffer);
+    setCancelDialogError(null);
+  }, [isCancelModalOpen, booking]);
 
   const getStatusBadgeClass = (status: BookingStatus) => {
     if (status === "confirmed") return "bg-green-50 text-green-700";
@@ -176,16 +246,16 @@ export default function BookingDetail() {
   };
 
   const handleConfirmCancel = () => {
-    updateMutation.mutate(
-      { id: booking.id, data: { status: "cancelled" } },
-      {
-        onSuccess: async () => {
-          setIsCancelModalOpen(false);
-          await utils.bookings.list.invalidate();
-          router.push("/admin/bookings");
-        },
-      },
-    );
+    if (!booking) {
+      return;
+    }
+    setCancelDialogError(null);
+    const canOffer =
+      booking.status !== "cancelled" &&
+      !booking.stripeRefundedAt &&
+      (booking.stripeCheckoutSessionId ?? "").trim().length > 0;
+    const refundStripe = canOffer && refundStripeOnCancel;
+    cancelWithRefundMutation.mutate({ id: booking.id, refundStripe });
   };
 
   const validationPendingBanner = needsValidationBanner ? (
@@ -358,6 +428,16 @@ export default function BookingDetail() {
           <span className="text-slate-600">{t("booking.detail.payment.remaining")}</span>
           <span className="font-medium text-slate-900">€{outstanding}</span>
         </div>
+        {booking.stripeRefundedAt ? (
+          <div className="flex justify-between">
+            <span className="text-slate-600">{t("booking.detail.stripeRefund.label")}</span>
+            <span className="font-medium text-emerald-800">
+              {t("booking.detail.stripeRefund.refundedOn", {
+                date: formatShortDate(booking.stripeRefundedAt, locale),
+              })}
+            </span>
+          </div>
+        ) : null}
         <div className="flex justify-between">
           <span className="text-slate-600">{t("booking.detail.payment.directTitle")}</span>
           <span className="font-medium text-slate-900">
@@ -376,6 +456,32 @@ export default function BookingDetail() {
       <p className="text-slate-700">{notesText}</p>
     </div>
   );
+
+  const canOfferStripeRefund =
+    booking.status !== "cancelled" &&
+    !booking.stripeRefundedAt &&
+    (booking.stripeCheckoutSessionId ?? "").trim().length > 0;
+
+  const adminCancelVerdict: CancelRefundVerdict | null = (() => {
+    const d = cancelPreviewQuery.data;
+    if (!d || cancelPreviewQuery.isLoading) {
+      return null;
+    }
+    const td = (key: string) => t(`booking.detail.cancelConfirm.${key}`);
+    if (!canOfferStripeRefund) {
+      return { tone: "warn", title: td("noOnlineRefund") };
+    }
+    if (!refundStripeOnCancel) {
+      return { tone: "warn", title: td("noRefundChosen") };
+    }
+    if (!d.hasOnlinePaidAmount) {
+      return { tone: "warn", title: td("noOnlineRefund") };
+    }
+    if (d.onlineRefundWillApply) {
+      return { tone: "ok", title: td("refundVerdictYesTitle"), detail: td("refundVerdictYesDetail") };
+    }
+    return { tone: "warn", title: td("refundVerdictNoTitle"), detail: td("refundVerdictNoDetail") };
+  })();
 
   const markPaidDialog = (
     <Dialog
@@ -420,31 +526,78 @@ export default function BookingDetail() {
     </Dialog>
   );
 
-  const cancelModal = isCancelModalOpen && (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
-        <div className="p-6">
-          <h3 className="text-xl font-bold text-slate-900 mb-2">{t("booking.detail.cancelConfirm.title")}</h3>
-          <p className="text-slate-600">{t("booking.detail.cancelConfirm.description")}</p>
+  const cancelDialog = (
+    <Dialog
+      open={isCancelModalOpen}
+      onOpenChange={(open) => {
+        setIsCancelModalOpen(open);
+        if (!open) {
+          setCancelDialogError(null);
+        }
+      }}
+    >
+      <DialogContent className="bg-card sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{t("booking.detail.cancelConfirm.title")}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-1">
+          <p className="text-sm font-medium leading-snug text-slate-900">
+            {t("booking.detail.cancelConfirm.question")}
+          </p>
+          {cancelPreviewQuery.isLoading ? (
+            <CancelRefundPreviewPanel loading loadingText={t("booking.detail.cancelConfirm.previewLoading")} />
+          ) : cancelPreviewQuery.data ? (
+            !cancelPreviewQuery.data.hasOnlinePaidAmount ? (
+              <CancelRefundPreviewPanel freeMessage={t("booking.detail.cancelConfirm.noOnlineRefund")} />
+            ) : (
+              <CancelRefundPreviewPanel
+                showVerdict={false}
+                paid={{
+                  amountCaption: t("booking.detail.cancelConfirm.refundCardAmountCaption"),
+                  amountValue: formatRefundPreviewMoney(locale, cancelPreviewQuery.data.refundTotalPaid),
+                  sessionCaption: t("booking.detail.cancelConfirm.refundCardSessionCaption"),
+                  sessionValue: formatRefundPreviewDateTime(locale, cancelPreviewQuery.data.firstSessionStartsAt),
+                  cutoffCaption: t("booking.detail.cancelConfirm.refundCardCutoffCaption"),
+                  cutoffValue: cancelPreviewQuery.data.refundPolicyCutoffAt
+                    ? formatRefundPreviewDateTime(locale, cancelPreviewQuery.data.refundPolicyCutoffAt)
+                    : null,
+                }}
+              />
+            )
+          ) : null}
+          {canOfferStripeRefund ? (
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/60 p-3">
+              <Checkbox
+                checked={refundStripeOnCancel}
+                onCheckedChange={(value) => setRefundStripeOnCancel(value === true)}
+                className="mt-0.5"
+                aria-label={t("booking.detail.cancelConfirm.refundCheckbox")}
+              />
+              <span className="text-sm leading-snug text-slate-800">{t("booking.detail.cancelConfirm.refundCheckbox")}</span>
+            </label>
+          ) : null}
+          {adminCancelVerdict ? <CancelRefundVerdictAlert verdict={adminCancelVerdict} /> : null}
+          {cancelDialogError ? <p className="text-sm font-medium text-red-600">{cancelDialogError}</p> : null}
         </div>
-        <div className="px-6 pb-6 flex gap-3">
-          <button
-            type="button"
-            onClick={() => setIsCancelModalOpen(false)}
-            className="flex-1 px-4 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors font-medium"
-          >
+        <DialogFooter className="gap-2 sm:gap-0">
+          <Button type="button" variant="outline" onClick={() => setIsCancelModalOpen(false)}>
             {t("common.cancel")}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="destructive"
             onClick={handleConfirmCancel}
-            className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-medium"
+            disabled={cancelWithRefundMutation.isPending}
+            pending={cancelWithRefundMutation.isPending}
+            pendingChildren={t("booking.detail.cancel")}
           >
-            {t("booking.detail.cancel")}
-          </button>
-        </div>
-      </div>
-    </div>
+            {canOfferStripeRefund && refundStripeOnCancel
+              ? t("booking.detail.cancelConfirm.confirmWithRefund")
+              : t("booking.detail.cancelConfirm.confirmNoRefund")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 
   return (
@@ -459,7 +612,7 @@ export default function BookingDetail() {
         </div>
       </div>
       {markPaidDialog}
-      {cancelModal}
+      {cancelDialog}
     </div>
   );
 }

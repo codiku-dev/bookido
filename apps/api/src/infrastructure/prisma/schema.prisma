@@ -25,6 +25,8 @@ model User {
   publicBookingSitePublished Boolean @default(false)
   /// Minimum notice (hours) required before a public booking can start.
   publicBookingMinNoticeHours Int @default(12)
+  /// Full Stripe refund timing for paid online bookings (client self-cancel or coach refund): ALWAYS = no minimum notice; HOURS_24/48 = only if at least that many hours remain before the first session in the pack.
+  clientCancellationRefundPolicy String @default("HOURS_48") @map("client_cancellation_refund_policy")
   archivedAt    DateTime?
   /// Weekly opening hours (Mon–Sun) for the admin calendar grid.
   calendarWeekHours       Json?
@@ -138,11 +140,23 @@ model Booking {
   createdByClient        Boolean  @default(false)
   /// When this booking notification has been seen in admin bookings list.
   adminViewedAt          DateTime?
+  /// Same UUID for all rows created in one public pack checkout (optional for admin-created rows).
+  bookingPackGroupId   String?   @map("booking_pack_group_id")
+  /// Stripe Checkout session on the coach connected account (refunds use this).
+  stripeCheckoutSessionId String? @map("stripe_checkout_session_id")
+  stripeRefundedAt      DateTime? @map("stripe_refunded_at")
+  /// Opaque token (single “lead” row per pack) for client self-cancel link in confirmation emails.
+  publicCancelToken         String?   @unique @map("public_cancel_token")
+  publicCancelTokenExpiresAt DateTime? @map("public_cancel_token_expires_at")
+  /// When the client reminder email was sent for this session row (null = not sent yet).
+  clientReminder24hSentAt DateTime? @map("client_reminder_24h_sent_at")
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 
   @@index([ownerId])
   @@index([ownerId, startsAt])
+  @@index([ownerId, bookingPackGroupId])
+  @@index([status, clientReminder24hSentAt, startsAt], map: "booking_client_reminder_lookup_idx")
   @@map("booking")
 }
 

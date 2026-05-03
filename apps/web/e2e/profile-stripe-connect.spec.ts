@@ -31,6 +31,7 @@ test.describe("Profile Stripe Connect", () => {
                 publicBookingMinNoticeHours: 24,
                 emailBookingNotificationsEnabled: true,
                 publicBookingSitePublished: true,
+                clientCancellationRefundPolicy: "HOURS_48",
               },
             },
           },

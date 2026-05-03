@@ -49,6 +49,7 @@ import {
 } from "#/components/ui/form";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "#/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -143,6 +144,19 @@ export default function ProfileSettings() {
     },
     onError: () => {
       toast.error(t("profile.notifications.saveError"));
+    },
+  });
+
+  const updateCancellationRefundPolicyMutation = trpc.profile.updateCancellationRefundPolicy.useMutation({
+    onSuccess: async () => {
+      await Promise.all([
+        utils.profile.getPublicBookingPresence.invalidate(),
+        utils.publicBooking.getStorefront.invalidate(),
+      ]);
+      toast.success(t("profile.cancellationRefund.saved"));
+    },
+    onError: () => {
+      toast.error(t("profile.cancellationRefund.saveError"));
     },
   });
 
@@ -828,6 +842,7 @@ export default function ProfileSettings() {
               {publicUrlPreviewBlock}
               {saveSlugButtonOutsideBlock}
               {publicBookingMinNoticeHoursFieldBlock}
+              {cancellationRefundBlock}
             </div>
 
             <Button
@@ -1028,6 +1043,50 @@ export default function ProfileSettings() {
       {emailNotificationsIcon}
       {emailNotificationsCopy}
       <div className="flex shrink-0 items-center self-center pl-2">{emailNotificationsToggle}</div>
+    </div>
+  );
+
+  const refundPolicyRadioDisabled =
+    presenceQuery.isLoading ||
+    presenceQuery.isFetching ||
+    !presenceQuery.data ||
+    updateCancellationRefundPolicyMutation.isPending;
+
+  const cancellationRefundBlock = (
+    <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/40 p-4">
+      <div>
+        <p className="text-sm font-semibold text-slate-900">{t("profile.cancellationRefund.title")}</p>
+        <p className="mt-1 text-sm text-slate-600">{t("profile.cancellationRefund.hint")}</p>
+      </div>
+      <RadioGroup
+        value={presenceQuery.data?.clientCancellationRefundPolicy ?? "HOURS_48"}
+        onValueChange={(value) => {
+          void updateCancellationRefundPolicyMutation.mutateAsync({
+            policy: value as "ALWAYS" | "HOURS_24" | "HOURS_48",
+          });
+        }}
+        disabled={refundPolicyRadioDisabled}
+        className="space-y-2"
+      >
+        <div className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white px-3 py-3">
+          <RadioGroupItem value="ALWAYS" id="refund-policy-always" className="mt-1" />
+          <Label htmlFor="refund-policy-always" className="cursor-pointer text-sm font-normal leading-snug text-slate-800">
+            {t("profile.cancellationRefund.optionAlways")}
+          </Label>
+        </div>
+        <div className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white px-3 py-3">
+          <RadioGroupItem value="HOURS_24" id="refund-policy-24" className="mt-1" />
+          <Label htmlFor="refund-policy-24" className="cursor-pointer text-sm font-normal leading-snug text-slate-800">
+            {t("profile.cancellationRefund.option24")}
+          </Label>
+        </div>
+        <div className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white px-3 py-3">
+          <RadioGroupItem value="HOURS_48" id="refund-policy-48" className="mt-1" />
+          <Label htmlFor="refund-policy-48" className="cursor-pointer text-sm font-normal leading-snug text-slate-800">
+            {t("profile.cancellationRefund.option48")}
+          </Label>
+        </div>
+      </RadioGroup>
     </div>
   );
 

@@ -42,6 +42,12 @@ export default function TermsOfServicePage() {
       <p className="text-slate-700">{t("payments.body")}</p>
     </section>
   );
+  const cancellationsSection = (
+    <section className="space-y-2">
+      <h2 className="text-xl font-semibold text-slate-900">{t("cancellations.title")}</h2>
+      <p className="text-slate-700">{t("cancellations.body")}</p>
+    </section>
+  );
   const liabilitySection = (
     <section className="space-y-2">
       <h2 className="text-xl font-semibold text-slate-900">{t("liability.title")}</h2>
@@ -62,6 +68,7 @@ export default function TermsOfServicePage() {
       {serviceSection}
       {accountSection}
       {paymentsSection}
+      {cancellationsSection}
       {liabilitySection}
       {contactSection}
     </article>

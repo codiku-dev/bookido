@@ -34,6 +34,11 @@ export type BookingPaidConfirmationProps = {
   paidAmountLabel: string;
   serviceAddress: string;
   serviceMapsUrl?: string | null;
+  /** Secret cancel link (e-mail only). */
+  clientCancelUrl?: string | null;
+  /** When false (e.g. free booking), skip paid-refund wording under the cancel button. */
+  paidOnline?: boolean;
+  clientCancellationRefundPolicy?: "ALWAYS" | "HOURS_24" | "HOURS_48";
   sessions: BookingPaidSession[];
 };
 
@@ -49,12 +54,21 @@ export default function BookingPaidConfirmation(p: BookingPaidConfirmationProps)
   });
 
   const footerNote = (
-    <Text className="m-0 text-[11px] leading-[18px] text-slate-500">
-      {t({
-        locale: p.locale,
-        key: "booking.paid.footer",
-      })}
-    </Text>
+    <>
+      <Text className="m-0 text-[11px] leading-[18px] text-slate-500">
+        {t({
+          locale: p.locale,
+          key: "booking.paid.footer",
+        })}
+      </Text>
+      <Text className="m-0 mt-2 text-[11px] leading-[18px] text-slate-500">
+        {t({
+          locale: p.locale,
+          key: "booking.paid.cancelHint",
+          values: { coachName: p.coachName },
+        })}
+      </Text>
+    </>
   );
 
   const innerMuted = (children: ReactNode) => (
@@ -213,6 +227,38 @@ export default function BookingPaidConfirmation(p: BookingPaidConfirmationProps)
     </Section>
   );
 
+  const cancelRefundHintText = (() => {
+    if (typeof p.clientCancelUrl !== "string" || p.clientCancelUrl.trim().length === 0) {
+      return "";
+    }
+    const paidOnline = p.paidOnline !== false;
+    if (!paidOnline) {
+      return t({ locale: p.locale, key: "booking.paid.cancelWithTokenUnpaidHint" });
+    }
+    const policy = p.clientCancellationRefundPolicy ?? "HOURS_48";
+    if (policy === "ALWAYS") {
+      return t({ locale: p.locale, key: "booking.paid.cancelWithTokenRefundAlways" });
+    }
+    const hours = policy === "HOURS_24" ? "24" : "48";
+    return t({ locale: p.locale, key: "booking.paid.cancelWithTokenRefundHours", values: { hours } });
+  })();
+
+  const cancelWithTokenBlock =
+    typeof p.clientCancelUrl === "string" && p.clientCancelUrl.trim().length > 0 ? (
+      <Section className="mb-5 rounded-2xl border border-solid border-slate-200 bg-white px-5 py-4">
+        <Text className="m-0 mb-2 text-sm font-semibold text-slate-900">
+          {t({ locale: p.locale, key: "booking.paid.cancelWithTokenTitle" })}
+        </Text>
+        <Text className="m-0 mb-3 text-[13px] leading-5 text-slate-600">{cancelRefundHintText}</Text>
+        <Button
+          href={p.clientCancelUrl.trim()}
+          className="rounded-lg bg-slate-800 px-5 py-3 text-center text-sm font-semibold text-white no-underline"
+        >
+          {t({ locale: p.locale, key: "booking.paid.cancelWithTokenCta" })}
+        </Button>
+      </Section>
+    ) : null;
+
   const headerBlock = (
     <Section className="m-0 p-0">
       <Heading as="h1" className="m-0 mb-2 text-2xl font-semibold tracking-tight text-slate-900">
@@ -243,6 +289,7 @@ export default function BookingPaidConfirmation(p: BookingPaidConfirmationProps)
             {whenBlock}
             {whereBlock}
             {receiptBlock}
+            {cancelWithTokenBlock}
           </EmailBrandShell>
         </Body>
       </Tailwind>

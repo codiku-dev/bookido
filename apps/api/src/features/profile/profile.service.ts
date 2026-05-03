@@ -12,6 +12,8 @@ import { PrismaService } from "@api/src/infrastructure/prisma/prisma.service";
 import { StripeService } from "@api/src/features/stripe/stripe.service";
 
 import type {
+  ClientCancellationRefundPolicy,
+  UpdateCancellationRefundPolicyInput,
   UpdateEmailBookingNotificationsInput,
   UpdateProfileAvatarInput,
   UpdateProfileBasicsInput,
@@ -96,6 +98,13 @@ export function resolveUserDisplayImage(row: {
   }
   const fromUser = row.image?.trim();
   return fromUser && fromUser.length > 0 ? fromUser : null;
+}
+
+function parseClientCancellationRefundPolicy(raw: string): ClientCancellationRefundPolicy {
+  if (raw === "ALWAYS" || raw === "HOURS_24" || raw === "HOURS_48") {
+    return raw;
+  }
+  return "HOURS_48";
 }
 
 function parseClosedSlotKeys(value: Prisma.JsonValue | null | undefined): string[] {
@@ -241,6 +250,14 @@ export class ProfileService {
     return { ok: true as const };
   }
 
+  async updateCancellationRefundPolicy(userId: string, input: UpdateCancellationRefundPolicyInput) {
+    await this.db.user.update({
+      where: { id: userId },
+      data: { clientCancellationRefundPolicy: input.policy },
+    });
+    return { ok: true as const };
+  }
+
   async getPublicBookingPresence(userId: string) {
     const row = await this.db.user.findUnique({
       where: { id: userId },
@@ -252,6 +269,7 @@ export class ProfileService {
         publicBookingMinNoticeHours: true,
         emailBookingNotificationsEnabled: true,
         publicBookingSitePublished: true,
+        clientCancellationRefundPolicy: true,
         userAvatar: { select: { imageData: true } },
       },
     });
@@ -268,6 +286,7 @@ export class ProfileService {
         publicBookingMinNoticeHours: row.publicBookingMinNoticeHours,
         emailBookingNotificationsEnabled: row.emailBookingNotificationsEnabled,
         publicBookingSitePublished: row.publicBookingSitePublished,
+        clientCancellationRefundPolicy: parseClientCancellationRefundPolicy(row.clientCancellationRefundPolicy),
       };
     }
     const maxPersistAttempts = 5;
@@ -285,6 +304,7 @@ export class ProfileService {
           publicBookingMinNoticeHours: row.publicBookingMinNoticeHours,
           emailBookingNotificationsEnabled: row.emailBookingNotificationsEnabled,
           publicBookingSitePublished: row.publicBookingSitePublished,
+          clientCancellationRefundPolicy: parseClientCancellationRefundPolicy(row.clientCancellationRefundPolicy),
         };
       } catch (e) {
         if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {

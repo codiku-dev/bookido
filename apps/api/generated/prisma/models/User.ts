@@ -47,6 +47,7 @@ export type UserMinAggregateOutputType = {
   publicBookingSlug: string | null
   publicBookingSitePublished: boolean | null
   publicBookingMinNoticeHours: number | null
+  clientCancellationRefundPolicy: string | null
   archivedAt: Date | null
   bookingsLastViewedAt: Date | null
   emailBookingNotificationsEnabled: boolean | null
@@ -76,6 +77,7 @@ export type UserMaxAggregateOutputType = {
   publicBookingSlug: string | null
   publicBookingSitePublished: boolean | null
   publicBookingMinNoticeHours: number | null
+  clientCancellationRefundPolicy: string | null
   archivedAt: Date | null
   bookingsLastViewedAt: Date | null
   emailBookingNotificationsEnabled: boolean | null
@@ -105,6 +107,7 @@ export type UserCountAggregateOutputType = {
   publicBookingSlug: number
   publicBookingSitePublished: number
   publicBookingMinNoticeHours: number
+  clientCancellationRefundPolicy: number
   archivedAt: number
   calendarWeekHours: number
   calendarClosedSlotKeys: number
@@ -148,6 +151,7 @@ export type UserMinAggregateInputType = {
   publicBookingSlug?: true
   publicBookingSitePublished?: true
   publicBookingMinNoticeHours?: true
+  clientCancellationRefundPolicy?: true
   archivedAt?: true
   bookingsLastViewedAt?: true
   emailBookingNotificationsEnabled?: true
@@ -177,6 +181,7 @@ export type UserMaxAggregateInputType = {
   publicBookingSlug?: true
   publicBookingSitePublished?: true
   publicBookingMinNoticeHours?: true
+  clientCancellationRefundPolicy?: true
   archivedAt?: true
   bookingsLastViewedAt?: true
   emailBookingNotificationsEnabled?: true
@@ -206,6 +211,7 @@ export type UserCountAggregateInputType = {
   publicBookingSlug?: true
   publicBookingSitePublished?: true
   publicBookingMinNoticeHours?: true
+  clientCancellationRefundPolicy?: true
   archivedAt?: true
   calendarWeekHours?: true
   calendarClosedSlotKeys?: true
@@ -324,6 +330,7 @@ export type UserGroupByOutputType = {
   publicBookingSlug: string | null
   publicBookingSitePublished: boolean
   publicBookingMinNoticeHours: number
+  clientCancellationRefundPolicy: string
   archivedAt: Date | null
   calendarWeekHours: runtime.JsonValue | null
   calendarClosedSlotKeys: runtime.JsonValue | null
@@ -378,6 +385,7 @@ export type UserWhereInput = {
   publicBookingSlug?: Prisma.StringNullableFilter<"User"> | string | null
   publicBookingSitePublished?: Prisma.BoolFilter<"User"> | boolean
   publicBookingMinNoticeHours?: Prisma.IntFilter<"User"> | number
+  clientCancellationRefundPolicy?: Prisma.StringFilter<"User"> | string
   archivedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   calendarWeekHours?: Prisma.JsonNullableFilter<"User">
   calendarClosedSlotKeys?: Prisma.JsonNullableFilter<"User">
@@ -415,6 +423,7 @@ export type UserOrderByWithRelationInput = {
   publicBookingSlug?: Prisma.SortOrderInput | Prisma.SortOrder
   publicBookingSitePublished?: Prisma.SortOrder
   publicBookingMinNoticeHours?: Prisma.SortOrder
+  clientCancellationRefundPolicy?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   calendarWeekHours?: Prisma.SortOrderInput | Prisma.SortOrder
   calendarClosedSlotKeys?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -456,6 +465,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   address?: Prisma.StringNullableFilter<"User"> | string | null
   publicBookingSitePublished?: Prisma.BoolFilter<"User"> | boolean
   publicBookingMinNoticeHours?: Prisma.IntFilter<"User"> | number
+  clientCancellationRefundPolicy?: Prisma.StringFilter<"User"> | string
   archivedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   calendarWeekHours?: Prisma.JsonNullableFilter<"User">
   calendarClosedSlotKeys?: Prisma.JsonNullableFilter<"User">
@@ -492,6 +502,7 @@ export type UserOrderByWithAggregationInput = {
   publicBookingSlug?: Prisma.SortOrderInput | Prisma.SortOrder
   publicBookingSitePublished?: Prisma.SortOrder
   publicBookingMinNoticeHours?: Prisma.SortOrder
+  clientCancellationRefundPolicy?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   calendarWeekHours?: Prisma.SortOrderInput | Prisma.SortOrder
   calendarClosedSlotKeys?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -531,6 +542,7 @@ export type UserScalarWhereWithAggregatesInput = {
   publicBookingSlug?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   publicBookingSitePublished?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   publicBookingMinNoticeHours?: Prisma.IntWithAggregatesFilter<"User"> | number
+  clientCancellationRefundPolicy?: Prisma.StringWithAggregatesFilter<"User"> | string
   archivedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   calendarWeekHours?: Prisma.JsonNullableWithAggregatesFilter<"User">
   calendarClosedSlotKeys?: Prisma.JsonNullableWithAggregatesFilter<"User">
@@ -562,6 +574,7 @@ export type UserCreateInput = {
   publicBookingSlug?: string | null
   publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
+  clientCancellationRefundPolicy?: string
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -599,6 +612,7 @@ export type UserUncheckedCreateInput = {
   publicBookingSlug?: string | null
   publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
+  clientCancellationRefundPolicy?: string
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -636,6 +650,7 @@ export type UserUpdateInput = {
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
+  clientCancellationRefundPolicy?: Prisma.StringFieldUpdateOperationsInput | string
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -673,6 +688,7 @@ export type UserUncheckedUpdateInput = {
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
+  clientCancellationRefundPolicy?: Prisma.StringFieldUpdateOperationsInput | string
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -710,6 +726,7 @@ export type UserCreateManyInput = {
   publicBookingSlug?: string | null
   publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
+  clientCancellationRefundPolicy?: string
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -741,6 +758,7 @@ export type UserUpdateManyMutationInput = {
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
+  clientCancellationRefundPolicy?: Prisma.StringFieldUpdateOperationsInput | string
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -772,6 +790,7 @@ export type UserUncheckedUpdateManyInput = {
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
+  clientCancellationRefundPolicy?: Prisma.StringFieldUpdateOperationsInput | string
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -803,6 +822,7 @@ export type UserCountOrderByAggregateInput = {
   publicBookingSlug?: Prisma.SortOrder
   publicBookingSitePublished?: Prisma.SortOrder
   publicBookingMinNoticeHours?: Prisma.SortOrder
+  clientCancellationRefundPolicy?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrder
   calendarWeekHours?: Prisma.SortOrder
   calendarClosedSlotKeys?: Prisma.SortOrder
@@ -839,6 +859,7 @@ export type UserMaxOrderByAggregateInput = {
   publicBookingSlug?: Prisma.SortOrder
   publicBookingSitePublished?: Prisma.SortOrder
   publicBookingMinNoticeHours?: Prisma.SortOrder
+  clientCancellationRefundPolicy?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrder
   bookingsLastViewedAt?: Prisma.SortOrder
   emailBookingNotificationsEnabled?: Prisma.SortOrder
@@ -868,6 +889,7 @@ export type UserMinOrderByAggregateInput = {
   publicBookingSlug?: Prisma.SortOrder
   publicBookingSitePublished?: Prisma.SortOrder
   publicBookingMinNoticeHours?: Prisma.SortOrder
+  clientCancellationRefundPolicy?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrder
   bookingsLastViewedAt?: Prisma.SortOrder
   emailBookingNotificationsEnabled?: Prisma.SortOrder
@@ -1023,6 +1045,7 @@ export type UserCreateWithoutUserAvatarInput = {
   publicBookingSlug?: string | null
   publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
+  clientCancellationRefundPolicy?: string
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1059,6 +1082,7 @@ export type UserUncheckedCreateWithoutUserAvatarInput = {
   publicBookingSlug?: string | null
   publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
+  clientCancellationRefundPolicy?: string
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1111,6 +1135,7 @@ export type UserUpdateWithoutUserAvatarInput = {
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
+  clientCancellationRefundPolicy?: Prisma.StringFieldUpdateOperationsInput | string
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1147,6 +1172,7 @@ export type UserUncheckedUpdateWithoutUserAvatarInput = {
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
+  clientCancellationRefundPolicy?: Prisma.StringFieldUpdateOperationsInput | string
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1183,6 +1209,7 @@ export type UserCreateWithoutClientsInput = {
   publicBookingSlug?: string | null
   publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
+  clientCancellationRefundPolicy?: string
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1219,6 +1246,7 @@ export type UserUncheckedCreateWithoutClientsInput = {
   publicBookingSlug?: string | null
   publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
+  clientCancellationRefundPolicy?: string
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1271,6 +1299,7 @@ export type UserUpdateWithoutClientsInput = {
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
+  clientCancellationRefundPolicy?: Prisma.StringFieldUpdateOperationsInput | string
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1307,6 +1336,7 @@ export type UserUncheckedUpdateWithoutClientsInput = {
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
+  clientCancellationRefundPolicy?: Prisma.StringFieldUpdateOperationsInput | string
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1343,6 +1373,7 @@ export type UserCreateWithoutServicesInput = {
   publicBookingSlug?: string | null
   publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
+  clientCancellationRefundPolicy?: string
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1379,6 +1410,7 @@ export type UserUncheckedCreateWithoutServicesInput = {
   publicBookingSlug?: string | null
   publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
+  clientCancellationRefundPolicy?: string
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1431,6 +1463,7 @@ export type UserUpdateWithoutServicesInput = {
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
+  clientCancellationRefundPolicy?: Prisma.StringFieldUpdateOperationsInput | string
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1467,6 +1500,7 @@ export type UserUncheckedUpdateWithoutServicesInput = {
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
+  clientCancellationRefundPolicy?: Prisma.StringFieldUpdateOperationsInput | string
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1503,6 +1537,7 @@ export type UserCreateWithoutBookingsInput = {
   publicBookingSlug?: string | null
   publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
+  clientCancellationRefundPolicy?: string
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1539,6 +1574,7 @@ export type UserUncheckedCreateWithoutBookingsInput = {
   publicBookingSlug?: string | null
   publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
+  clientCancellationRefundPolicy?: string
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1591,6 +1627,7 @@ export type UserUpdateWithoutBookingsInput = {
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
+  clientCancellationRefundPolicy?: Prisma.StringFieldUpdateOperationsInput | string
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1627,6 +1664,7 @@ export type UserUncheckedUpdateWithoutBookingsInput = {
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
+  clientCancellationRefundPolicy?: Prisma.StringFieldUpdateOperationsInput | string
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1663,6 +1701,7 @@ export type UserCreateWithoutSessionsInput = {
   publicBookingSlug?: string | null
   publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
+  clientCancellationRefundPolicy?: string
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1699,6 +1738,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   publicBookingSlug?: string | null
   publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
+  clientCancellationRefundPolicy?: string
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1751,6 +1791,7 @@ export type UserUpdateWithoutSessionsInput = {
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
+  clientCancellationRefundPolicy?: Prisma.StringFieldUpdateOperationsInput | string
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1787,6 +1828,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
+  clientCancellationRefundPolicy?: Prisma.StringFieldUpdateOperationsInput | string
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1823,6 +1865,7 @@ export type UserCreateWithoutAccountsInput = {
   publicBookingSlug?: string | null
   publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
+  clientCancellationRefundPolicy?: string
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1859,6 +1902,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   publicBookingSlug?: string | null
   publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: number
+  clientCancellationRefundPolicy?: string
   archivedAt?: Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1911,6 +1955,7 @@ export type UserUpdateWithoutAccountsInput = {
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
+  clientCancellationRefundPolicy?: Prisma.StringFieldUpdateOperationsInput | string
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1947,6 +1992,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   publicBookingSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicBookingSitePublished?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicBookingMinNoticeHours?: Prisma.IntFieldUpdateOperationsInput | number
+  clientCancellationRefundPolicy?: Prisma.StringFieldUpdateOperationsInput | string
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   calendarWeekHours?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   calendarClosedSlotKeys?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2050,6 +2096,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   publicBookingSlug?: boolean
   publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: boolean
+  clientCancellationRefundPolicy?: boolean
   archivedAt?: boolean
   calendarWeekHours?: boolean
   calendarClosedSlotKeys?: boolean
@@ -2088,6 +2135,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   publicBookingSlug?: boolean
   publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: boolean
+  clientCancellationRefundPolicy?: boolean
   archivedAt?: boolean
   calendarWeekHours?: boolean
   calendarClosedSlotKeys?: boolean
@@ -2119,6 +2167,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   publicBookingSlug?: boolean
   publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: boolean
+  clientCancellationRefundPolicy?: boolean
   archivedAt?: boolean
   calendarWeekHours?: boolean
   calendarClosedSlotKeys?: boolean
@@ -2150,6 +2199,7 @@ export type UserSelectScalar = {
   publicBookingSlug?: boolean
   publicBookingSitePublished?: boolean
   publicBookingMinNoticeHours?: boolean
+  clientCancellationRefundPolicy?: boolean
   archivedAt?: boolean
   calendarWeekHours?: boolean
   calendarClosedSlotKeys?: boolean
@@ -2170,7 +2220,7 @@ export type UserSelectScalar = {
   banExpires?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "image" | "bio" | "address" | "publicBookingSlug" | "publicBookingSitePublished" | "publicBookingMinNoticeHours" | "archivedAt" | "calendarWeekHours" | "calendarClosedSlotKeys" | "bookingsLastViewedAt" | "emailBookingNotificationsEnabled" | "adminOnboardingCompletedAt" | "adminOnboardingStep" | "stripeAccountId" | "stripeBillingCustomerId" | "stripeOnboardingComplete" | "stripeChargesEnabled" | "stripePayoutsEnabled" | "createdAt" | "updatedAt" | "role" | "banned" | "banReason" | "banExpires", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "image" | "bio" | "address" | "publicBookingSlug" | "publicBookingSitePublished" | "publicBookingMinNoticeHours" | "clientCancellationRefundPolicy" | "archivedAt" | "calendarWeekHours" | "calendarClosedSlotKeys" | "bookingsLastViewedAt" | "emailBookingNotificationsEnabled" | "adminOnboardingCompletedAt" | "adminOnboardingStep" | "stripeAccountId" | "stripeBillingCustomerId" | "stripeOnboardingComplete" | "stripeChargesEnabled" | "stripePayoutsEnabled" | "createdAt" | "updatedAt" | "role" | "banned" | "banReason" | "banExpires", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
@@ -2216,6 +2266,10 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
      * Minimum notice (hours) required before a public booking can start.
      */
     publicBookingMinNoticeHours: number
+    /**
+     * When cancelling a paid online booking: ALWAYS = Stripe refund allowed anytime before the pro processes it; HOURS_24/48 = refund only if cancelled at least that many hours before the earliest session in the pack.
+     */
+    clientCancellationRefundPolicy: string
     archivedAt: Date | null
     /**
      * Weekly opening hours (Mon–Sun) for the admin calendar grid.
@@ -2694,6 +2748,7 @@ export interface UserFieldRefs {
   readonly publicBookingSlug: Prisma.FieldRef<"User", 'String'>
   readonly publicBookingSitePublished: Prisma.FieldRef<"User", 'Boolean'>
   readonly publicBookingMinNoticeHours: Prisma.FieldRef<"User", 'Int'>
+  readonly clientCancellationRefundPolicy: Prisma.FieldRef<"User", 'String'>
   readonly archivedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly calendarWeekHours: Prisma.FieldRef<"User", 'Json'>
   readonly calendarClosedSlotKeys: Prisma.FieldRef<"User", 'Json'>

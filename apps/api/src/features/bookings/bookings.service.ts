@@ -6,7 +6,7 @@ import { PrismaService } from "@api/src/infrastructure/prisma/prisma.service";
 import { StripeService } from "@api/src/features/stripe/stripe.service";
 import { sendEmail } from "@api/src/libs/email-libs";
 
-import type { CreateBookingInput, UpdateBookingInput } from "./bookings.schema";
+import type { CancelBookingWithRefundInput, CreateBookingInput, UpdateBookingInput } from "./bookings.schema";
 import type { ListBookingsPaginatedInput } from "./bookings.schema";
 
 const bookingInclude = { client: true, service: true } as const;
@@ -66,6 +66,9 @@ export class BookingsService {
       hostValidationAccepted: row.hostValidationAccepted,
       createdByClient: row.createdByClient,
       isUnseenInAdmin: row.createdByClient && row.adminViewedAt === null && row.status !== "cancelled",
+      bookingPackGroupId: row.bookingPackGroupId,
+      stripeCheckoutSessionId: row.stripeCheckoutSessionId,
+      stripeRefundedAt: row.stripeRefundedAt,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
       clientName: row.client.name,
@@ -165,7 +168,15 @@ export class BookingsService {
     return this.mapRow(row);
   }
 
-  async create(ownerId: string, input: CreateBookingInput, options?: { tx?: Prisma.TransactionClient }) {
+  async create(
+    ownerId: string,
+    input: CreateBookingInput,
+    options?: {
+      tx?: Prisma.TransactionClient;
+      stripeCheckoutSessionId?: string | null;
+      bookingPackGroupId?: string | null;
+    },
+  ) {
     const db = options?.tx ?? this.db;
     const client = await db.client.findFirst({
       where: { id: input.clientId, ownerId },
@@ -204,10 +215,199 @@ export class BookingsService {
         requiresHostValidation: service.requiresValidation,
         hostValidationAccepted: !service.requiresValidation,
         createdByClient: input.createdByClient ?? false,
+        bookingPackGroupId: options?.bookingPackGroupId ?? null,
+        stripeCheckoutSessionId: options?.stripeCheckoutSessionId ?? null,
       },
       include: bookingInclude,
     });
     return this.mapRow(row);
+  }
+
+  private parseOwnerRefundPolicy(raw: string): "ALWAYS" | "HOURS_24" | "HOURS_48" {
+    if (raw === "ALWAYS" || raw === "HOURS_24" || raw === "HOURS_48") {
+      return raw;
+    }
+    return "HOURS_48";
+  }
+
+  private refundPolicyMinHoursBeforeStart(policy: "ALWAYS" | "HOURS_24" | "HOURS_48"): number | null {
+    if (policy === "ALWAYS") {
+      return null;
+    }
+    if (policy === "HOURS_24") {
+      return 24;
+    }
+    return 48;
+  }
+
+  private async loadPackForBooking(ownerId: string, bookingId: string): Promise<BookingWithRelations[]> {
+    const booking = await this.db.booking.findFirst({
+      where: { id: bookingId, ownerId },
+      include: bookingInclude,
+    });
+    if (!booking) {
+      throw new NotFoundException("Booking not found");
+    }
+    const groupId = booking.bookingPackGroupId?.trim();
+    if (!groupId) {
+      return [booking];
+    }
+    return this.db.booking.findMany({
+      where: { ownerId, bookingPackGroupId: groupId },
+      include: bookingInclude,
+      orderBy: { startsAt: "asc" },
+    });
+  }
+
+  /**
+   * Whether an online Stripe refund would succeed if the client cancels now (same window as {@link cancelWithRefund} with refundStripe: true).
+   */
+  async getClientSelfCancelRefundPreview(ownerId: string, leadBookingId: string) {
+    const pack = await this.loadPackForBooking(ownerId, leadBookingId);
+    const owner = await this.db.user.findUnique({
+      where: { id: ownerId },
+      select: { clientCancellationRefundPolicy: true, stripeAccountId: true },
+    });
+    if (!owner) {
+      throw new NotFoundException("Booking not found");
+    }
+
+    const active = pack.filter((b) => b.status !== "cancelled");
+    if (active.length === 0) {
+      throw new BadRequestException("BOOKING_ALREADY_CANCELLED");
+    }
+
+    const minStart = active.reduce(
+      (min, b) => (b.startsAt.getTime() < min.getTime() ? b.startsAt : min),
+      active[0]!.startsAt,
+    );
+    const policy = this.parseOwnerRefundPolicy(owner.clientCancellationRefundPolicy);
+    const minHours = this.refundPolicyMinHoursBeforeStart(policy);
+    const msBefore = minStart.getTime() - Date.now();
+    const withinPolicy = minHours === null || msBefore >= minHours * 60 * 60 * 1000;
+
+    const totalPaid = active.reduce((s, b) => s + b.paidAmount, 0);
+    const totalPaidCents = Math.round(totalPaid * 100);
+    const sessionId =
+      active.find((b) => (b.stripeCheckoutSessionId ?? "").trim().length > 0)?.stripeCheckoutSessionId?.trim() ?? "";
+    const hasOnlinePaidAmount = totalPaidCents > 0;
+    const hasStripePipeline = sessionId.length > 0 && (owner.stripeAccountId ?? "").trim().length > 0;
+    const anyRefunded = active.some((b) => b.stripeRefundedAt !== null);
+
+    const onlineRefundWillApply = hasOnlinePaidAmount && hasStripePipeline && !anyRefunded && withinPolicy;
+
+    const refundPolicyCutoffAt =
+      minHours === null ? null : new Date(minStart.getTime() - minHours * 60 * 60 * 1000).toISOString();
+
+    return {
+      clientCancellationRefundPolicy: policy,
+      firstSessionStartsAt: minStart.toISOString(),
+      refundTotalPaid: totalPaid,
+      refundPolicyCutoffAt,
+      hasOnlinePaidAmount,
+      onlineRefundWillApply,
+    };
+  }
+
+  async cancelWithRefund(ownerId: string, input: CancelBookingWithRefundInput) {
+    if (!input.refundStripe) {
+      const pack = await this.loadPackForBooking(ownerId, input.id);
+      const activeIds = pack.filter((b) => b.status !== "cancelled").map((b) => b.id);
+      if (activeIds.length === 0) {
+        throw new BadRequestException("BOOKING_ALREADY_CANCELLED");
+      }
+      await this.db.booking.updateMany({
+        where: { id: { in: activeIds } },
+        data: {
+          status: "cancelled",
+          publicCancelToken: null,
+          publicCancelTokenExpiresAt: null,
+        },
+      });
+      return { ok: true as const, cancelledBookingIds: activeIds, stripeRefunded: false as const };
+    }
+
+    const pack = await this.loadPackForBooking(ownerId, input.id);
+    const owner = await this.db.user.findUnique({
+      where: { id: ownerId },
+      select: { stripeAccountId: true, clientCancellationRefundPolicy: true },
+    });
+    if (!owner) {
+      throw new NotFoundException("Booking not found");
+    }
+
+    const active = pack.filter((b) => b.status !== "cancelled");
+    if (active.length === 0) {
+      throw new BadRequestException("BOOKING_ALREADY_CANCELLED");
+    }
+
+    const minStart = active.reduce((min, b) => (b.startsAt.getTime() < min.getTime() ? b.startsAt : min), active[0]!.startsAt);
+    const policy = this.parseOwnerRefundPolicy(owner.clientCancellationRefundPolicy);
+    const minHours = this.refundPolicyMinHoursBeforeStart(policy);
+    if (minHours !== null) {
+      const msBefore = minStart.getTime() - Date.now();
+      if (msBefore < minHours * 60 * 60 * 1000) {
+        throw new BadRequestException("BOOKING_REFUND_OUTSIDE_POLICY_WINDOW");
+      }
+    }
+
+    const sessionId = active.find((b) => (b.stripeCheckoutSessionId ?? "").trim().length > 0)?.stripeCheckoutSessionId?.trim();
+    const totalPaid = active.reduce((s, b) => s + b.paidAmount, 0);
+    const totalPaidCents = Math.round(totalPaid * 100);
+
+    if (totalPaidCents <= 0) {
+      await this.db.booking.updateMany({
+        where: { id: { in: active.map((b) => b.id) } },
+        data: {
+          status: "cancelled",
+          paidAmount: 0,
+          publicCancelToken: null,
+          publicCancelTokenExpiresAt: null,
+        },
+      });
+      return { ok: true as const, cancelledBookingIds: active.map((b) => b.id), stripeRefunded: false as const };
+    }
+
+    if (!sessionId || !owner.stripeAccountId?.trim()) {
+      throw new BadRequestException("BOOKING_REFUND_NO_STRIPE_SESSION");
+    }
+
+    if (active.some((b) => b.stripeRefundedAt !== null)) {
+      throw new BadRequestException("BOOKING_ALREADY_REFUNDED");
+    }
+
+    const stripe = this.stripeService.getStripeClient();
+    const session = await stripe.checkout.sessions.retrieve(
+      sessionId,
+      { expand: ["payment_intent"] },
+      { stripeAccount: owner.stripeAccountId.trim() },
+    );
+    const piRaw = session.payment_intent;
+    const piId = typeof piRaw === "string" ? piRaw : piRaw && typeof piRaw === "object" && "id" in piRaw ? String(piRaw.id) : "";
+    if (!piId) {
+      throw new BadRequestException("BOOKING_REFUND_NO_PAYMENT_INTENT");
+    }
+
+    try {
+      await stripe.refunds.create({ payment_intent: piId }, { stripeAccount: owner.stripeAccountId.trim() });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      throw new BadRequestException(`BOOKING_STRIPE_REFUND_FAILED:${msg}`);
+    }
+
+    const now = new Date();
+    await this.db.booking.updateMany({
+      where: { id: { in: active.map((b) => b.id) } },
+      data: {
+        status: "cancelled",
+        paidAmount: 0,
+        stripeRefundedAt: now,
+        publicCancelToken: null,
+        publicCancelTokenExpiresAt: null,
+      },
+    });
+
+    return { ok: true as const, cancelledBookingIds: active.map((b) => b.id), stripeRefunded: true as const };
   }
 
   async countUnseenClientBookings(ownerId: string) {
@@ -287,6 +487,10 @@ export class BookingsService {
       where: { id },
       data: {
         ...(data.status !== undefined && { status: data.status }),
+        ...(data.status === "cancelled" && {
+          publicCancelToken: null,
+          publicCancelTokenExpiresAt: null,
+        }),
         ...(data.notes !== undefined && { notes: data.notes.length ? data.notes : null }),
         ...(data.startsAt !== undefined && { startsAt: new Date(data.startsAt) }),
         ...(data.durationMinutes !== undefined && { durationMinutes: data.durationMinutes }),

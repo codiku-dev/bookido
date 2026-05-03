@@ -7,6 +7,9 @@ import { AuthGuard } from "@api/src/infrastructure/decorators/auth/auth-guard.de
 
 import {
   bookingOutputSchema,
+  bookingCancelRefundPreviewOutputSchema,
+  cancelBookingWithRefundInputSchema,
+  cancelBookingWithRefundOutputSchema,
   createBookingInputSchema,
   listBookingsInputSchema,
   listBookingsPaginatedInputSchema,
@@ -14,6 +17,7 @@ import {
   markBookingsListViewedInputSchema,
   paginatedBookingsOutputSchema,
   updateBookingInputSchema,
+  type CancelBookingWithRefundInput,
   type CreateBookingInput,
   type ListBookingsInput,
   type ListBookingsPaginatedInput,
@@ -64,6 +68,15 @@ export class BookingsRouter {
   }
 
   @Query({
+    input: z.object({ id: z.string() }),
+    output: bookingCancelRefundPreviewOutputSchema,
+  })
+  getCancelRefundPreview(@Ctx() ctx: BaseUserSession, @Input("id") id: string) {
+    const ownerId = requireUserId(ctx);
+    return this.bookingsService.getClientSelfCancelRefundPreview(ownerId, id);
+  }
+
+  @Query({
     output: z.number().int(),
   })
   clientBadgeCount(@Ctx() ctx: BaseUserSession) {
@@ -94,6 +107,15 @@ export class BookingsRouter {
   ) {
     const ownerId = requireUserId(ctx);
     return this.bookingsService.update(ownerId, id, data);
+  }
+
+  @Mutation({
+    input: cancelBookingWithRefundInputSchema,
+    output: cancelBookingWithRefundOutputSchema,
+  })
+  cancelWithRefund(@Ctx() ctx: BaseUserSession, @Input() input: CancelBookingWithRefundInput) {
+    const ownerId = requireUserId(ctx);
+    return this.bookingsService.cancelWithRefund(ownerId, input);
   }
 
   @Mutation({

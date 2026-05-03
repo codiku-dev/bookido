@@ -45,6 +45,15 @@ export const messages: Record<EmailLocale, Record<string, string>> = {
     "booking.paid.scheduleFallback": "Your schedule will be confirmed by email shortly.",
     "booking.paid.footer":
       "If you did not make this payment, contact support immediately.",
+    "booking.paid.cancelHint":
+      "Something came up? To cancel or reschedule, contact {coachName} directly — reply to this email if your mail app allows it.",
+    "booking.paid.cancelWithTokenTitle": "Cancel this booking",
+    "booking.paid.cancelWithTokenUnpaidHint": "You can cancel your booking below.",
+    "booking.paid.cancelWithTokenRefundAlways":
+      "Online refund: according to your professional’s policy.",
+    "booking.paid.cancelWithTokenRefundHours":
+      "Online refund: only if you cancel at least {hours} hours in advance.",
+    "booking.paid.cancelWithTokenCta": "Cancel my booking",
     "booking.paymentRequired.preview": "Only your payment is missing",
     "booking.paymentRequired.heading": "Only your payment is missing",
     "booking.paymentRequired.greeting": "Hi {name},",
@@ -74,6 +83,17 @@ export const messages: Record<EmailLocale, Record<string, string>> = {
     "booking.proNew.cta": "Open in Bookido",
     "booking.proNew.footer":
       "You can turn these emails off anytime in Profile → Preferences.",
+    "booking.reminder.preview": "Reminder — your appointment is coming up",
+    "booking.reminder.heading": "Appointment reminder",
+    "booking.reminder.greeting": "Hi {name},",
+    "booking.reminder.intro": "This is a friendly reminder about your upcoming appointment.",
+    "booking.reminder.proHeading": "Your professional",
+    "booking.reminder.whenHeading": "When",
+    "booking.reminder.durationLabel": "Duration: {minutes} minutes",
+    "booking.reminder.whereHeading": "Address",
+    "booking.reminder.openMapLink": "Open in Google Maps",
+    "booking.reminder.footer":
+      "Questions or need to reschedule? Contact {coachName} directly — you can reply to this email if your mail app allows it.",
   },
   fr: {
     "email.brand.tagline": "Bookez simplement avec un pro.",
@@ -120,6 +140,15 @@ export const messages: Record<EmailLocale, Record<string, string>> = {
     "booking.paid.scheduleFallback": "Vos horaires seront confirmés par e-mail sous peu.",
     "booking.paid.footer":
       "Si vous n'êtes pas à l'origine de ce paiement, contactez le support.",
+    "booking.paid.cancelHint":
+      "Un imprévu ? Pour annuler ou reporter votre rendez-vous, contactez directement {coachName} — répondez à cet e-mail si votre messagerie le permet.",
+    "booking.paid.cancelWithTokenTitle": "Annuler cette réservation",
+    "booking.paid.cancelWithTokenUnpaidHint": "Vous pouvez annuler votre réservation ci-dessous.",
+    "booking.paid.cancelWithTokenRefundAlways":
+      "Remboursement (paiement en ligne) : selon les conditions de votre professionnel.",
+    "booking.paid.cancelWithTokenRefundHours":
+      "Remboursement (paiement en ligne) : uniquement si vous annulez au moins {hours} h à l’avance.",
+    "booking.paid.cancelWithTokenCta": "Annuler ma réservation",
     "booking.paymentRequired.preview": "Il ne manque que votre paiement",
     "booking.paymentRequired.heading": "Il ne manque que votre paiement",
     "booking.paymentRequired.greeting": "Bonjour {name},",
@@ -150,6 +179,17 @@ export const messages: Record<EmailLocale, Record<string, string>> = {
     "booking.proNew.cta": "Ouvrir dans Bookido",
     "booking.proNew.footer":
       "Tu peux désactiver ces e-mails dans Profil → Préférences.",
+    "booking.reminder.preview": "Rappel — votre rendez-vous approche",
+    "booking.reminder.heading": "Rappel de rendez-vous",
+    "booking.reminder.greeting": "Bonjour {name},",
+    "booking.reminder.intro": "Petit rappel concernant votre prochain rendez-vous.",
+    "booking.reminder.proHeading": "Votre professionnel",
+    "booking.reminder.whenHeading": "Quand",
+    "booking.reminder.durationLabel": "Durée : {minutes} minutes",
+    "booking.reminder.whereHeading": "Adresse",
+    "booking.reminder.openMapLink": "Ouvrir dans Google Maps",
+    "booking.reminder.footer":
+      "Une question ou besoin de reporter ? Contactez {coachName} directement — vous pouvez répondre à cet e-mail si votre messagerie le permet.",
   },
 };
 

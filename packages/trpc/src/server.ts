@@ -350,7 +350,7 @@ const appRouter = t.router({
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     delete: publicProcedure.input(z.object({ id: z.string() })).output(z.object({ id: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   }),
-  profile: t.router({ ,
+  profile: t.router({
     getAdminOnboardingStatus: publicProcedure.output(z.object({
       needsOnboarding: z.boolean(),
       bio: z.string().nullable(),
@@ -466,9 +466,13 @@ const appRouter = t.router({
       publicBookingMinNoticeHours: z.number().int().min(0).max(168),
       emailBookingNotificationsEnabled: z.boolean(),
       publicBookingSitePublished: z.boolean(),
+      clientCancellationRefundPolicy: z.enum(["ALWAYS", "HOURS_24", "HOURS_48"]),
     })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     updateEmailBookingNotifications: publicProcedure.input(z.object({
       enabled: z.boolean(),
+    })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    updateCancellationRefundPolicy: publicProcedure.input(z.object({
+      policy: z.enum(["ALWAYS", "HOURS_24", "HOURS_48"]),
     })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     updatePublicBookingSitePublished: publicProcedure.input(z.object({
       published: z.boolean(),
@@ -498,8 +502,7 @@ const appRouter = t.router({
       password: z.string().optional(),
     })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   }),
-  services: t.router({ ,
-,
+  services: t.router({
     list: publicProcedure.output(z.array(z.object({
       id: z.string(),
       userId: z.string(),
@@ -646,6 +649,9 @@ const appRouter = t.router({
       hostValidationAccepted: z.boolean(),
       createdByClient: z.boolean(),
       isUnseenInAdmin: z.boolean(),
+      bookingPackGroupId: z.string().nullable(),
+      stripeCheckoutSessionId: z.string().nullable(),
+      stripeRefundedAt: z.coerce.date().nullable(),
       createdAt: z.coerce.date(),
       updatedAt: z.coerce.date(),
       clientName: z.string(),
@@ -680,6 +686,9 @@ const appRouter = t.router({
         hostValidationAccepted: z.boolean(),
         createdByClient: z.boolean(),
         isUnseenInAdmin: z.boolean(),
+        bookingPackGroupId: z.string().nullable(),
+        stripeCheckoutSessionId: z.string().nullable(),
+        stripeRefundedAt: z.coerce.date().nullable(),
         createdAt: z.coerce.date(),
         updatedAt: z.coerce.date(),
         clientName: z.string(),
@@ -710,6 +719,9 @@ const appRouter = t.router({
       hostValidationAccepted: z.boolean(),
       createdByClient: z.boolean(),
       isUnseenInAdmin: z.boolean(),
+      bookingPackGroupId: z.string().nullable(),
+      stripeCheckoutSessionId: z.string().nullable(),
+      stripeRefundedAt: z.coerce.date().nullable(),
       createdAt: z.coerce.date(),
       updatedAt: z.coerce.date(),
       clientName: z.string(),
@@ -717,6 +729,16 @@ const appRouter = t.router({
       clientPhone: z.string(),
       serviceName: z.string(),
       allowsDirectPayment: z.boolean(),
+    })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    getCancelRefundPreview: publicProcedure.input(z.object({ id: z.string() })).output(z.object({
+      clientCancellationRefundPolicy: z.enum(["ALWAYS", "HOURS_24", "HOURS_48"]),
+      firstSessionStartsAt: z.string(),
+      /** Sum of `paidAmount` on active pack rows (online total before cancel). */
+      refundTotalPaid: z.number().nonnegative(),
+      /** Last instant still inside the refund window (first session minus policy hours); null if policy is ALWAYS. */
+      refundPolicyCutoffAt: z.string().nullable(),
+      hasOnlinePaidAmount: z.boolean(),
+      onlineRefundWillApply: z.boolean(),
     })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     clientBadgeCount: publicProcedure.output(z.number().int()).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     create: publicProcedure.input(z.object({
@@ -749,6 +771,9 @@ const appRouter = t.router({
       hostValidationAccepted: z.boolean(),
       createdByClient: z.boolean(),
       isUnseenInAdmin: z.boolean(),
+      bookingPackGroupId: z.string().nullable(),
+      stripeCheckoutSessionId: z.string().nullable(),
+      stripeRefundedAt: z.coerce.date().nullable(),
       createdAt: z.coerce.date(),
       updatedAt: z.coerce.date(),
       clientName: z.string(),
@@ -784,6 +809,9 @@ const appRouter = t.router({
       hostValidationAccepted: z.boolean(),
       createdByClient: z.boolean(),
       isUnseenInAdmin: z.boolean(),
+      bookingPackGroupId: z.string().nullable(),
+      stripeCheckoutSessionId: z.string().nullable(),
+      stripeRefundedAt: z.coerce.date().nullable(),
       createdAt: z.coerce.date(),
       updatedAt: z.coerce.date(),
       clientName: z.string(),
@@ -791,6 +819,14 @@ const appRouter = t.router({
       clientPhone: z.string(),
       serviceName: z.string(),
       allowsDirectPayment: z.boolean(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    cancelWithRefund: publicProcedure.input(z.object({
+      id: z.string(),
+      refundStripe: z.boolean(),
+    })).output(z.object({
+      ok: z.literal(true),
+      cancelledBookingIds: z.array(z.string()),
+      stripeRefunded: z.boolean(),
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     delete: publicProcedure.input(z.object({ id: z.string() })).output(z.object({ id: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     markBookingViewed: publicProcedure.input(z.object({ id: z.string() })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
@@ -915,6 +951,7 @@ const appRouter = t.router({
           }),
           closedSlotKeys: z.array(z.string()),
           minBookingNoticeHours: z.number().int().min(0).max(168),
+          cancellationRefundPolicy: z.enum(["ALWAYS", "HOURS_24", "HOURS_48"]),
           services: z.array(z.object({
             id: z.string(),
             name: z.string(),
@@ -963,6 +1000,9 @@ const appRouter = t.router({
           hostValidationAccepted: z.boolean(),
           createdByClient: z.boolean(),
           isUnseenInAdmin: z.boolean(),
+          bookingPackGroupId: z.string().nullable(),
+          stripeCheckoutSessionId: z.string().nullable(),
+          stripeRefundedAt: z.coerce.date().nullable(),
           createdAt: z.coerce.date(),
           updatedAt: z.coerce.date(),
           clientName: z.string(),
@@ -996,7 +1036,36 @@ const appRouter = t.router({
           sessionId: z.string().min(1),
         })).output(z.object({
           ok: z.literal(true),
-        })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
-      })});
+        })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+        getCancelBookingPreview: publicProcedure.input(z.object({
+          coachSlug: z
+            .string()
+            .min(2)
+            .max(96)
+            .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "INVALID_SLUG_FORMAT"),
+          token: z.string().trim().min(32).max(128),
+        })).output(z.object({
+          alreadyCancelled: z.boolean(),
+          clientCancellationRefundPolicy: z.enum(["ALWAYS", "HOURS_24", "HOURS_48"]),
+          firstSessionStartsAt: z.string(),
+          refundTotalPaid: z.number().nonnegative(),
+          refundPolicyCutoffAt: z.string().nullable(),
+          hasOnlinePaidAmount: z.boolean(),
+          onlineRefundWillApply: z.boolean(),
+        })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+        cancelByToken: publicProcedure.input(z.object({
+          coachSlug: z
+            .string()
+            .min(2)
+            .max(96)
+            .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "INVALID_SLUG_FORMAT"),
+          token: z.string().trim().min(32).max(128),
+        })).output(z.object({
+          ok: z.literal(true),
+          stripeRefunded: z.boolean(),
+          alreadyCancelled: z.boolean(),
+        })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+      }),
+});
 export type AppRouter = typeof appRouter;
 

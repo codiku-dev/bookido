@@ -55,6 +55,12 @@ export type BookingMinAggregateOutputType = {
   hostValidationAccepted: boolean | null
   createdByClient: boolean | null
   adminViewedAt: Date | null
+  bookingPackGroupId: string | null
+  stripeCheckoutSessionId: string | null
+  stripeRefundedAt: Date | null
+  publicCancelToken: string | null
+  publicCancelTokenExpiresAt: Date | null
+  clientReminder24hSentAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -76,6 +82,12 @@ export type BookingMaxAggregateOutputType = {
   hostValidationAccepted: boolean | null
   createdByClient: boolean | null
   adminViewedAt: Date | null
+  bookingPackGroupId: string | null
+  stripeCheckoutSessionId: string | null
+  stripeRefundedAt: Date | null
+  publicCancelToken: string | null
+  publicCancelTokenExpiresAt: Date | null
+  clientReminder24hSentAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -97,6 +109,12 @@ export type BookingCountAggregateOutputType = {
   hostValidationAccepted: number
   createdByClient: number
   adminViewedAt: number
+  bookingPackGroupId: number
+  stripeCheckoutSessionId: number
+  stripeRefundedAt: number
+  publicCancelToken: number
+  publicCancelTokenExpiresAt: number
+  clientReminder24hSentAt: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -132,6 +150,12 @@ export type BookingMinAggregateInputType = {
   hostValidationAccepted?: true
   createdByClient?: true
   adminViewedAt?: true
+  bookingPackGroupId?: true
+  stripeCheckoutSessionId?: true
+  stripeRefundedAt?: true
+  publicCancelToken?: true
+  publicCancelTokenExpiresAt?: true
+  clientReminder24hSentAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -153,6 +177,12 @@ export type BookingMaxAggregateInputType = {
   hostValidationAccepted?: true
   createdByClient?: true
   adminViewedAt?: true
+  bookingPackGroupId?: true
+  stripeCheckoutSessionId?: true
+  stripeRefundedAt?: true
+  publicCancelToken?: true
+  publicCancelTokenExpiresAt?: true
+  clientReminder24hSentAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -174,6 +204,12 @@ export type BookingCountAggregateInputType = {
   hostValidationAccepted?: true
   createdByClient?: true
   adminViewedAt?: true
+  bookingPackGroupId?: true
+  stripeCheckoutSessionId?: true
+  stripeRefundedAt?: true
+  publicCancelToken?: true
+  publicCancelTokenExpiresAt?: true
+  clientReminder24hSentAt?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -282,6 +318,12 @@ export type BookingGroupByOutputType = {
   hostValidationAccepted: boolean
   createdByClient: boolean
   adminViewedAt: Date | null
+  bookingPackGroupId: string | null
+  stripeCheckoutSessionId: string | null
+  stripeRefundedAt: Date | null
+  publicCancelToken: string | null
+  publicCancelTokenExpiresAt: Date | null
+  clientReminder24hSentAt: Date | null
   createdAt: Date
   updatedAt: Date
   _count: BookingCountAggregateOutputType | null
@@ -326,6 +368,12 @@ export type BookingWhereInput = {
   hostValidationAccepted?: Prisma.BoolFilter<"Booking"> | boolean
   createdByClient?: Prisma.BoolFilter<"Booking"> | boolean
   adminViewedAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  bookingPackGroupId?: Prisma.StringNullableFilter<"Booking"> | string | null
+  stripeCheckoutSessionId?: Prisma.StringNullableFilter<"Booking"> | string | null
+  stripeRefundedAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  publicCancelToken?: Prisma.StringNullableFilter<"Booking"> | string | null
+  publicCancelTokenExpiresAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  clientReminder24hSentAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Booking"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Booking"> | Date | string
   owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -350,6 +398,12 @@ export type BookingOrderByWithRelationInput = {
   hostValidationAccepted?: Prisma.SortOrder
   createdByClient?: Prisma.SortOrder
   adminViewedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  bookingPackGroupId?: Prisma.SortOrderInput | Prisma.SortOrder
+  stripeCheckoutSessionId?: Prisma.SortOrderInput | Prisma.SortOrder
+  stripeRefundedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  publicCancelToken?: Prisma.SortOrderInput | Prisma.SortOrder
+  publicCancelTokenExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  clientReminder24hSentAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   owner?: Prisma.UserOrderByWithRelationInput
@@ -359,6 +413,7 @@ export type BookingOrderByWithRelationInput = {
 
 export type BookingWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  publicCancelToken?: string
   AND?: Prisma.BookingWhereInput | Prisma.BookingWhereInput[]
   OR?: Prisma.BookingWhereInput[]
   NOT?: Prisma.BookingWhereInput | Prisma.BookingWhereInput[]
@@ -377,12 +432,17 @@ export type BookingWhereUniqueInput = Prisma.AtLeast<{
   hostValidationAccepted?: Prisma.BoolFilter<"Booking"> | boolean
   createdByClient?: Prisma.BoolFilter<"Booking"> | boolean
   adminViewedAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  bookingPackGroupId?: Prisma.StringNullableFilter<"Booking"> | string | null
+  stripeCheckoutSessionId?: Prisma.StringNullableFilter<"Booking"> | string | null
+  stripeRefundedAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  publicCancelTokenExpiresAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  clientReminder24hSentAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Booking"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Booking"> | Date | string
   owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   client?: Prisma.XOR<Prisma.ClientScalarRelationFilter, Prisma.ClientWhereInput>
   service?: Prisma.XOR<Prisma.ServiceScalarRelationFilter, Prisma.ServiceWhereInput>
-}, "id">
+}, "id" | "publicCancelToken">
 
 export type BookingOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -401,6 +461,12 @@ export type BookingOrderByWithAggregationInput = {
   hostValidationAccepted?: Prisma.SortOrder
   createdByClient?: Prisma.SortOrder
   adminViewedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  bookingPackGroupId?: Prisma.SortOrderInput | Prisma.SortOrder
+  stripeCheckoutSessionId?: Prisma.SortOrderInput | Prisma.SortOrder
+  stripeRefundedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  publicCancelToken?: Prisma.SortOrderInput | Prisma.SortOrder
+  publicCancelTokenExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  clientReminder24hSentAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.BookingCountOrderByAggregateInput
@@ -430,6 +496,12 @@ export type BookingScalarWhereWithAggregatesInput = {
   hostValidationAccepted?: Prisma.BoolWithAggregatesFilter<"Booking"> | boolean
   createdByClient?: Prisma.BoolWithAggregatesFilter<"Booking"> | boolean
   adminViewedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Booking"> | Date | string | null
+  bookingPackGroupId?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
+  stripeCheckoutSessionId?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
+  stripeRefundedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Booking"> | Date | string | null
+  publicCancelToken?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
+  publicCancelTokenExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Booking"> | Date | string | null
+  clientReminder24hSentAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Booking"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Booking"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Booking"> | Date | string
 }
@@ -448,6 +520,12 @@ export type BookingCreateInput = {
   hostValidationAccepted?: boolean
   createdByClient?: boolean
   adminViewedAt?: Date | string | null
+  bookingPackGroupId?: string | null
+  stripeCheckoutSessionId?: string | null
+  stripeRefundedAt?: Date | string | null
+  publicCancelToken?: string | null
+  publicCancelTokenExpiresAt?: Date | string | null
+  clientReminder24hSentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   owner: Prisma.UserCreateNestedOneWithoutBookingsInput
@@ -472,6 +550,12 @@ export type BookingUncheckedCreateInput = {
   hostValidationAccepted?: boolean
   createdByClient?: boolean
   adminViewedAt?: Date | string | null
+  bookingPackGroupId?: string | null
+  stripeCheckoutSessionId?: string | null
+  stripeRefundedAt?: Date | string | null
+  publicCancelToken?: string | null
+  publicCancelTokenExpiresAt?: Date | string | null
+  clientReminder24hSentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -490,6 +574,12 @@ export type BookingUpdateInput = {
   hostValidationAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdByClient?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bookingPackGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCheckoutSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeRefundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publicCancelToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicCancelTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  clientReminder24hSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner?: Prisma.UserUpdateOneRequiredWithoutBookingsNestedInput
@@ -514,6 +604,12 @@ export type BookingUncheckedUpdateInput = {
   hostValidationAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdByClient?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bookingPackGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCheckoutSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeRefundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publicCancelToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicCancelTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  clientReminder24hSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -535,6 +631,12 @@ export type BookingCreateManyInput = {
   hostValidationAccepted?: boolean
   createdByClient?: boolean
   adminViewedAt?: Date | string | null
+  bookingPackGroupId?: string | null
+  stripeCheckoutSessionId?: string | null
+  stripeRefundedAt?: Date | string | null
+  publicCancelToken?: string | null
+  publicCancelTokenExpiresAt?: Date | string | null
+  clientReminder24hSentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -553,6 +655,12 @@ export type BookingUpdateManyMutationInput = {
   hostValidationAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdByClient?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bookingPackGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCheckoutSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeRefundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publicCancelToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicCancelTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  clientReminder24hSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -574,6 +682,12 @@ export type BookingUncheckedUpdateManyInput = {
   hostValidationAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdByClient?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bookingPackGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCheckoutSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeRefundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publicCancelToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicCancelTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  clientReminder24hSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -605,6 +719,12 @@ export type BookingCountOrderByAggregateInput = {
   hostValidationAccepted?: Prisma.SortOrder
   createdByClient?: Prisma.SortOrder
   adminViewedAt?: Prisma.SortOrder
+  bookingPackGroupId?: Prisma.SortOrder
+  stripeCheckoutSessionId?: Prisma.SortOrder
+  stripeRefundedAt?: Prisma.SortOrder
+  publicCancelToken?: Prisma.SortOrder
+  publicCancelTokenExpiresAt?: Prisma.SortOrder
+  clientReminder24hSentAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -632,6 +752,12 @@ export type BookingMaxOrderByAggregateInput = {
   hostValidationAccepted?: Prisma.SortOrder
   createdByClient?: Prisma.SortOrder
   adminViewedAt?: Prisma.SortOrder
+  bookingPackGroupId?: Prisma.SortOrder
+  stripeCheckoutSessionId?: Prisma.SortOrder
+  stripeRefundedAt?: Prisma.SortOrder
+  publicCancelToken?: Prisma.SortOrder
+  publicCancelTokenExpiresAt?: Prisma.SortOrder
+  clientReminder24hSentAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -653,6 +779,12 @@ export type BookingMinOrderByAggregateInput = {
   hostValidationAccepted?: Prisma.SortOrder
   createdByClient?: Prisma.SortOrder
   adminViewedAt?: Prisma.SortOrder
+  bookingPackGroupId?: Prisma.SortOrder
+  stripeCheckoutSessionId?: Prisma.SortOrder
+  stripeRefundedAt?: Prisma.SortOrder
+  publicCancelToken?: Prisma.SortOrder
+  publicCancelTokenExpiresAt?: Prisma.SortOrder
+  clientReminder24hSentAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -803,6 +935,12 @@ export type BookingCreateWithoutOwnerInput = {
   hostValidationAccepted?: boolean
   createdByClient?: boolean
   adminViewedAt?: Date | string | null
+  bookingPackGroupId?: string | null
+  stripeCheckoutSessionId?: string | null
+  stripeRefundedAt?: Date | string | null
+  publicCancelToken?: string | null
+  publicCancelTokenExpiresAt?: Date | string | null
+  clientReminder24hSentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   client: Prisma.ClientCreateNestedOneWithoutBookingsInput
@@ -825,6 +963,12 @@ export type BookingUncheckedCreateWithoutOwnerInput = {
   hostValidationAccepted?: boolean
   createdByClient?: boolean
   adminViewedAt?: Date | string | null
+  bookingPackGroupId?: string | null
+  stripeCheckoutSessionId?: string | null
+  stripeRefundedAt?: Date | string | null
+  publicCancelToken?: string | null
+  publicCancelTokenExpiresAt?: Date | string | null
+  clientReminder24hSentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -875,6 +1019,12 @@ export type BookingScalarWhereInput = {
   hostValidationAccepted?: Prisma.BoolFilter<"Booking"> | boolean
   createdByClient?: Prisma.BoolFilter<"Booking"> | boolean
   adminViewedAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  bookingPackGroupId?: Prisma.StringNullableFilter<"Booking"> | string | null
+  stripeCheckoutSessionId?: Prisma.StringNullableFilter<"Booking"> | string | null
+  stripeRefundedAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  publicCancelToken?: Prisma.StringNullableFilter<"Booking"> | string | null
+  publicCancelTokenExpiresAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  clientReminder24hSentAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Booking"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Booking"> | Date | string
 }
@@ -893,6 +1043,12 @@ export type BookingCreateWithoutClientInput = {
   hostValidationAccepted?: boolean
   createdByClient?: boolean
   adminViewedAt?: Date | string | null
+  bookingPackGroupId?: string | null
+  stripeCheckoutSessionId?: string | null
+  stripeRefundedAt?: Date | string | null
+  publicCancelToken?: string | null
+  publicCancelTokenExpiresAt?: Date | string | null
+  clientReminder24hSentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   owner: Prisma.UserCreateNestedOneWithoutBookingsInput
@@ -915,6 +1071,12 @@ export type BookingUncheckedCreateWithoutClientInput = {
   hostValidationAccepted?: boolean
   createdByClient?: boolean
   adminViewedAt?: Date | string | null
+  bookingPackGroupId?: string | null
+  stripeCheckoutSessionId?: string | null
+  stripeRefundedAt?: Date | string | null
+  publicCancelToken?: string | null
+  publicCancelTokenExpiresAt?: Date | string | null
+  clientReminder24hSentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -959,6 +1121,12 @@ export type BookingCreateWithoutServiceInput = {
   hostValidationAccepted?: boolean
   createdByClient?: boolean
   adminViewedAt?: Date | string | null
+  bookingPackGroupId?: string | null
+  stripeCheckoutSessionId?: string | null
+  stripeRefundedAt?: Date | string | null
+  publicCancelToken?: string | null
+  publicCancelTokenExpiresAt?: Date | string | null
+  clientReminder24hSentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   owner: Prisma.UserCreateNestedOneWithoutBookingsInput
@@ -981,6 +1149,12 @@ export type BookingUncheckedCreateWithoutServiceInput = {
   hostValidationAccepted?: boolean
   createdByClient?: boolean
   adminViewedAt?: Date | string | null
+  bookingPackGroupId?: string | null
+  stripeCheckoutSessionId?: string | null
+  stripeRefundedAt?: Date | string | null
+  publicCancelToken?: string | null
+  publicCancelTokenExpiresAt?: Date | string | null
+  clientReminder24hSentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1027,6 +1201,12 @@ export type BookingCreateManyOwnerInput = {
   hostValidationAccepted?: boolean
   createdByClient?: boolean
   adminViewedAt?: Date | string | null
+  bookingPackGroupId?: string | null
+  stripeCheckoutSessionId?: string | null
+  stripeRefundedAt?: Date | string | null
+  publicCancelToken?: string | null
+  publicCancelTokenExpiresAt?: Date | string | null
+  clientReminder24hSentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1045,6 +1225,12 @@ export type BookingUpdateWithoutOwnerInput = {
   hostValidationAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdByClient?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bookingPackGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCheckoutSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeRefundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publicCancelToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicCancelTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  clientReminder24hSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   client?: Prisma.ClientUpdateOneRequiredWithoutBookingsNestedInput
@@ -1067,6 +1253,12 @@ export type BookingUncheckedUpdateWithoutOwnerInput = {
   hostValidationAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdByClient?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bookingPackGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCheckoutSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeRefundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publicCancelToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicCancelTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  clientReminder24hSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1087,6 +1279,12 @@ export type BookingUncheckedUpdateManyWithoutOwnerInput = {
   hostValidationAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdByClient?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bookingPackGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCheckoutSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeRefundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publicCancelToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicCancelTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  clientReminder24hSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1107,6 +1305,12 @@ export type BookingCreateManyClientInput = {
   hostValidationAccepted?: boolean
   createdByClient?: boolean
   adminViewedAt?: Date | string | null
+  bookingPackGroupId?: string | null
+  stripeCheckoutSessionId?: string | null
+  stripeRefundedAt?: Date | string | null
+  publicCancelToken?: string | null
+  publicCancelTokenExpiresAt?: Date | string | null
+  clientReminder24hSentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1125,6 +1329,12 @@ export type BookingUpdateWithoutClientInput = {
   hostValidationAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdByClient?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bookingPackGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCheckoutSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeRefundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publicCancelToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicCancelTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  clientReminder24hSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner?: Prisma.UserUpdateOneRequiredWithoutBookingsNestedInput
@@ -1147,6 +1357,12 @@ export type BookingUncheckedUpdateWithoutClientInput = {
   hostValidationAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdByClient?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bookingPackGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCheckoutSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeRefundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publicCancelToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicCancelTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  clientReminder24hSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1167,6 +1383,12 @@ export type BookingUncheckedUpdateManyWithoutClientInput = {
   hostValidationAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdByClient?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bookingPackGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCheckoutSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeRefundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publicCancelToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicCancelTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  clientReminder24hSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1187,6 +1409,12 @@ export type BookingCreateManyServiceInput = {
   hostValidationAccepted?: boolean
   createdByClient?: boolean
   adminViewedAt?: Date | string | null
+  bookingPackGroupId?: string | null
+  stripeCheckoutSessionId?: string | null
+  stripeRefundedAt?: Date | string | null
+  publicCancelToken?: string | null
+  publicCancelTokenExpiresAt?: Date | string | null
+  clientReminder24hSentAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1205,6 +1433,12 @@ export type BookingUpdateWithoutServiceInput = {
   hostValidationAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdByClient?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bookingPackGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCheckoutSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeRefundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publicCancelToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicCancelTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  clientReminder24hSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner?: Prisma.UserUpdateOneRequiredWithoutBookingsNestedInput
@@ -1227,6 +1461,12 @@ export type BookingUncheckedUpdateWithoutServiceInput = {
   hostValidationAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdByClient?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bookingPackGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCheckoutSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeRefundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publicCancelToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicCancelTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  clientReminder24hSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1247,6 +1487,12 @@ export type BookingUncheckedUpdateManyWithoutServiceInput = {
   hostValidationAccepted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdByClient?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminViewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bookingPackGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCheckoutSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeRefundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publicCancelToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicCancelTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  clientReminder24hSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1270,6 +1516,12 @@ export type BookingSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   hostValidationAccepted?: boolean
   createdByClient?: boolean
   adminViewedAt?: boolean
+  bookingPackGroupId?: boolean
+  stripeCheckoutSessionId?: boolean
+  stripeRefundedAt?: boolean
+  publicCancelToken?: boolean
+  publicCancelTokenExpiresAt?: boolean
+  clientReminder24hSentAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1294,6 +1546,12 @@ export type BookingSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   hostValidationAccepted?: boolean
   createdByClient?: boolean
   adminViewedAt?: boolean
+  bookingPackGroupId?: boolean
+  stripeCheckoutSessionId?: boolean
+  stripeRefundedAt?: boolean
+  publicCancelToken?: boolean
+  publicCancelTokenExpiresAt?: boolean
+  clientReminder24hSentAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1318,6 +1576,12 @@ export type BookingSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   hostValidationAccepted?: boolean
   createdByClient?: boolean
   adminViewedAt?: boolean
+  bookingPackGroupId?: boolean
+  stripeCheckoutSessionId?: boolean
+  stripeRefundedAt?: boolean
+  publicCancelToken?: boolean
+  publicCancelTokenExpiresAt?: boolean
+  clientReminder24hSentAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1342,11 +1606,17 @@ export type BookingSelectScalar = {
   hostValidationAccepted?: boolean
   createdByClient?: boolean
   adminViewedAt?: boolean
+  bookingPackGroupId?: boolean
+  stripeCheckoutSessionId?: boolean
+  stripeRefundedAt?: boolean
+  publicCancelToken?: boolean
+  publicCancelTokenExpiresAt?: boolean
+  clientReminder24hSentAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type BookingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "clientId" | "serviceId" | "startsAt" | "durationMinutes" | "price" | "paidAmount" | "status" | "notes" | "location" | "paymentMethod" | "requiresHostValidation" | "hostValidationAccepted" | "createdByClient" | "adminViewedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["booking"]>
+export type BookingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "clientId" | "serviceId" | "startsAt" | "durationMinutes" | "price" | "paidAmount" | "status" | "notes" | "location" | "paymentMethod" | "requiresHostValidation" | "hostValidationAccepted" | "createdByClient" | "adminViewedAt" | "bookingPackGroupId" | "stripeCheckoutSessionId" | "stripeRefundedAt" | "publicCancelToken" | "publicCancelTokenExpiresAt" | "clientReminder24hSentAt" | "createdAt" | "updatedAt", ExtArgs["result"]["booking"]>
 export type BookingInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
@@ -1393,6 +1663,24 @@ export type $BookingPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
      * When this booking notification has been seen in admin bookings list.
      */
     adminViewedAt: Date | null
+    /**
+     * Same UUID for all rows created in one public pack checkout (optional for admin-created rows).
+     */
+    bookingPackGroupId: string | null
+    /**
+     * Stripe Checkout session on the coach connected account (refunds use this).
+     */
+    stripeCheckoutSessionId: string | null
+    stripeRefundedAt: Date | null
+    /**
+     * Opaque token (single “lead” row per pack) for client self-cancel link in confirmation emails.
+     */
+    publicCancelToken: string | null
+    publicCancelTokenExpiresAt: Date | null
+    /**
+     * When the client 24h reminder email was sent for this session row (null = not sent yet).
+     */
+    clientReminder24hSentAt: Date | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["booking"]>
@@ -1837,6 +2125,12 @@ export interface BookingFieldRefs {
   readonly hostValidationAccepted: Prisma.FieldRef<"Booking", 'Boolean'>
   readonly createdByClient: Prisma.FieldRef<"Booking", 'Boolean'>
   readonly adminViewedAt: Prisma.FieldRef<"Booking", 'DateTime'>
+  readonly bookingPackGroupId: Prisma.FieldRef<"Booking", 'String'>
+  readonly stripeCheckoutSessionId: Prisma.FieldRef<"Booking", 'String'>
+  readonly stripeRefundedAt: Prisma.FieldRef<"Booking", 'DateTime'>
+  readonly publicCancelToken: Prisma.FieldRef<"Booking", 'String'>
+  readonly publicCancelTokenExpiresAt: Prisma.FieldRef<"Booking", 'DateTime'>
+  readonly clientReminder24hSentAt: Prisma.FieldRef<"Booking", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Booking", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Booking", 'DateTime'>
 }

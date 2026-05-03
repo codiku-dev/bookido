@@ -6,6 +6,10 @@ import { AuthGuard } from "@api/src/infrastructure/decorators/auth/auth-guard.de
 import { Public } from "@api/src/infrastructure/decorators/auth/public-procedure.decorator";
 
 import {
+  publicBookingCancelByTokenInputSchema,
+  publicBookingCancelByTokenOutputSchema,
+  publicBookingGetCancelBookingPreviewInputSchema,
+  publicBookingGetCancelBookingPreviewOutputSchema,
   publicBookingConfirmCheckoutInputSchema,
   publicBookingConfirmCheckoutOutputSchema,
   publicBookingCreateCheckoutSessionInputSchema,
@@ -14,6 +18,8 @@ import {
   publicBookingGetStorefrontOutputSchema,
   publicBookingRequestInputSchema,
   publicBookingRequestOutputSchema,
+  type PublicBookingCancelByTokenInput,
+  type PublicBookingGetCancelBookingPreviewInput,
   type PublicBookingConfirmCheckoutInput,
   type PublicBookingCreateCheckoutSessionInput,
   type PublicBookingGetStorefrontInput,
@@ -64,5 +70,23 @@ export class PublicBookingRouter {
   })
   confirmCheckout(@Ctx() _ctx: BaseUserSession, @Input() input: PublicBookingConfirmCheckoutInput) {
     return this.publicBookingService.confirmCheckoutAndCreateBooking(input);
+  }
+
+  @Public()
+  @Query({
+    input: publicBookingGetCancelBookingPreviewInputSchema,
+    output: publicBookingGetCancelBookingPreviewOutputSchema,
+  })
+  getCancelBookingPreview(@Ctx() _ctx: BaseUserSession, @Input() input: PublicBookingGetCancelBookingPreviewInput) {
+    return this.publicBookingService.getCancelBookingPreview(input);
+  }
+
+  @Public()
+  @Mutation({
+    input: publicBookingCancelByTokenInputSchema,
+    output: publicBookingCancelByTokenOutputSchema,
+  })
+  cancelByToken(@Ctx() _ctx: BaseUserSession, @Input() input: PublicBookingCancelByTokenInput) {
+    return this.publicBookingService.cancelBookingByToken(input);
   }
 }

@@ -15,7 +15,7 @@
     "lint": "npx dotenvx run -o -- eslint \"{src,apps,libs,test}/**/*.ts\"",
     "db:start": "docker compose up -d",
     "db:migrate": "npx dotenvx run -o -f .env -f .env.local.development -- prisma migrate deploy",
-    "db:update": "npx dotenvx run -o -f .env -f .env.local.development -- prisma migrate dev && npx dotenvx run -o -f .env -f .env.local.development -- prisma generate",
+    "db:update": "npx dotenvx run -o -f .env -f .env.local.development -- prisma db execute --file src/infrastructure/prisma/remove-stale-reminder-migration-record.sql && npx dotenvx run -o -f .env -f .env.local.development -- prisma migrate dev && npx dotenvx run -o -f .env -f .env.local.development -- prisma generate",
     "db:studio": "npx dotenvx run -o -f .env -f .env.local.development -- prisma studio"
   },
   "dependencies": {

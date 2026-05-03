@@ -33,6 +33,8 @@ export const envSchema = z.object({
   STRIPE_PUBLISHABLE_KEY:z.string(),
   STRIPE_SECRET_KEY:z.string(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  /** Secret for `POST /cron/jobs/*` (Bearer or `X-Bookido-Cron-Secret`). Optional until you enable cron HTTP. */
+  CRON_SECRET: z.string().optional(),
 
 });
 

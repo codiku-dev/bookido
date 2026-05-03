@@ -19,6 +19,9 @@ export const bookingOutputSchema = z.object({
   hostValidationAccepted: z.boolean(),
   createdByClient: z.boolean(),
   isUnseenInAdmin: z.boolean(),
+  bookingPackGroupId: z.string().nullable(),
+  stripeCheckoutSessionId: z.string().nullable(),
+  stripeRefundedAt: z.coerce.date().nullable(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
   clientName: z.string(),
@@ -54,6 +57,17 @@ export const paginatedBookingsOutputSchema = z.object({
 export const markBookingsListViewedInputSchema = z.object({});
 export const markBookingViewedInputSchema = z.object({ id: z.string() });
 
+export const bookingCancelRefundPreviewOutputSchema = z.object({
+  clientCancellationRefundPolicy: z.enum(["ALWAYS", "HOURS_24", "HOURS_48"]),
+  firstSessionStartsAt: z.string(),
+  /** Sum of `paidAmount` on active pack rows (online total before cancel). */
+  refundTotalPaid: z.number().nonnegative(),
+  /** Last instant still inside the refund window (first session minus policy hours); null if policy is ALWAYS. */
+  refundPolicyCutoffAt: z.string().nullable(),
+  hasOnlinePaidAmount: z.boolean(),
+  onlineRefundWillApply: z.boolean(),
+});
+
 export const createBookingInputSchema = z.object({
   clientId: z.string(),
   serviceId: z.string(),
@@ -84,3 +98,16 @@ export type ListBookingsInput = z.infer<typeof listBookingsInputSchema>;
 export type ListBookingsPaginatedInput = z.infer<typeof listBookingsPaginatedInputSchema>;
 export type MarkBookingsListViewedInput = z.infer<typeof markBookingsListViewedInputSchema>;
 export type MarkBookingViewedInput = z.infer<typeof markBookingViewedInputSchema>;
+
+export const cancelBookingWithRefundInputSchema = z.object({
+  id: z.string(),
+  refundStripe: z.boolean(),
+});
+
+export const cancelBookingWithRefundOutputSchema = z.object({
+  ok: z.literal(true),
+  cancelledBookingIds: z.array(z.string()),
+  stripeRefunded: z.boolean(),
+});
+
+export type CancelBookingWithRefundInput = z.infer<typeof cancelBookingWithRefundInputSchema>;

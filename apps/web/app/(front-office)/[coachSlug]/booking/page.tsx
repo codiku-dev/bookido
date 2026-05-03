@@ -198,6 +198,13 @@ export default function BookingPage() {
   const bookingSegments = storefrontQuery.data?.bookingSegments ?? [];
   const coach = storefrontQuery.data?.coach ?? null;
   const minBookingNoticeHours = storefrontQuery.data?.minBookingNoticeHours ?? 0;
+  const cancellationRefundPolicy = storefrontQuery.data?.cancellationRefundPolicy ?? "HOURS_48";
+  const refundPolicyRecapNote =
+    cancellationRefundPolicy === "ALWAYS"
+      ? t("public.booking.refundPolicyAlways")
+      : cancellationRefundPolicy === "HOURS_24"
+        ? t("public.booking.refundPolicyHours24")
+        : t("public.booking.refundPolicyHours48");
 
   const bookingCalendarClientClockSyncedRef = useRef(false);
   useLayoutEffect(() => {
@@ -1346,6 +1353,7 @@ export default function BookingPage() {
         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 pb-2 pt-4">
           <h2 className="mb-1 text-2xl font-bold text-slate-900">{t("public.booking.clientDetailsTitle")}</h2>
           <p className="mb-4 text-sm text-slate-600">{t("public.booking.recapSubtitle")}</p>
+          <p className="mb-4 text-xs leading-relaxed text-slate-500">{refundPolicyRecapNote}</p>
           <Form {...bookingClientForm}>
             <div className="space-y-3">
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -1470,6 +1478,7 @@ export default function BookingPage() {
       <div className="hidden mx-auto max-w-2xl rounded-2xl border border-slate-200 bg-white p-5 shadow-lg sm:p-6 md:block">
         <h2 className="mb-1 text-2xl font-bold text-slate-900">{t("public.booking.clientDetailsTitle")}</h2>
         <p className="mb-4 text-sm text-slate-600">{t("public.booking.recapSubtitle")}</p>
+        <p className="mb-4 text-xs leading-relaxed text-slate-500">{refundPolicyRecapNote}</p>
         <Form {...bookingClientForm}>
           <div className="space-y-3">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

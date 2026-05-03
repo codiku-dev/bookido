@@ -37,11 +37,12 @@ export const trpcClient = trpc.createClient({
         if (isExpectedPublicCoachNotFoundLog(opts)) {
           return false;
         }
+        const path = "path" in opts && typeof opts.path === "string" ? opts.path : undefined;
         if (
           process.env["NODE_ENV"] === "development" &&
           typeof window !== "undefined" &&
-          opts.path !== undefined &&
-          TRPC_SILENT_DEV_LOGGER_PATHS.has(opts.path)
+          path !== undefined &&
+          TRPC_SILENT_DEV_LOGGER_PATHS.has(path)
         ) {
           return false;
         }

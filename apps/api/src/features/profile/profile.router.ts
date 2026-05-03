@@ -17,6 +17,7 @@ import {
   updateProfileBasicsInputSchema,
   updatePublicBookingPresenceInputSchema,
   updateEmailBookingNotificationsInputSchema,
+  updateCancellationRefundPolicyInputSchema,
   updatePublicBookingSitePublishedInputSchema,
   type UpdateProfileAvatarInput,
   type UpdateProfileBasicsInput,
@@ -125,6 +126,18 @@ export class ProfileRouter {
   ) {
     const { id } = this.requireUser(ctx);
     return this.profileService.updateEmailBookingNotifications(id, input);
+  }
+
+  @Mutation({
+    input: updateCancellationRefundPolicyInputSchema,
+    output: z.object({ ok: z.literal(true) }),
+  })
+  updateCancellationRefundPolicy(
+    @Ctx() ctx: BaseUserSession,
+    @Input() input: z.infer<typeof updateCancellationRefundPolicyInputSchema>,
+  ) {
+    const { id } = this.requireUser(ctx);
+    return this.profileService.updateCancellationRefundPolicy(id, input);
   }
 
   @Mutation({

@@ -48,6 +48,10 @@ export const updateProfileAvatarInputSchema = z.object({
 
 export type UpdateProfileAvatarInput = z.infer<typeof updateProfileAvatarInputSchema>;
 
+export const clientCancellationRefundPolicySchema = z.enum(["ALWAYS", "HOURS_24", "HOURS_48"]);
+
+export type ClientCancellationRefundPolicy = z.infer<typeof clientCancellationRefundPolicySchema>;
+
 export const publicBookingPresenceOutputSchema = z.object({
   publicBookingSlug: z.string().nullable(),
   image: z.string().nullable(),
@@ -55,6 +59,7 @@ export const publicBookingPresenceOutputSchema = z.object({
   publicBookingMinNoticeHours: z.number().int().min(0).max(168),
   emailBookingNotificationsEnabled: z.boolean(),
   publicBookingSitePublished: z.boolean(),
+  clientCancellationRefundPolicy: clientCancellationRefundPolicySchema,
 });
 
 export const stripeConnectStatusOutputSchema = z.object({
@@ -96,6 +101,12 @@ export const updateProfileBasicsInputSchema = z.object({
 });
 
 export type UpdateProfileBasicsInput = z.infer<typeof updateProfileBasicsInputSchema>;
+
+export const updateCancellationRefundPolicyInputSchema = z.object({
+  policy: clientCancellationRefundPolicySchema,
+});
+
+export type UpdateCancellationRefundPolicyInput = z.infer<typeof updateCancellationRefundPolicyInputSchema>;
 
 export const adminOnboardingStatusOutputSchema = z.object({
   needsOnboarding: z.boolean(),

@@ -29,6 +29,7 @@ import { BookingsRouter } from "@api/src/features/bookings/bookings.router";
 import { DashboardRouter } from "@api/src/features/dashboard/dashboard.router";
 import { PublicBookingRouter } from "@api/src/features/public-booking/public-booking.router";
 import { TrpcPanelController } from "@api/src/infrastructure/docs/docs.controller";
+import { CronEndpointsModule } from "@api/src/endpoints/cron/cron-endpoints.module";
 import { AuthModule } from "@thallesp/nestjs-better-auth";
 import { auth } from "@api/src/features/authentication/auth";
 // Relative path so nestjs-trpc generator can resolve the context (it doesn't use path aliases)
@@ -51,6 +52,7 @@ import { AppContext } from "./infrastructure/trpc/app-context";
     DashboardModule,
     PublicBookingModule,
     StripeModule,
+    CronEndpointsModule,
     TrpcMiddlewaresModule,
     TRPCModule.forRoot({
       autoSchemaFile: path.resolve(__dirname, "../../../../packages/trpc/src"),

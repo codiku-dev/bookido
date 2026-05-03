@@ -227,13 +227,13 @@ export default function AdminLayout(p: { children: ReactNode }) {
   );
 
   return (
-    <div className="relative flex h-screen bg-slate-50">
+    <div className="relative flex h-screen min-h-0 overflow-hidden bg-slate-50">
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-slate-200 flex flex-col">
+      <aside className="flex min-h-0 w-64 flex-shrink-0 flex-col border-r border-slate-200 bg-white">
         {sidebarBrandHeader}
         {accountIdentity}
 
-        <nav className="flex-1 p-4">
+        <nav className="min-h-0 flex-1 overflow-y-auto p-4">
           <div className="space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -276,7 +276,7 @@ export default function AdminLayout(p: { children: ReactNode }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
+      <main className="min-h-0 min-w-0 flex-1 overflow-y-auto bg-slate-50">
         {p.children}
       </main>
       {logoutBlockingOverlay}

@@ -1,4 +1,5 @@
 import { BadRequestException, ConflictException, Injectable, Logger } from "@nestjs/common";
+import { randomBytes, randomUUID } from "node:crypto";
 import { TRPCError } from "@trpc/server";
 import {
   BookingPaidConfirmation,
@@ -34,6 +35,22 @@ export class PublicBookingService {
     private readonly stripeService: StripeService,
   ) {}
 
+  private computePublicCancelTokenExpiry(sortedSessionStarts: Date[], durationMinutes: number): Date {
+    if (sortedSessionStarts.length === 0) {
+      return new Date(Date.now() + 24 * 60 * 60 * 1000);
+    }
+    const safeDuration = Math.max(1, durationMinutes);
+    const lastEndMs = Math.max(...sortedSessionStarts.map((s) => s.getTime() + safeDuration * 60_000));
+    return new Date(lastEndMs + 24 * 60 * 60 * 1000);
+  }
+
+  private normalizeClientCancellationRefundPolicy(raw: string): "ALWAYS" | "HOURS_24" | "HOURS_48" {
+    if (raw === "ALWAYS" || raw === "HOURS_24" || raw === "HOURS_48") {
+      return raw;
+    }
+    return "HOURS_48";
+  }
+
   private getNoticeThresholdMs(minNoticeHours: number) {
     const safeHours = Math.max(0, minNoticeHours);
     return Date.now() + safeHours * 60 * 60 * 1000;
@@ -55,6 +72,7 @@ export class PublicBookingService {
         bio: true,
         address: true,
         publicBookingMinNoticeHours: true,
+        clientCancellationRefundPolicy: true,
         stripeAccountId: true,
         stripeChargesEnabled: true,
         image: true,
@@ -73,6 +91,7 @@ export class PublicBookingService {
         bio: row.bio,
         address: row.address,
         publicBookingMinNoticeHours: row.publicBookingMinNoticeHours,
+        clientCancellationRefundPolicy: this.normalizeClientCancellationRefundPolicy(row.clientCancellationRefundPolicy),
         stripeAccountId: row.stripeAccountId,
         stripeChargesEnabled: row.stripeChargesEnabled,
         image: resolveUserDisplayImage(row),
@@ -90,6 +109,7 @@ export class PublicBookingService {
         bio: true,
         address: true,
         publicBookingMinNoticeHours: true,
+        clientCancellationRefundPolicy: true,
         stripeAccountId: true,
         stripeChargesEnabled: true,
         image: true,
@@ -122,6 +142,7 @@ export class PublicBookingService {
           bio: true,
           address: true,
           publicBookingMinNoticeHours: true,
+          clientCancellationRefundPolicy: true,
           stripeAccountId: true,
           stripeChargesEnabled: true,
           image: true,
@@ -140,6 +161,9 @@ export class PublicBookingService {
           bio: raced.bio,
           address: raced.address,
           publicBookingMinNoticeHours: raced.publicBookingMinNoticeHours,
+          clientCancellationRefundPolicy: this.normalizeClientCancellationRefundPolicy(
+            raced.clientCancellationRefundPolicy,
+          ),
           stripeAccountId: raced.stripeAccountId,
           stripeChargesEnabled: raced.stripeChargesEnabled,
           image: resolveUserDisplayImage(raced),
@@ -155,6 +179,7 @@ export class PublicBookingService {
       bio: u.bio,
       address: u.address,
       publicBookingMinNoticeHours: u.publicBookingMinNoticeHours,
+      clientCancellationRefundPolicy: this.normalizeClientCancellationRefundPolicy(u.clientCancellationRefundPolicy),
       stripeAccountId: u.stripeAccountId,
       stripeChargesEnabled: u.stripeChargesEnabled,
       image: resolveUserDisplayImage(u),
@@ -174,6 +199,7 @@ export class PublicBookingService {
     clientEmail: string;
     clientName: string;
     coachName: string;
+    coachReplyToEmail?: string | null;
     coachImageUrl?: string | null;
     serviceName: string;
     serviceDurationMinutes: number;
@@ -182,6 +208,9 @@ export class PublicBookingService {
     serviceAddress: string;
     serviceMapsUrl?: string | null;
     sessionsStartsAtIso: string[];
+    clientCancelUrl?: string | null;
+    clientCancellationRefundPolicy?: "ALWAYS" | "HOURS_24" | "HOURS_48";
+    paidOnline?: boolean;
   }) {
     this.logger.log(
       `[booking-paid-confirmation] start to=${p.clientEmail} locale=${p.locale} service="${p.serviceName}" rawSessionsIso=${p.sessionsStartsAtIso.length} paidEur=${p.paidAmountEur}`,
@@ -238,6 +267,7 @@ export class PublicBookingService {
     try {
       await sendEmail({
         to: p.clientEmail,
+        replyTo: (p.coachReplyToEmail ?? "").trim().length > 0 ? (p.coachReplyToEmail ?? "").trim() : undefined,
         subject,
         fileAttachments:
           icsContent !== null
@@ -261,6 +291,9 @@ export class PublicBookingService {
           paidAmountLabel: amountLabel,
           serviceAddress: p.serviceAddress,
           serviceMapsUrl: p.serviceMapsUrl,
+          clientCancelUrl: p.clientCancelUrl,
+          clientCancellationRefundPolicy: p.clientCancellationRefundPolicy,
+          paidOnline: p.paidOnline !== false,
           sessions,
         }),
       });
@@ -396,6 +429,7 @@ export class PublicBookingService {
       weekHours: availability.weekHours,
       closedSlotKeys: availability.closedSlotKeys,
       minBookingNoticeHours: coach.publicBookingMinNoticeHours,
+      cancellationRefundPolicy: coach.clientCancellationRefundPolicy,
       services: services.filter((s) => s.isPublished).map((s) => ({
         id: s.id,
         name: s.name,
@@ -414,7 +448,7 @@ export class PublicBookingService {
 
   async requestBooking(
     input: PublicBookingRequestInput,
-    options?: { markAsPaid?: boolean; paymentMethodLabel?: string },
+    options?: { markAsPaid?: boolean; paymentMethodLabel?: string; stripeCheckoutSessionId?: string | null },
   ) {
     const coach = await this.resolveCoachBySlug(input.coachSlug);
     const ownerUserId = coach.id;
@@ -497,6 +531,12 @@ export class PublicBookingService {
     const markAsPaid = options?.markAsPaid ?? false;
     const paymentMethodLabel = options?.paymentMethodLabel?.trim() || "—";
 
+    const bookingPackGroupId = randomUUID();
+    const stripeSessionForRows =
+      markAsPaid && !service.isFree && (options?.stripeCheckoutSessionId?.trim().length ?? 0) > 0
+        ? options!.stripeCheckoutSessionId!.trim()
+        : null;
+
     const lastRow = await this.db.$transaction(async (tx) => {
       const client = await tx.client.upsert({
         where: {
@@ -541,7 +581,7 @@ export class PublicBookingService {
             paymentMethod: paymentMethodLabel,
             createdByClient: true,
           },
-          { tx },
+          { tx, bookingPackGroupId, stripeCheckoutSessionId: stripeSessionForRows },
         );
       }
       return row!;
@@ -593,12 +633,30 @@ export class PublicBookingService {
         bookingAddress.length > 0
           ? `https://www.google.com/maps?q=${encodeURIComponent(bookingAddress)}`
           : null;
+      let clientCancelUrl: string | null = null;
+      const frontendUrlForPackCancel = process.env["FRONTEND_URL"]?.trim();
+      if (frontendUrlForPackCancel) {
+        const leadBooking = await this.db.booking.findFirst({
+          where: { ownerId: ownerUserId, bookingPackGroupId, clientId: lastRow.clientId },
+          orderBy: { startsAt: "asc" },
+        });
+        if (leadBooking) {
+          const rawToken = randomBytes(32).toString("hex");
+          const expiresAt = this.computePublicCancelTokenExpiry(sorted, service.durationMinutes);
+          await this.db.booking.update({
+            where: { id: leadBooking.id },
+            data: { publicCancelToken: rawToken, publicCancelTokenExpiresAt: expiresAt },
+          });
+          clientCancelUrl = `${frontendUrlForPackCancel.replace(/\/+$/g, "")}/${encodeURIComponent(input.coachSlug)}/cancel?t=${encodeURIComponent(rawToken)}`;
+        }
+      }
       try {
         await this.sendPaidBookingConfirmationEmail({
           locale: clientLocale,
           clientEmail: email,
           clientName: normalizedClientName,
           coachName: coach.name,
+          coachReplyToEmail: coach.email,
           coachImageUrl: coach.image,
           serviceName: service.name,
           serviceDurationMinutes: service.durationMinutes,
@@ -607,6 +665,9 @@ export class PublicBookingService {
           serviceAddress: bookingAddress,
           serviceMapsUrl: bookingMapsUrl,
           sessionsStartsAtIso: sorted.map((d) => d.toISOString()),
+          clientCancelUrl,
+          clientCancellationRefundPolicy: coach.clientCancellationRefundPolicy,
+          paidOnline: clientPaidAmountEur > 0,
         });
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
@@ -876,6 +937,11 @@ export class PublicBookingService {
         throw new BadRequestException("BOOKING_CANCELLED");
       }
       const paidAmount = Math.min(pendingBooking.price, Math.max(0, pendingBooking.price));
+      const frontendUrlForCancel = process.env["FRONTEND_URL"]?.trim();
+      const cancelToken = frontendUrlForCancel ? randomBytes(32).toString("hex") : null;
+      const cancelTokenExpires = cancelToken
+        ? this.computePublicCancelTokenExpiry([pendingBooking.startsAt], pendingBooking.durationMinutes)
+        : null;
       await this.db.booking.update({
         where: { id: pendingBooking.id },
         data: {
@@ -883,8 +949,16 @@ export class PublicBookingService {
           hostValidationAccepted: true,
           paidAmount,
           paymentMethod: "Stripe Checkout",
+          stripeCheckoutSessionId: session.id,
+          ...(cancelToken && cancelTokenExpires
+            ? { publicCancelToken: cancelToken, publicCancelTokenExpiresAt: cancelTokenExpires }
+            : {}),
         },
       });
+      const clientCancelUrlPending =
+        frontendUrlForCancel && cancelToken
+          ? `${frontendUrlForCancel.replace(/\/+$/g, "")}/${encodeURIComponent(input.coachSlug)}/cancel?t=${encodeURIComponent(cancelToken)}`
+          : null;
       const serviceMapsUrl =
         pendingBooking.service.address.trim().length > 0
           ? `https://www.google.com/maps?q=${encodeURIComponent(pendingBooking.service.address)}`
@@ -898,6 +972,7 @@ export class PublicBookingService {
           clientEmail: pendingBooking.client.email,
           clientName: pendingBooking.client.name,
           coachName: coach.name,
+          coachReplyToEmail: coach.email,
           coachImageUrl: coach.image,
           serviceName: pendingBooking.service.name,
           serviceDurationMinutes: pendingBooking.service.durationMinutes,
@@ -906,6 +981,9 @@ export class PublicBookingService {
           serviceAddress: pendingBooking.service.address ?? "",
           serviceMapsUrl,
           sessionsStartsAtIso: [pendingBooking.startsAt.toISOString()],
+          clientCancelUrl: clientCancelUrlPending,
+          clientCancellationRefundPolicy: coach.clientCancellationRefundPolicy,
+          paidOnline: pendingBooking.price > 0,
         });
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
@@ -960,6 +1038,7 @@ export class PublicBookingService {
         {
           markAsPaid: true,
           paymentMethodLabel: "Stripe Checkout",
+          stripeCheckoutSessionId: session.id,
         },
       );
     } catch (error) {
@@ -994,5 +1073,73 @@ export class PublicBookingService {
     );
 
     return { ok: true };
+  }
+
+  async getCancelBookingPreview(input: { coachSlug: string; token: string }) {
+    const coach = await this.resolveCoachBySlug(input.coachSlug);
+    const token = input.token.trim();
+    if (token.length < 32) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "CANCEL_TOKEN_INVALID" });
+    }
+    const lead = await this.db.booking.findFirst({
+      where: {
+        publicCancelToken: token,
+        ownerId: coach.id,
+        createdByClient: true,
+      },
+    });
+    if (!lead) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "CANCEL_TOKEN_INVALID" });
+    }
+    if (lead.publicCancelTokenExpiresAt && lead.publicCancelTokenExpiresAt.getTime() < Date.now()) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "CANCEL_TOKEN_EXPIRED" });
+    }
+    if (lead.status === "cancelled") {
+      return {
+        alreadyCancelled: true as const,
+        clientCancellationRefundPolicy: "HOURS_48" as const,
+        firstSessionStartsAt: lead.startsAt.toISOString(),
+        refundTotalPaid: 0 as const,
+        refundPolicyCutoffAt: null,
+        hasOnlinePaidAmount: false as const,
+        onlineRefundWillApply: false as const,
+      };
+    }
+    const preview = await this.bookingsService.getClientSelfCancelRefundPreview(coach.id, lead.id);
+    return { alreadyCancelled: false as const, ...preview };
+  }
+
+  async cancelBookingByToken(input: { coachSlug: string; token: string }) {
+    const coach = await this.resolveCoachBySlug(input.coachSlug);
+    const token = input.token.trim();
+    if (token.length < 32) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "CANCEL_TOKEN_INVALID" });
+    }
+    const lead = await this.db.booking.findFirst({
+      where: {
+        publicCancelToken: token,
+        ownerId: coach.id,
+        createdByClient: true,
+      },
+    });
+    if (!lead) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "CANCEL_TOKEN_INVALID" });
+    }
+    if (lead.publicCancelTokenExpiresAt && lead.publicCancelTokenExpiresAt.getTime() < Date.now()) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "CANCEL_TOKEN_EXPIRED" });
+    }
+    if (lead.status === "cancelled") {
+      return { ok: true as const, stripeRefunded: false as const, alreadyCancelled: true as const };
+    }
+    try {
+      const result = await this.bookingsService.cancelWithRefund(coach.id, { id: lead.id, refundStripe: true });
+      return { ok: true as const, stripeRefunded: result.stripeRefunded, alreadyCancelled: false as const };
+    } catch (e) {
+      if (e instanceof BadRequestException && String(e.message).includes("BOOKING_REFUND_OUTSIDE_POLICY_WINDOW")) {
+        const result = await this.bookingsService.cancelWithRefund(coach.id, { id: lead.id, refundStripe: false });
+        return { ok: true as const, stripeRefunded: result.stripeRefunded, alreadyCancelled: false as const };
+      }
+      throw e;
+    }
   }
 }

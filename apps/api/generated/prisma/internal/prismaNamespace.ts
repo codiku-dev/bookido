@@ -1053,6 +1053,7 @@ export const UserScalarFieldEnum = {
   publicBookingSlug: 'publicBookingSlug',
   publicBookingSitePublished: 'publicBookingSitePublished',
   publicBookingMinNoticeHours: 'publicBookingMinNoticeHours',
+  clientCancellationRefundPolicy: 'clientCancellationRefundPolicy',
   archivedAt: 'archivedAt',
   calendarWeekHours: 'calendarWeekHours',
   calendarClosedSlotKeys: 'calendarClosedSlotKeys',
@@ -1139,6 +1140,12 @@ export const BookingScalarFieldEnum = {
   hostValidationAccepted: 'hostValidationAccepted',
   createdByClient: 'createdByClient',
   adminViewedAt: 'adminViewedAt',
+  bookingPackGroupId: 'bookingPackGroupId',
+  stripeCheckoutSessionId: 'stripeCheckoutSessionId',
+  stripeRefundedAt: 'stripeRefundedAt',
+  publicCancelToken: 'publicCancelToken',
+  publicCancelTokenExpiresAt: 'publicCancelTokenExpiresAt',
+  clientReminder24hSentAt: 'clientReminder24hSentAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

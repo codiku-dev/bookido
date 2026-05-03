@@ -316,6 +316,9 @@
       "slotTooSoon": "This slot can no longer be booked because the minimum notice time has passed.",
       "minNoticeHint": "Slots before {dateTime} are unavailable (minimum notice: {hours}h).",
       "minNoticeHoverHint": "This service takes place too soon. To book with this professional, please book at least {hours} hour(s) in advance.",
+      "refundPolicyAlways": "Cancellations: if you paid online, a full Stripe refund may still apply even close to your first session, depending on your professional’s policy.",
+      "refundPolicyHours24": "Cancellations: if you paid online, a full Stripe refund applies only if you cancel at least 24 hours before your first scheduled session starts.",
+      "refundPolicyHours48": "Cancellations: if you paid online, a full Stripe refund applies only if you cancel at least 48 hours before your first scheduled session starts.",
       "paymentCancelled": "Payment was cancelled.",
       "paymentStartError": "Could not start Stripe payment.",
       "paymentConfirmError": "Payment could not be confirmed.",
@@ -327,6 +330,41 @@
         "lastName": "Please enter your last name.",
         "name": "Enter your name.",
         "email": "Enter a valid email."
+      }
+    },
+    "cancelBooking": {
+      "pageTitle": "Cancellation",
+      "confirmQuestion": "Do you want to cancel this appointment?",
+      "missingToken": "Open the link from your confirmation email (button “Cancel my booking”), or paste the full URL you received.",
+      "invalidSlugTitle": "This link is not valid",
+      "invalidSlugBody": "The address looks incomplete. Use the link from your confirmation email.",
+      "confirmCta": "Confirm",
+      "confirming": "Cancelling…",
+      "previewLoading": "Checking your booking…",
+      "refundHintFree": "No online payment: nothing to refund.",
+      "refundCardAmountCaption": "Paid online",
+      "refundCardSessionCaption": "First appointment",
+      "refundCardCutoffCaption": "Cancel-by deadline for refund",
+      "refundVerdictYesTitle": "Refund applies",
+      "refundVerdictYesDetail": "Usually within a few business days to your card after you confirm.",
+      "refundVerdictNoTitle": "No refund",
+      "refundVerdictNoDetail": "The deadline above has passed; this online payment will not be refunded.",
+      "paidOnlineAmount": "Amount paid online: {amount}",
+      "firstSession": "First appointment: {datetime}",
+      "refundCutoff": "Last time to cancel with a refund: {datetime}",
+      "refundWhenSettled": "If you confirm, this amount is usually refunded within a few business days to your card.",
+      "noRefundBecauseLate": "This amount will not be refunded: the refund deadline above has passed.",
+      "successTitle": "Done",
+      "success": "Your booking has been cancelled.",
+      "successRefunded": "Your online payment was refunded.",
+      "successNoRefund": "No online refund was issued.",
+      "alreadyCancelled": "This booking was already cancelled.",
+      "backToHome": "Back to home",
+      "errors": {
+        "expired": "This cancellation link has expired. Contact your professional to change or cancel your booking.",
+        "invalid": "This link is invalid or no longer active.",
+        "coachNotFound": "This professional’s page could not be found. Check the link from your email.",
+        "loadError": "Something went wrong. Try again in a moment."
       }
     },
     "confirmation": {
@@ -499,6 +537,10 @@
         "title": "Payments",
         "body": "Payments are processed by Stripe. Connected accounts must complete onboarding and comply with Stripe requirements."
       },
+      "cancellations": {
+        "title": "Cancellations and refunds",
+        "body": "Each professional sets in Bookido whether a full Stripe refund is possible when they cancel a paid online booking: always, or only if they cancel at least 24 or 48 hours before the first scheduled session. Clients must contact the professional to cancel or reschedule; Bookido does not guarantee a refund outside the professional’s policy and Stripe’s rules."
+      },
       "liability": {
         "title": "Liability",
         "body": "Bookido provides the platform as-is and is not liable for losses caused by external payment providers or user misuse."
@@ -651,8 +693,45 @@
       "amount": "Amount",
       "cancel": "Cancel booking",
       "cancelConfirm": {
-        "title": "Confirm cancellation",
-        "description": "Do you really want to cancel this booking? This action cannot be undone."
+        "title": "Cancel appointment",
+        "question": "Do you want to cancel this appointment?",
+        "paidOnlineAmount": "Amount paid online: {amount}",
+        "firstSession": "First appointment: {datetime}",
+        "refundCutoff": "Last time to cancel with a refund: {datetime}",
+        "refundWhenSettled": "If you confirm with Stripe refund, this amount is usually refunded within a few business days.",
+        "noRefundBecauseLate": "No refund of this amount: the refund deadline above has passed.",
+        "noRefundChosen": "You are cancelling without an online refund.",
+        "noOnlineRefund": "No online payment to refund.",
+        "previewLoading": "Checking refund rules…",
+        "refundCardAmountCaption": "Paid online",
+        "refundCardSessionCaption": "First appointment",
+        "refundCardCutoffCaption": "Cancel-by deadline for refund",
+        "refundVerdictYesTitle": "Stripe refund expected",
+        "refundVerdictYesDetail": "Usually within a few business days after you confirm.",
+        "refundVerdictNoTitle": "No Stripe refund",
+        "refundVerdictNoDetail": "The deadline above has passed for an automatic refund.",
+        "refundCheckbox": "Refund the client on Stripe (full amount for this online payment)",
+        "confirmWithRefund": "Cancel and refund",
+        "confirmNoRefund": "Cancel without refund",
+        "refundedToast": "Booking cancelled and the client was refunded on Stripe."
+      },
+      "cancelErrors": {
+        "generic": "Cancellation could not be completed. Please try again or contact support.",
+        "outsidePolicy": "A Stripe refund is not allowed this close to the first session under your policy.",
+        "noStripe": "This booking has no Stripe checkout to refund.",
+        "alreadyRefunded": "This payment was already refunded on Stripe.",
+        "alreadyCancelled": "This booking is already cancelled."
+      },
+      "refundPolicyCard": {
+        "title": "Online refund (client cancellation)",
+        "intro": "Relative to the first session in the pack:",
+        "always": "Refund possible at any time before cancellation.",
+        "hours24": "Refund only if at least 24 hours remain before the first session.",
+        "hours48": "Refund only if at least 48 hours remain before the first session."
+      },
+      "stripeRefund": {
+        "label": "Stripe refund",
+        "refundedOn": "Stripe refund processed on {date}"
       },
       "client": {
         "info": "Client information"
@@ -1230,7 +1309,7 @@
     "full": {
       "name": "Full name"
     },
-    "information": "Information",
+    "information": "Public information",
     "language": "Language",
     "notifications": {
       "desc": "Get an email when a client books you via your public page (not other system emails).",
@@ -1295,7 +1374,7 @@
       }
     },
     "publicBooking": {
-      "title": "Public booking link",
+      "title": "Booking configuration",
       "subtitle": "Clients open this address to book with you.",
       "slugLabel": "URL segment",
       "slugHelp": "Lowercase letters, numbers, and hyphens only. Example: jonathan-malro-coach",
@@ -1322,6 +1401,15 @@
         "label": "Minimum booking notice (hours)",
         "hint": "Clients must book at least this many hours before the slot starts. 0 means no extra notice."
       }
+    },
+    "cancellationRefund": {
+      "title": "Refunds when clients cancel (paid online)",
+      "hint": "Choose how long before the first session a client who paid online can receive a full refund. The same timing applies when you trigger a refund from booking details.",
+      "optionAlways": "Any time: refund allowed even close to the session",
+      "option24": "At least 24 hours before the first session",
+      "option48": "At least 48 hours before the first session",
+      "saved": "Refund policy saved",
+      "saveError": "Could not save refund policy"
     }
   },
   "onboarding": {

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { weekHoursSchema } from "../profile/profile.schema";
+import { clientCancellationRefundPolicySchema, weekHoursSchema } from "../profile/profile.schema";
 import { bookingOutputSchema } from "../bookings/bookings.schema";
 
 import { publicBookingSlugSchema } from "../profile/profile.schema";
@@ -41,6 +41,7 @@ export const publicBookingGetStorefrontOutputSchema = z.object({
   weekHours: weekHoursSchema,
   closedSlotKeys: z.array(z.string()),
   minBookingNoticeHours: z.number().int().min(0).max(168),
+  cancellationRefundPolicy: clientCancellationRefundPolicySchema,
   services: z.array(publicServiceCardSchema),
   bookingSegments: z.array(publicBookingBookingSegmentSchema),
 });
@@ -71,9 +72,34 @@ export const publicBookingConfirmCheckoutOutputSchema = z.object({
   ok: z.literal(true),
 });
 
+export const publicBookingCancelByTokenInputSchema = z.object({
+  coachSlug: publicBookingSlugSchema,
+  token: z.string().trim().min(32).max(128),
+});
+
+export const publicBookingCancelByTokenOutputSchema = z.object({
+  ok: z.literal(true),
+  stripeRefunded: z.boolean(),
+  alreadyCancelled: z.boolean(),
+});
+
+export const publicBookingGetCancelBookingPreviewInputSchema = publicBookingCancelByTokenInputSchema;
+
+export const publicBookingGetCancelBookingPreviewOutputSchema = z.object({
+  alreadyCancelled: z.boolean(),
+  clientCancellationRefundPolicy: z.enum(["ALWAYS", "HOURS_24", "HOURS_48"]),
+  firstSessionStartsAt: z.string(),
+  refundTotalPaid: z.number().nonnegative(),
+  refundPolicyCutoffAt: z.string().nullable(),
+  hasOnlinePaidAmount: z.boolean(),
+  onlineRefundWillApply: z.boolean(),
+});
+
 export type PublicBookingGetStorefrontInput = z.infer<typeof publicBookingGetStorefrontInputSchema>;
 export type PublicBookingRequestInput = z.infer<typeof publicBookingRequestInputSchema>;
 export type PublicBookingCreateCheckoutSessionInput = z.infer<typeof publicBookingCreateCheckoutSessionInputSchema>;
 export type PublicBookingConfirmCheckoutInput = z.infer<typeof publicBookingConfirmCheckoutInputSchema>;
+export type PublicBookingCancelByTokenInput = z.infer<typeof publicBookingCancelByTokenInputSchema>;
+export type PublicBookingGetCancelBookingPreviewInput = z.infer<typeof publicBookingGetCancelBookingPreviewInputSchema>;
 
 export const publicBookingRequestOutputSchema = bookingOutputSchema;
