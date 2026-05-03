@@ -290,6 +290,7 @@
       "clientDetailsTitle": "Vos informations",
       "recapTitle": "Récapitulatif",
       "recapSubtitle": "Vérifiez vos informations avant de confirmer le paiement.",
+      "serviceDescriptionTitle": "À propos de cette prestation",
       "recapContactTitle": "Coordonnées client",
       "recapFullNameLabel": "Nom complet",
       "recapEmailLabel": "E-mail",
@@ -455,7 +456,7 @@
           "f1": "Page publique de réservation",
           "f2": "Services & calendrier",
           "f3": "Confirmations par e-mail",
-          "f4": "1,5 % de frais sur les ventes",
+          "f4": "Seulement 1,5 % de frais sur les ventes",
           "f5": "Dashboard de suivi des revenus"
         },
         "pro": {
@@ -742,6 +743,7 @@
       },
       "edit": "Modifier",
       "notes": "Notes",
+      "serviceDescription": "Description de la prestation",
       "payment": {
         "info": "Paiement",
         "method": "Moyen de paiement",
@@ -1535,6 +1537,19 @@
     },
     "devFill": "Remplissage dev",
     "description": "Description",
+    "descriptionEditor": {
+      "charCount": "{current} / {max}",
+      "toolbar": {
+        "bold": "Gras",
+        "italic": "Italique",
+        "heading2": "Titre 2",
+        "heading3": "Titre 3",
+        "bulletList": "Liste à puces",
+        "orderedList": "Liste numérotée",
+        "undo": "Annuler",
+        "redo": "Rétablir"
+      }
+    },
     "address": {
       "label": "Adresse de la prestation",
       "placeholder": "ex. 12 rue de la Paix, 75002 Paris",
@@ -1555,11 +1570,38 @@
         "edit": "Modifier"
       }
     },
+    "preview": {
+      "open": "Aperçu public",
+      "dialogTitle": "Aperçu de la page publique",
+      "badge": "Aperçu",
+      "hint": "Simulation vue client — la réservation est désactivée.",
+      "backToList": "Retour à la liste",
+      "viewDetails": "Voir le détail",
+      "pickSlotDisabled": "Aperçu",
+      "pickSlotHint": "La réservation n'est pas disponible en mode aperçu.",
+      "slugMissing": "Configurez l'URL publique de réservation pour ouvrir l'aperçu.",
+      "untitledService": "Prestation sans titre",
+      "defaultCoachName": "Coach"
+    },
     "imageUrl": "URL de l'image",
     "imageInput": {
-      "hint": "Uploadez une image pour ce service.",
-      "previewAlt": "Apercu de l'image du service selectionnee",
-      "previewReady": "Image selectionnee."
+      "recommendedSize": "Recommandé : {width} × {height} px (16:9), même ratio que sur la page de réservation publique. 5 Mo max.",
+      "hint": "Importez une image, puis ajustez le recadrage dans la fenêtre.",
+      "previewAlt": "Aperçu de l'image du service sélectionnée",
+      "previewReady": "Image sélectionnée.",
+      "dropPlaceholderTitle": "Ajouter une image de couverture",
+      "dropPlaceholderSubtitle": "Cliquez pour choisir un fichier · 5 Mo max",
+      "ariaUploadZone": "Choisir une image",
+      "ariaReplace": "Remplacer l'image",
+      "ariaRemoveImage": "Retirer l'image",
+      "hoverReplace": "Remplacer l'image"
+    },
+    "imageCrop": {
+      "title": "Recadrer l'image du service",
+      "description": "Faites glisser pour repositionner. Utilisez le curseur pour zoomer. Le cadre est en 16:9 comme sur les pages de réservation.",
+      "zoomLabel": "Zoom",
+      "cancel": "Annuler",
+      "apply": "Appliquer"
     },
     "minutes": "Minutes",
     "mock": {
@@ -1665,8 +1707,7 @@
       "summaryTitle": "Veuillez corriger les champs suivants :",
       "nameRequired": "Le nom est obligatoire.",
       "descriptionRequired": "La description est obligatoire.",
-      "descriptionMax": "La description ne peut pas dépasser 300 caractères.",
-      "descriptionCharCount": "{current} / {max}",
+      "descriptionMax": "La description ne peut pas dépasser {max} caractères.",
       "durationNumber": "La durée doit être un nombre valide.",
       "durationMin30": "La durée doit être d’au moins 30 minutes.",
       "durationMultipleOf30": "La durée doit être un multiple de 30 minutes (30, 60, 90…).",

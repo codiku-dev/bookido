@@ -136,3 +136,62 @@
     @apply font-sans;
   } */
 }
+
+/* TipTap (service description) */
+.tiptap-root .ProseMirror {
+  min-height: 140px;
+  outline: none;
+}
+.tiptap-root .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: oklch(0.55 0.02 250);
+}
+.tiptap-root .ProseMirror ul,
+.tiptap-root .ProseMirror ol {
+  margin: 0.35rem 0;
+  padding-left: 1.5rem;
+}
+.tiptap-root .ProseMirror ul {
+  list-style-type: disc;
+  list-style-position: outside;
+}
+.tiptap-root .ProseMirror ol {
+  list-style-type: decimal;
+  list-style-position: outside;
+}
+.tiptap-root .ProseMirror li {
+  display: list-item;
+  padding-inline-start: 0.125rem;
+}
+.tiptap-root .ProseMirror li > p {
+  margin: 0.15rem 0;
+}
+.tiptap-root .ProseMirror h2 {
+  margin: 0.65rem 0 0.35rem;
+  font-size: 1.125rem;
+  line-height: 1.35;
+  font-weight: 600;
+  color: oklch(0.2 0.02 250);
+}
+.tiptap-root .ProseMirror h2:first-child {
+  margin-top: 0;
+}
+.tiptap-root .ProseMirror h3 {
+  margin: 0.55rem 0 0.3rem;
+  font-size: 1rem;
+  line-height: 1.35;
+  font-weight: 600;
+  color: oklch(0.22 0.02 250);
+}
+.tiptap-root .ProseMirror h3:first-child {
+  margin-top: 0;
+}
+.tiptap-root .ProseMirror blockquote {
+  border-left: 3px solid oklch(0.9 0.01 250);
+  padding-left: 0.75rem;
+  margin: 0.5rem 0;
+  color: oklch(0.4 0.02 250);
+}

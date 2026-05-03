@@ -13,6 +13,7 @@ import {
   CreditCard,
   Copy,
   Euro,
+  Eye,
   FileText,
   FilterX,
   Globe,
@@ -22,6 +23,7 @@ import {
   Package,
   Plus,
   Search,
+  ImageUp,
   Upload,
   Wallet,
   X,
@@ -29,7 +31,6 @@ import {
 import { Button } from "#/components/ui/button";
 import { Label } from "#/components/ui/label";
 import { Input } from "#/components/ui/input";
-import { Textarea } from "#/components/ui/textarea";
 import { Checkbox } from "#/components/ui/checkbox";
 import {
   Form,
@@ -58,9 +59,23 @@ import {
 import { CalendarSlotHoverHint, WeeklyTimeGrid } from "#/components/calendar/WeeklyTimeGrid";
 import type { inferRouterOutputs } from "@trpc/server";
 import type { AppRouter } from "@repo/trpc/router";
+import { useSession } from "@web/libs/auth-client";
 import { trpc } from "@web/libs/trpc-client";
+import { ServicePublicPreviewDialog } from "#/components/service-public-preview-dialog";
+import { ServiceDescriptionEditor } from "#/components/tiptap/service-description-editor";
+import type {
+  PublicStorefrontCoachCard,
+  PublicStorefrontServiceCard,
+} from "#/components/public-storefront/public-storefront-service.types";
 import { SERVICE_DESCRIPTION_MAX_CHARS } from "#/utils/service-description-limit";
+import { normalizeServiceDescriptionHtml } from "#/utils/service-description-html";
+import { plainTextFromHtml } from "#/utils/rich-text-plain";
 import { GooglePlacesAddressField } from "#/components/GooglePlacesAddressField";
+import { ServiceImageCropDialog } from "#/components/service-image-crop-dialog";
+import {
+  SERVICE_BOOKING_IMAGE_RECOMMENDED_HEIGHT,
+  SERVICE_BOOKING_IMAGE_RECOMMENDED_WIDTH,
+} from "#/utils/service-image-crop";
 
 type ServiceRow = inferRouterOutputs<AppRouter>["services"]["list"][number];
 
@@ -82,18 +97,22 @@ const buildServiceFormSchema = (p: {
   packSizePositive: string;
   priceNumber: string;
   priceNonNegative: string;
-  imageRequired: string;
   imageInvalidType: string;
 }) => {
   const normalizedNumeric = z.union([z.string(), z.number()]).transform((value) => String(value).trim());
 
   return z.object({
     name: z.string().min(1, p.nameRequired),
-    description: z
-      .string()
-      .trim()
-      .min(1, p.descriptionRequired)
-      .max(SERVICE_DESCRIPTION_MAX_CHARS, p.descriptionMax),
+    description: z.string().superRefine((val, ctx) => {
+      const normalized = normalizeServiceDescriptionHtml(val);
+      const plain = plainTextFromHtml(normalized);
+      if (plain.length < 1) {
+        ctx.addIssue({ code: "custom", message: p.descriptionRequired });
+      }
+      if (plain.length > SERVICE_DESCRIPTION_MAX_CHARS) {
+        ctx.addIssue({ code: "custom", message: p.descriptionMax });
+      }
+    }),
     duration: normalizedNumeric
       .refine((value) => value.length > 0, p.durationNumber)
       .refine((value) => /^\d+$/.test(value), p.durationNumber)
@@ -114,10 +133,15 @@ const buildServiceFormSchema = (p: {
       .refine((value) => /^\d+(?:[.,]\d+)?$/.test(value), p.priceNumber)
       .refine((value) => Number.parseFloat(value.replace(",", ".")) >= 0, p.priceNonNegative),
     isFree: z.boolean(),
-    imageUrl: z
-      .string()
-      .min(1, p.imageRequired)
-      .refine((value) => value.startsWith("data:image/"), p.imageInvalidType),
+    imageUrl: z.string().refine(
+      (value) => {
+        const trimmed = value.trim();
+        if (trimmed.length === 0) return true;
+        if (trimmed.startsWith("data:image/")) return true;
+        return trimmed.startsWith("https://") || trimmed.startsWith("http://");
+      },
+      { message: p.imageInvalidType },
+    ),
     address: z.string().trim().min(1, p.addressRequired).max(500),
     addressFromPlaces: z.boolean(),
     requiresValidation: z.boolean(),
@@ -188,8 +212,13 @@ function getDuplicatedServiceName(p: { originalName: string; existingNames: stri
   return `${baseName} (copie ${maxCopyIndex + 1})`;
 }
 
+function publicBookingSlugLooksValid(slug: string) {
+  return slug.length >= 2 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(slug);
+}
+
 export default function ServicesManagement() {
   const t = useTranslations();
+  const { data: sessionPayload } = useSession();
   const utils = trpc.useUtils();
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -203,8 +232,11 @@ export default function ServicesManagement() {
   const [durationFilter, setDurationFilter] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<25 | 50 | 100>(25);
+  const [servicePreviewOpen, setServicePreviewOpen] = useState(false);
   const showDevFill = process.env.NODE_ENV === "development";
   const imageUploadInputRef = useRef<HTMLInputElement | null>(null);
+  const [serviceImageCropOpen, setServiceImageCropOpen] = useState(false);
+  const [serviceImageCropSrc, setServiceImageCropSrc] = useState<string | null>(null);
   const availabilityDragRef = useRef<{
     active: boolean;
     mode: "close" | "open" | null;
@@ -220,7 +252,7 @@ export default function ServicesManagement() {
       buildServiceFormSchema({
         nameRequired: t("services.validation.nameRequired"),
         descriptionRequired: t("services.validation.descriptionRequired"),
-        descriptionMax: t("services.validation.descriptionMax"),
+        descriptionMax: t("services.validation.descriptionMax", { max: SERVICE_DESCRIPTION_MAX_CHARS }),
         addressRequired: t("services.validation.addressRequired"),
         durationNumber: t("services.validation.durationNumber"),
         durationMin30: t("services.validation.durationMin30"),
@@ -229,7 +261,6 @@ export default function ServicesManagement() {
         packSizePositive: t("services.validation.packSizePositive"),
         priceNumber: t("services.validation.priceNumber"),
         priceNonNegative: t("services.validation.priceNonNegative"),
-        imageRequired: t("services.validation.imageRequired"),
         imageInvalidType: t("services.validation.imageInvalidType"),
       }),
     [t],
@@ -299,6 +330,53 @@ export default function ServicesManagement() {
     defaultValues: getServiceFormDefaults(),
   });
 
+  const watchedForm = useWatch({ control: form.control });
+
+  const coachSlugForPublicPreview = (profilePresenceQuery.data?.publicBookingSlug ?? "").trim();
+
+  const coachCardForPublicPreview = useMemo((): PublicStorefrontCoachCard | null => {
+    const presence = profilePresenceQuery.data;
+    if (!presence) {
+      return null;
+    }
+    const name = sessionPayload?.user?.name?.trim() ?? "";
+    return {
+      name: name.length > 0 ? name : t("services.preview.defaultCoachName"),
+      bio: null,
+      imageUrl: presence.image ?? null,
+    };
+  }, [profilePresenceQuery.data, sessionPayload?.user?.name, t]);
+
+  const draftPublicPreviewService = useMemo((): PublicStorefrontServiceCard | null => {
+    if (!isAdding && !editingId) {
+      return null;
+    }
+    const w = watchedForm as ServiceFormValues | undefined;
+    if (!w) {
+      return null;
+    }
+    const duration = Number.parseInt(String(w.duration ?? "60"), 10);
+    const packSize = Number.parseInt(String(w.packSize ?? "1"), 10);
+    const priceNum = Number.parseFloat(String(w.price ?? "0").replace(",", "."));
+    const safeDuration = Number.isFinite(duration) && duration >= 30 ? duration : 60;
+    const safePack = Number.isFinite(packSize) && packSize >= 1 ? packSize : 1;
+    const safePrice = Number.isFinite(priceNum) && priceNum >= 0 ? priceNum : 0;
+    const isFree = w.isFree === true || safePrice === 0;
+    const nameTrim = (w.name ?? "").trim();
+    const imageTrim = (w.imageUrl ?? "").trim();
+    return {
+      id: editingId ?? "__bookido_local_preview__",
+      name: nameTrim.length > 0 ? nameTrim : t("services.preview.untitledService"),
+      description: normalizeServiceDescriptionHtml(w.description ?? ""),
+      imageUrl: imageTrim.length > 0 ? imageTrim : null,
+      address: (w.address ?? "").trim(),
+      durationMinutes: safeDuration,
+      packSize: safePack,
+      price: safePrice,
+      isFree,
+    };
+  }, [watchedForm, isAdding, editingId, t]);
+
   const watchedPrice = useWatch({ control: form.control, name: "price", defaultValue: "0" });
   const stripeReadyForPaidPublish = Boolean(
     stripeConnectQuery.data?.stripeAccountId && stripeConnectQuery.data?.stripeChargesEnabled,
@@ -359,7 +437,7 @@ export default function ServicesManagement() {
     setEditingId(service.id);
     form.reset({
       name: service.name,
-      description: service.description,
+      description: normalizeServiceDescriptionHtml(service.description),
       duration: String(service.durationMinutes),
       packSize: String(service.packSize),
       price: String(service.price),
@@ -382,7 +460,7 @@ export default function ServicesManagement() {
     });
     createMutation.mutate({
       name: nextName,
-      description: service.description,
+      description: normalizeServiceDescriptionHtml(service.description),
       durationMinutes: service.durationMinutes,
       packSize: service.packSize,
       price: service.price,
@@ -497,6 +575,16 @@ export default function ServicesManagement() {
     };
   }, [resetAvailabilityDrag]);
 
+  const dismissServiceImageCrop = useCallback(() => {
+    setServiceImageCropOpen(false);
+    setServiceImageCropSrc((prev) => {
+      if (prev) {
+        URL.revokeObjectURL(prev);
+      }
+      return null;
+    });
+  }, []);
+
   const handleImageUploadChange = (file: File | null) => {
     if (!file) return;
     if (!file.type.startsWith("image/")) {
@@ -507,15 +595,13 @@ export default function ServicesManagement() {
       form.setError("imageUrl", { message: t("services.validation.imageTooLarge") });
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = typeof reader.result === "string" ? reader.result : "";
-      if (result.length > 0) {
-        form.clearErrors("imageUrl");
-        form.setValue("imageUrl", result, { shouldDirty: true, shouldValidate: true });
+    setServiceImageCropSrc((prev) => {
+      if (prev) {
+        URL.revokeObjectURL(prev);
       }
-    };
-    reader.readAsDataURL(file);
+      return URL.createObjectURL(file);
+    });
+    setServiceImageCropOpen(true);
   };
 
   const onSubmit = (values: ServiceFormValues) => {
@@ -531,6 +617,10 @@ export default function ServicesManagement() {
       return;
     }
     const trimmedImage = values.imageUrl.trim();
+    if (!editingId && trimmedImage.length === 0) {
+      form.setError("imageUrl", { message: t("services.validation.imageRequired") });
+      return;
+    }
     const parsedDuration = Number.parseInt(values.duration, 10);
     const parsedPackSize = Number.parseInt(values.packSize, 10);
     const parsedPrice = Number.parseFloat(values.price.replace(",", "."));
@@ -852,8 +942,6 @@ export default function ServicesManagement() {
         </DropdownMenu>
       </div>
 
-      {service.description ? <p className="text-sm text-slate-600 mb-4">{service.description}</p> : null}
-
       <div className="mb-3 flex items-center gap-1.5 text-xs font-medium text-slate-700">
         {service.allowsDirectPayment ? (
           <Wallet className="size-3.5" aria-hidden />
@@ -897,15 +985,38 @@ export default function ServicesManagement() {
   const renderForm = () => {
     if (!isAdding && !editingId) return null;
 
+    const publicPreviewButton = (
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="shrink-0 gap-2"
+        disabled={!publicBookingSlugLooksValid(coachSlugForPublicPreview)}
+        title={!publicBookingSlugLooksValid(coachSlugForPublicPreview) ? t("services.preview.slugMissing") : undefined}
+        onClick={() => setServicePreviewOpen(true)}
+      >
+        <Eye className="size-4" aria-hidden />
+        {t("services.preview.open")}
+      </Button>
+    );
+
+    const formTitleRow = (
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-xl font-bold text-slate-900">
+          {isAdding ? t("services.form.title.create") : t("services.form.title.edit")}
+        </h2>
+        {publicPreviewButton}
+      </div>
+    );
+
     return (
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="rounded-xl border border-slate-200 bg-slate-50/50 p-6 shadow-sm"
-        >
-          <h2 className="text-xl font-bold text-slate-900 mb-6">
-            {isAdding ? t("services.form.title.create") : t("services.form.title.edit")}
-          </h2>
+      <>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="rounded-xl border border-slate-200 bg-slate-50/50 p-6 shadow-sm"
+          >
+            {formTitleRow}
           {form.formState.submitCount > 0 && formErrorMessages.length > 0 ? (
             <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               <p className="font-semibold">{t("services.validation.summaryTitle")}</p>
@@ -941,25 +1052,13 @@ export default function ServicesManagement() {
               name="description"
               render={({ field }) => (
                 <FormItem className="md:col-span-2">
-                  <div className="flex items-end justify-between gap-2">
-                    <FormLabel>{t("services.description")}</FormLabel>
-                    <span className="text-xs text-slate-500 tabular-nums">
-                      {t("services.validation.descriptionCharCount", {
-                        current: field.value.length,
-                        max: SERVICE_DESCRIPTION_MAX_CHARS,
-                      })}
-                    </span>
-                  </div>
+                  <FormLabel>{t("services.description")}</FormLabel>
                   <FormControl>
-                    <Textarea
-                      {...field}
-                      maxLength={SERVICE_DESCRIPTION_MAX_CHARS}
+                    <ServiceDescriptionEditor
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
                       placeholder={t("services.form.placeholders.description")}
-                      rows={3}
-                      className="rounded-xl min-h-[96px]"
-                      onChange={(e) => {
-                        field.onChange(e.target.value.slice(0, SERVICE_DESCRIPTION_MAX_CHARS));
-                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -1119,33 +1218,116 @@ export default function ServicesManagement() {
             <FormField
               control={form.control}
               name="imageUrl"
-              render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <div className="flex items-center gap-2">
-                    <FormLabel>{t("services.imageUrl")}</FormLabel>
-                    <Upload className="w-4 h-4 text-slate-500" />
-                  </div>
-                  <div className="space-y-2">
-                    <Input
-                      ref={imageUploadInputRef}
-                      type="file"
-                      accept="image/*"
-                      className="rounded-xl h-11 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1"
-                      onChange={(e) => handleImageUploadChange(e.target.files?.[0] ?? null)}
-                    />
+              render={({ field }) => {
+                const hasImage = Boolean(field.value?.trim().length);
+                const openImagePicker = () => imageUploadInputRef.current?.click();
+
+                const hiddenFileInput = (
+                  <input
+                    ref={imageUploadInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    tabIndex={-1}
+                    onChange={(e) => {
+                      handleImageUploadChange(e.target.files?.[0] ?? null);
+                      e.target.value = "";
+                    }}
+                  />
+                );
+
+                const hintBlock = (
+                  <>
+                    <p className="text-xs text-slate-500">
+                      {t("services.imageInput.recommendedSize", {
+                        width: SERVICE_BOOKING_IMAGE_RECOMMENDED_WIDTH,
+                        height: SERVICE_BOOKING_IMAGE_RECOMMENDED_HEIGHT,
+                      })}
+                    </p>
                     <p className="text-xs text-slate-500">{t("services.imageInput.hint")}</p>
-                    {field.value?.length ? (
-                      <div className="overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
-                        <img src={field.value} alt={t("services.imageInput.previewAlt")} className="h-40 w-full object-cover" />
-                      </div>
-                    ) : null}
-                    {field.value?.length ? (
-                      <p className="text-xs text-slate-500">{t("services.imageInput.previewReady")}</p>
-                    ) : null}
+                  </>
+                );
+
+                const emptyDropZone = (
+                  <button
+                    type="button"
+                    onClick={openImagePicker}
+                    aria-label={t("services.imageInput.ariaUploadZone")}
+                    className="flex aspect-video w-full max-w-3xl cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50/80 px-4 py-8 text-center transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/40"
+                  >
+                    <Upload className="size-10 text-slate-400" aria-hidden />
+                    <span className="text-sm font-medium text-slate-700">{t("services.imageInput.dropPlaceholderTitle")}</span>
+                    <span className="text-xs text-slate-500">{t("services.imageInput.dropPlaceholderSubtitle")}</span>
+                  </button>
+                );
+
+                const clearServiceImage = () => {
+                  form.setValue("imageUrl", "", {
+                    shouldDirty: true,
+                    shouldTouch: true,
+                    shouldValidate: true,
+                  });
+                  form.clearErrors("imageUrl");
+                  if (imageUploadInputRef.current) {
+                    imageUploadInputRef.current.value = "";
+                  }
+                  dismissServiceImageCrop();
+                };
+
+                const previewReplaceButton = (
+                  <button
+                    type="button"
+                    onClick={openImagePicker}
+                    aria-label={t("services.imageInput.ariaReplace")}
+                    className="group/btn absolute inset-0 z-0 flex cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600/40"
+                  >
+                    <img
+                      src={field.value}
+                      alt={t("services.imageInput.previewAlt")}
+                      className="h-full w-full object-cover"
+                    />
+                    <span className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-900/55 opacity-0 transition-opacity group-hover/btn:opacity-100">
+                      <ImageUp className="size-10 text-white drop-shadow" aria-hidden />
+                      <span className="text-sm font-medium text-white">{t("services.imageInput.hoverReplace")}</span>
+                    </span>
+                  </button>
+                );
+
+                const previewRemoveButton = (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="icon"
+                    className="absolute right-2 top-2 z-10 size-9 rounded-full border-0 bg-black/55 text-white shadow-md hover:bg-black/75 focus-visible:ring-white/80"
+                    aria-label={t("services.imageInput.ariaRemoveImage")}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      clearServiceImage();
+                    }}
+                  >
+                    <X className="size-4" aria-hidden />
+                  </Button>
+                );
+
+                const previewDropZone = (
+                  <div className="relative aspect-video w-full max-w-3xl overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
+                    {previewReplaceButton}
+                    {previewRemoveButton}
                   </div>
-                  <FormMessage />
-                </FormItem>
-              )}
+                );
+
+                return (
+                  <FormItem className="md:col-span-2">
+                    <FormLabel>{t("services.imageUrl")}</FormLabel>
+                    <div className="space-y-2">
+                      {hiddenFileInput}
+                      {hintBlock}
+                      {hasImage ? previewDropZone : emptyDropZone}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
           </div>
 
@@ -1304,6 +1486,16 @@ export default function ServicesManagement() {
           </div>
         </form>
       </Form>
+        {draftPublicPreviewService ? (
+          <ServicePublicPreviewDialog
+            open={servicePreviewOpen}
+            onOpenChange={setServicePreviewOpen}
+            coachSlug={coachSlugForPublicPreview}
+            coach={coachCardForPublicPreview}
+            draftServices={[draftPublicPreviewService]}
+          />
+        ) : null}
+      </>
     );
   };
 
@@ -1439,6 +1631,22 @@ export default function ServicesManagement() {
       {visibilityTopBanner}
       {mainWhitePanel}
       {renderDeleteDialog()}
+      <ServiceImageCropDialog
+        open={serviceImageCropOpen}
+        onOpenChange={(next) => {
+          if (!next) {
+            dismissServiceImageCrop();
+          }
+        }}
+        imageSrc={serviceImageCropSrc}
+        onApply={(dataUrl) => {
+          form.clearErrors("imageUrl");
+          form.setValue("imageUrl", dataUrl, { shouldDirty: true, shouldValidate: true });
+          if (imageUploadInputRef.current) {
+            imageUploadInputRef.current.value = "";
+          }
+        }}
+      />
     </div>
   );
 }

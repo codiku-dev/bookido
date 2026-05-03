@@ -37,6 +37,7 @@ import { Label } from "#/components/ui/label";
 import { useLanguage } from "#/components/use-language";
 import { formatShortDate } from "#/utils/dateFormat";
 import { bookingLocalTimeHm, getBookingAmountRemaining, paymentKindFromAmounts } from "#/utils/booking-dates";
+import { SafeHtml } from "#/components/rich-text/safe-html";
 import { trpc } from "@web/libs/trpc-client";
 import {
   CancelRefundPreviewPanel,
@@ -450,6 +451,15 @@ export default function BookingDetail() {
 
   const notesText = booking.notes?.trim().length ? booking.notes : "—";
 
+  const serviceDescriptionHtml = (booking.serviceDescription ?? "").trim();
+  const serviceDescriptionCard =
+    serviceDescriptionHtml.length > 0 ? (
+      <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-6 md:p-8">
+        <h3 className="mb-3 text-xl font-bold text-slate-900">{t("booking.detail.serviceDescription")}</h3>
+        <SafeHtml html={serviceDescriptionHtml} className="text-slate-700" />
+      </div>
+    ) : null;
+
   const notesCard = (
     <div className="bg-white rounded-2xl border border-slate-200 p-6">
       <h3 className="font-bold text-slate-900 mb-4">{t("booking.detail.notes")}</h3>
@@ -606,6 +616,7 @@ export default function BookingDetail() {
         {pageTopBar}
         {validationPendingBanner}
         {mainInfoCard}
+        {serviceDescriptionCard}
         <div className="grid md:grid-cols-2 gap-6 mb-6">
           {paymentCard}
           {notesCard}

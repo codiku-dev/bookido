@@ -2267,7 +2267,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
      */
     publicBookingMinNoticeHours: number
     /**
-     * When cancelling a paid online booking: ALWAYS = Stripe refund allowed anytime before the pro processes it; HOURS_24/48 = refund only if cancelled at least that many hours before the earliest session in the pack.
+     * Full Stripe refund timing for paid online bookings (client self-cancel or coach refund): ALWAYS = no minimum notice; HOURS_24/48 = only if at least that many hours remain before the first session in the pack.
      */
     clientCancellationRefundPolicy: string
     archivedAt: Date | null

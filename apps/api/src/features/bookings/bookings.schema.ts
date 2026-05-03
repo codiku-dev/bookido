@@ -31,6 +31,11 @@ export const bookingOutputSchema = z.object({
   allowsDirectPayment: z.boolean(),
 });
 
+/** Détail réservation admin : description HTML du service lié. */
+export const bookingDetailOutputSchema = bookingOutputSchema.extend({
+  serviceDescription: z.string(),
+});
+
 export const listBookingsInputSchema = z.object({
   rangeFrom: z.string().datetime().optional(),
   rangeTo: z.string().datetime().optional(),

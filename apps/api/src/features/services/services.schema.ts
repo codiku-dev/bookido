@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { plainTextFromHtml } from "@api/src/utils/rich-text-plain";
 import { SERVICE_DESCRIPTION_MAX_CHARS } from "./service-limits";
 
 /** Matches 30-minute calendar grid; minimum one slot. */
@@ -28,9 +29,27 @@ export const serviceSchema = z.object({
   updatedAt: z.coerce.date(),
 });
 
+const serviceDescriptionField = z.string().superRefine((val, ctx) => {
+  const trimmed = val.trim();
+  if (trimmed.length === 0) {
+    ctx.addIssue({ code: "custom", message: "SERVICE_DESCRIPTION_REQUIRED" });
+    return;
+  }
+  const plain = plainTextFromHtml(trimmed);
+  if (plain.length < 1) {
+    ctx.addIssue({ code: "custom", message: "SERVICE_DESCRIPTION_REQUIRED" });
+  }
+  if (plain.length > SERVICE_DESCRIPTION_MAX_CHARS) {
+    ctx.addIssue({ code: "custom", message: "SERVICE_DESCRIPTION_TOO_LONG" });
+  }
+  if (trimmed.length > 80_000) {
+    ctx.addIssue({ code: "custom", message: "SERVICE_DESCRIPTION_HTML_TOO_LONG" });
+  }
+});
+
 export const createServiceSchema = z.object({
   name: z.string().min(1),
-  description: z.string().trim().min(1).max(SERVICE_DESCRIPTION_MAX_CHARS),
+  description: serviceDescriptionField,
   durationMinutes: serviceDurationMinutesSchema,
   price: z.number().nonnegative(),
   isFree: z.boolean(),

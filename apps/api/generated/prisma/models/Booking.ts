@@ -1678,7 +1678,7 @@ export type $BookingPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     publicCancelToken: string | null
     publicCancelTokenExpiresAt: Date | null
     /**
-     * When the client 24h reminder email was sent for this session row (null = not sent yet).
+     * When the client reminder email was sent for this session row (null = not sent yet).
      */
     clientReminder24hSentAt: Date | null
     createdAt: Date

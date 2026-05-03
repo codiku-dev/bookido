@@ -165,7 +165,10 @@ export class BookingsService {
     if (!row) {
       throw new NotFoundException("Booking not found");
     }
-    return this.mapRow(row);
+    return {
+      ...this.mapRow(row),
+      serviceDescription: row.service.description ?? "",
+    };
   }
 
   async create(

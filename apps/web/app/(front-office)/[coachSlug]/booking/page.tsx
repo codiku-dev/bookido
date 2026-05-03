@@ -38,6 +38,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "#/components/ui/select";
+import { PublicBookingServiceIntroStep } from "#/components/public-storefront/public-booking-service-intro-step";
+import { PublicServiceBookingImage } from "#/components/public-service-booking-image";
+import { SafeHtml } from "#/components/rich-text/safe-html";
 import { trpc } from "@web/libs/trpc-client";
 import { isPublicCoachStorefrontNotFoundError } from "#/utils/trpc-public-coach-not-found";
 import { DEFAULT_CALENDAR_WEEK_HOURS, type WeekHours } from "#/utils/calendar-availability";
@@ -115,6 +118,13 @@ function getMonthDates(anchor: Date) {
     dates.push(new Date(year, month, day));
   }
   return dates;
+}
+
+function publicBookingMobileHeroImageClass(heroSrc: string, serviceImageUrl: string | null | undefined) {
+  const isServiceShot = Boolean(serviceImageUrl && heroSrc === serviceImageUrl);
+  return isServiceShot
+    ? "h-full w-full object-contain object-center bg-slate-100"
+    : "h-full w-full object-cover object-center";
 }
 
 export default function BookingPage() {
@@ -311,13 +321,19 @@ export default function BookingPage() {
     [selectedService?.imageUrl, coach?.imageUrl],
   );
 
-  const selectedServiceGoogleMapsHref = selectedService?.address?.trim().length
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedService.address.trim())}`
-    : "";
-
   useEffect(() => {
     setMobileHeroImageIndex(0);
-  }, [selectedService?.id]);
+  }, [selectedService?.id, selectedService?.imageUrl, coach?.imageUrl]);
+
+  const recapServiceDescriptionBlock =
+    (selectedService?.description ?? "").trim().length > 0 ? (
+      <div className="mt-3 border-t border-blue-100 pt-3">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+          {t("public.booking.serviceDescriptionTitle")}
+        </p>
+        <SafeHtml html={(selectedService?.description ?? "").trim()} className="text-sm text-slate-700" />
+      </div>
+    ) : null;
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -897,13 +913,9 @@ export default function BookingPage() {
       <h3 className="mb-3 font-bold text-slate-900">{t("public.booking.sidebarSelectionsTitle")}</h3>
       {selectedService ? (
         <div className="mb-4 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
-          {selectedService.imageUrl ? (
-            <img src={selectedService.imageUrl} alt={selectedService.name} className="h-28 w-full object-cover" />
-          ) : (
-            <div className="flex h-28 items-center justify-center px-3 text-center text-sm text-slate-500">
-              {selectedService.name}
-            </div>
-          )}
+          {selectedService.imageUrl?.trim() ? (
+            <PublicServiceBookingImage imageUrl={selectedService.imageUrl.trim()} alt={selectedService.name} />
+          ) : null}
           <div className="px-3 py-2">
             <p className="truncate text-sm font-semibold text-slate-900">{selectedService.name}</p>
           </div>
@@ -974,6 +986,7 @@ export default function BookingPage() {
     [mobileMonthDates, bookingSegments],
   );
   const mobileHeroClassName = "relative h-[30vh] min-h-56 overflow-hidden bg-slate-100";
+  const hasMobileHeroImage = mobileHeroImageCandidates.length > 0;
   const mobileDrawerClassName =
     "fixed inset-x-0 bottom-0 z-40 flex h-[70vh] -translate-y-[10vh] flex-col rounded-t-[28px] border-t border-slate-200/80 bg-white shadow-[0_-12px_48px_-12px_rgba(15,23,42,0.12)]";
   const now = useMemo(() => new Date(), []);
@@ -1051,12 +1064,15 @@ export default function BookingPage() {
 
   const mobileGrid = (
     <div className="mx-auto max-w-3xl lg:hidden">
-      <div className={mobileHeroClassName}>
-        {mobileHeroImageCandidates[mobileHeroImageIndex] ? (
+      {hasMobileHeroImage ? (
+        <div className={mobileHeroClassName}>
           <img
             src={mobileHeroImageCandidates[mobileHeroImageIndex]}
             alt={selectedService?.name ?? "service"}
-            className="h-full w-full object-cover object-bottom"
+            className={publicBookingMobileHeroImageClass(
+              mobileHeroImageCandidates[mobileHeroImageIndex]!,
+              selectedService?.imageUrl,
+            )}
             onError={() => {
               setMobileHeroImageIndex((current) => {
                 if (current >= mobileHeroImageCandidates.length - 1) {
@@ -1066,29 +1082,43 @@ export default function BookingPage() {
               });
             }}
           />
-        ) : (
-          <div className="flex h-full items-center justify-center bg-slate-200 px-4 text-center text-sm text-slate-600">
-            {selectedService?.name ?? ""}
+          <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 pt-5">
+            <button
+              type="button"
+              onClick={() => setStep("service")}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm"
+              aria-label={t("common.back")}
+            >
+              <ChevronLeft className="size-5" />
+            </button>
+            <button
+              type="button"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm"
+              aria-label={t("public.booking.share")}
+            >
+              <Share2 className="size-4.5" />
+            </button>
           </div>
-        )}
-        <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 pt-5">
+        </div>
+      ) : (
+        <div className="flex items-center justify-between border-b border-slate-200/80 bg-white px-4 py-3">
           <button
             type="button"
             onClick={() => setStep("service")}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm ring-1 ring-slate-200/80"
             aria-label={t("common.back")}
           >
             <ChevronLeft className="size-5" />
           </button>
           <button
             type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm ring-1 ring-slate-200/80"
             aria-label={t("public.booking.share")}
           >
             <Share2 className="size-4.5" />
           </button>
         </div>
-      </div>
+      )}
 
       <div className={mobileDrawerClassName}>
         <div className="mx-auto mt-3 h-1.5 w-14 shrink-0 rounded-full bg-slate-200" />
@@ -1306,12 +1336,15 @@ export default function BookingPage() {
 
   const detailsStepContent = (
     <div className="mx-auto max-w-3xl">
-      <div className={`${mobileHeroClassName} md:hidden`}>
-        {mobileHeroImageCandidates[mobileHeroImageIndex] ? (
+      {hasMobileHeroImage ? (
+        <div className={`${mobileHeroClassName} md:hidden`}>
           <img
             src={mobileHeroImageCandidates[mobileHeroImageIndex]}
             alt={selectedService?.name ?? "service"}
-            className="h-full w-full object-cover object-bottom"
+            className={publicBookingMobileHeroImageClass(
+              mobileHeroImageCandidates[mobileHeroImageIndex]!,
+              selectedService?.imageUrl,
+            )}
             onError={() => {
               setMobileHeroImageIndex((current) => {
                 if (current >= mobileHeroImageCandidates.length - 1) {
@@ -1321,29 +1354,43 @@ export default function BookingPage() {
               });
             }}
           />
-        ) : (
-          <div className="flex h-full items-center justify-center bg-slate-200 px-4 text-center text-sm text-slate-600">
-            {selectedService?.name ?? ""}
+          <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 pt-5">
+            <button
+              type="button"
+              onClick={() => setStep("pick")}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm"
+              aria-label={t("common.back")}
+            >
+              <ChevronLeft className="size-5" />
+            </button>
+            <button
+              type="button"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm"
+              aria-label={t("public.booking.share")}
+            >
+              <Share2 className="size-4.5" />
+            </button>
           </div>
-        )}
-        <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 pt-5">
+        </div>
+      ) : (
+        <div className="flex items-center justify-between border-b border-slate-200/80 bg-white px-4 py-3 md:hidden">
           <button
             type="button"
             onClick={() => setStep("pick")}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm ring-1 ring-slate-200/80"
             aria-label={t("common.back")}
           >
             <ChevronLeft className="size-5" />
           </button>
           <button
             type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm ring-1 ring-slate-200/80"
             aria-label={t("public.booking.share")}
           >
             <Share2 className="size-4.5" />
           </button>
         </div>
-      </div>
+      )}
 
       <div className={`${mobileDrawerClassName} md:hidden`}>
         <div className="mx-auto mt-3 h-1.5 w-14 shrink-0 rounded-full bg-slate-200" />
@@ -1424,6 +1471,7 @@ export default function BookingPage() {
               <p className="mt-0.5 text-slate-600">
                 {t("public.booking.durationLabel", { minutes: selectedService?.durationMinutes ?? 0 })} · {servicePackSessionsLabel}
               </p>
+              {recapServiceDescriptionBlock}
             </div>
             <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -1549,6 +1597,7 @@ export default function BookingPage() {
             <p className="mt-0.5 text-slate-600">
               {t("public.booking.durationLabel", { minutes: selectedService?.durationMinutes ?? 0 })} · {servicePackSessionsLabel}
             </p>
+            {recapServiceDescriptionBlock}
           </div>
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -1599,157 +1648,24 @@ export default function BookingPage() {
   );
 
   const serviceDetailsStep = selectedService ? (
-    <div className="mx-auto w-full max-w-3xl md:max-w-5xl">
-      <div className={`${mobileHeroClassName} md:hidden`}>
-        {mobileHeroImageCandidates[mobileHeroImageIndex] ? (
-          <img
-            src={mobileHeroImageCandidates[mobileHeroImageIndex]}
-            alt={selectedService.name}
-            className="h-full w-full object-cover object-bottom"
-            onError={() => {
-              setMobileHeroImageIndex((current) => {
-                if (current >= mobileHeroImageCandidates.length - 1) {
-                  return current;
-                }
-                return current + 1;
-              });
-            }}
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center bg-slate-200 px-4 text-center text-sm text-slate-600">
-            {selectedService.name}
-          </div>
-        )}
-        <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 pt-5">
-          <Link
-            href={servicesHref}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm"
-            aria-label={t("common.back")}
-          >
-            <ChevronLeft className="size-5" />
-          </Link>
-          <button
-            type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm"
-            aria-label={t("public.booking.share")}
-          >
-            <Share2 className="size-4.5" />
-          </button>
-        </div>
-      </div>
-
-      <div className={`${mobileDrawerClassName} md:hidden`}>
-        <div className="mx-auto mt-3 h-1.5 w-14 rounded-full bg-slate-200" />
-        <div className="flex-1 space-y-4 overflow-y-auto px-5 pb-4 pt-4">
-          {bookingStepper}
-          {coach ? <PublicCoachBanner name={coach.name} bio={coach.bio} imageUrl={coach.imageUrl} /> : null}
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <p className="truncate text-2xl font-bold text-slate-900">{selectedService.name}</p>
-              {selectedServiceGoogleMapsHref.length > 0 ? (
-                <a
-                  href={selectedServiceGoogleMapsHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={t("public.booking.mapTitle")}
-                  className="mt-1 block text-sm font-medium text-blue-600 underline-offset-2 hover:text-blue-800 hover:underline"
-                >
-                  {selectedService.address}
-                </a>
-              ) : (
-                <p className="mt-1 text-sm text-slate-500">{selectedService.address}</p>
-              )}
-            </div>
-            <p className="shrink-0 text-2xl font-bold text-slate-900">{priceLabel}</p>
-          </div>
-
-          <div className="flex flex-wrap gap-2 text-xs">
-            <span className="rounded-full bg-slate-100 px-3 py-1.5 text-slate-700">
-              {t("public.booking.durationLabel", { minutes: selectedService.durationMinutes })}
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-slate-700">
-              <Package className="size-3.5 shrink-0 text-slate-500" />
-              {servicePackSessionsLabel}
-            </span>
-          </div>
-
-          <p className="text-sm leading-relaxed text-slate-700">{selectedService.description}</p>
-
-        </div>
-
-        <div className="border-t border-slate-200 bg-white px-5 py-4">
-          <Button type="button" className="w-full rounded-2xl py-6 text-base font-semibold" onClick={() => setStep("pick")}>
-            {t("public.booking.pickSlotCta")}
-          </Button>
-        </div>
-      </div>
-
-      <div className="hidden md:block">
-        <div className="mx-auto max-w-4xl overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-lg shadow-slate-900/[0.05] ring-1 ring-slate-900/[0.03]">
-          <div className="flex flex-col gap-4 bg-gradient-to-br from-slate-50/90 via-white to-blue-50/30 px-6 py-5 lg:px-8 lg:py-5">
-            {coach ? <PublicCoachBanner name={coach.name} bio={coach.bio} imageUrl={coach.imageUrl} compact /> : null}
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-600">
-                {t("public.booking.stepper.service")}
-              </p>
-              <h2 className="mt-1 text-xl font-bold tracking-tight text-slate-900 lg:text-2xl">{selectedService.name}</h2>
-              {(selectedService.description ?? "").trim().length > 0 ? (
-                <p className="mt-2 max-w-3xl text-sm leading-snug text-slate-600 line-clamp-3">{selectedService.description}</p>
-              ) : null}
-            </div>
-
-            <div className="overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-200/50">
-              {selectedService.imageUrl ? (
-                <img
-                  src={selectedService.imageUrl}
-                  alt={selectedService.name}
-                  className="h-32 w-full object-cover sm:h-36"
-                />
-              ) : (
-                <div className="flex h-32 items-center justify-center px-4 text-center text-xs text-slate-500 sm:h-36">
-                  {selectedService.name}
-                </div>
-              )}
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200/80 bg-white/90 px-2.5 py-1.5 text-xs font-medium text-slate-800">
-                <Clock className="size-3.5 shrink-0 text-blue-600" />
-                {t("public.booking.durationLabel", { minutes: selectedService.durationMinutes })}
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200/80 bg-white/90 px-2.5 py-1.5 text-xs font-medium text-slate-800">
-                <Package className="size-3.5 shrink-0 text-blue-600" />
-                {servicePackSessionsLabel}
-              </span>
-              {selectedServiceGoogleMapsHref.length > 0 ? (
-                <a
-                  href={selectedServiceGoogleMapsHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={t("public.booking.mapTitle")}
-                  className="inline-flex w-full max-w-full items-start gap-1.5 rounded-lg border border-slate-200/80 bg-white/90 px-2.5 py-1.5 text-xs font-medium text-slate-800 transition-colors hover:border-blue-300/80 hover:bg-blue-50/90 hover:text-blue-900 sm:w-auto"
-                >
-                  <MapPin className="mt-0.5 size-3.5 shrink-0 text-blue-600" aria-hidden />
-                  <span className="line-clamp-2">{selectedService.address}</span>
-                </a>
-              ) : (
-                <span className="inline-flex w-full max-w-full items-start gap-1.5 rounded-lg border border-slate-200/80 bg-white/90 px-2.5 py-1.5 text-xs font-medium text-slate-800 sm:w-auto">
-                  <MapPin className="mt-0.5 size-3.5 shrink-0 text-blue-600" aria-hidden />
-                  <span className="line-clamp-2">{selectedService.address}</span>
-                </span>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-3 border-t border-slate-200/70 pt-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-2xl font-bold tracking-tight text-blue-600">{priceLabel}</p>
-              <Button type="button" className="h-10 w-full rounded-lg px-6 text-sm font-semibold sm:w-auto sm:min-w-[200px]" onClick={() => setStep("pick")}>
-                {t("public.booking.pickSlotCta")}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <PublicBookingServiceIntroStep
+      service={{
+        id: selectedService.id,
+        name: selectedService.name,
+        description: selectedService.description ?? "",
+        imageUrl: selectedService.imageUrl,
+        address: selectedService.address,
+        durationMinutes: selectedService.durationMinutes,
+        packSize: selectedService.packSize,
+        price: selectedService.price,
+        isFree: selectedService.isFree,
+      }}
+      coach={coach ? { name: coach.name, bio: coach.bio, imageUrl: coach.imageUrl } : null}
+      servicesHref={servicesHref}
+      variant="booking"
+      onPickSlot={() => setStep("pick")}
+      bookingStepperSlot={bookingStepper}
+    />
   ) : null;
 
   const mainInner = !slugOk ? (

@@ -8,7 +8,7 @@ import { z } from "zod";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { TRPCClientError } from "@trpc/client";
-import { Calendar, Check, Loader2, Upload } from "lucide-react";
+import { Calendar, Check, ImageUp, Loader2, Upload, X } from "lucide-react";
 import BookidoLogo from "#/components/BookidoLogo";
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/ui/avatar";
 import { Button } from "#/components/ui/button";
@@ -29,8 +29,16 @@ import {
   type WeekHours,
   isOutsideBusinessHours,
 } from "#/utils/calendar-availability";
+import { ServiceDescriptionEditor } from "#/components/tiptap/service-description-editor";
 import { SERVICE_DESCRIPTION_MAX_CHARS } from "#/utils/service-description-limit";
+import { normalizeServiceDescriptionHtml } from "#/utils/service-description-html";
+import { plainTextFromHtml } from "#/utils/rich-text-plain";
 import { GooglePlacesAddressField } from "#/components/GooglePlacesAddressField";
+import { ServiceImageCropDialog } from "#/components/service-image-crop-dialog";
+import {
+  SERVICE_BOOKING_IMAGE_RECOMMENDED_HEIGHT,
+  SERVICE_BOOKING_IMAGE_RECOMMENDED_WIDTH,
+} from "#/utils/service-image-crop";
 
 const ONBOARDING_FLOW_STEPS = 9;
 const PROFESSIONAL_BIO_MAX_CHARS = 320;
@@ -162,6 +170,8 @@ export default function OnboardingWizard() {
     keys: new Set(),
   });
   const serviceImageInputRef = useRef<HTMLInputElement | null>(null);
+  const [serviceImageCropOpen, setServiceImageCropOpen] = useState(false);
+  const [serviceImageCropSrc, setServiceImageCropSrc] = useState<string | null>(null);
   const serviceAvailabilityDragRef = useRef<{
     active: boolean;
     mode: "close" | "open" | null;
@@ -269,11 +279,19 @@ export default function OnboardingWizard() {
       z
         .object({
           serviceName: z.string().min(1, { message: t("onboarding.service.validation.name") }),
-          serviceDescription: z
-            .string()
-            .trim()
-            .min(1, { message: t("onboarding.service.validation.description") })
-            .max(SERVICE_DESCRIPTION_MAX_CHARS, { message: t("services.validation.descriptionMax") }),
+          serviceDescription: z.string().superRefine((val, ctx) => {
+            const normalized = normalizeServiceDescriptionHtml(val);
+            const plain = plainTextFromHtml(normalized);
+            if (plain.length < 1) {
+              ctx.addIssue({ code: "custom", message: t("onboarding.service.validation.description") });
+            }
+            if (plain.length > SERVICE_DESCRIPTION_MAX_CHARS) {
+              ctx.addIssue({
+                code: "custom",
+                message: t("services.validation.descriptionMax", { max: SERVICE_DESCRIPTION_MAX_CHARS }),
+              });
+            }
+          }),
           serviceAddress: z
             .string()
             .trim()
@@ -509,23 +527,27 @@ export default function OnboardingWizard() {
     return Boolean(watchedDefaultAddressFromPlaces);
   }, [watchedDefaultAddress, watchedDefaultAddressFromPlaces, hasGooglePlacesAutocomplete]);
 
-  /** Session `user` is often a new object reference on each fetch — seed name once per account (empty on onboarding). */
-  const profileSeedUserIdRef = useRef<string | null>(null);
+  /** Prénom/nom : vides tant que l’étape « nom » n’a pas été enregistrée (currentStep 0). Après « Suivant », currentStep ≥ 1 — on réhydrate depuis le nom profil (session). */
+  const profileNameSeedKeyRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!user?.id) {
+    if (!user?.id || onboardingStatusQuery.isPending || !onboardingStatusQuery.data) {
       return;
     }
-    if (profileSeedUserIdRef.current === user.id) {
+    const serverStep = Math.min(8, Math.max(0, onboardingStatusQuery.data.currentStep));
+    const seedKey =
+      serverStep >= 1 ? `${user.id}:${serverStep}:${user.name ?? ""}` : `${user.id}:0`;
+    if (profileNameSeedKeyRef.current === seedKey) {
       return;
     }
-    profileSeedUserIdRef.current = user.id;
-    const splitName = splitFullNameParts(user.name ?? "");
+    profileNameSeedKeyRef.current = seedKey;
+    const splitName =
+      serverStep >= 1 ? splitFullNameParts(user.name ?? "") : { firstName: "", lastName: "" };
     onboardingForm.reset({
       ...onboardingForm.getValues(),
       firstName: splitName.firstName,
       lastName: splitName.lastName,
     });
-  }, [user?.id, onboardingForm]);
+  }, [user?.id, user?.name, onboardingStatusQuery.isPending, onboardingStatusQuery.data, onboardingForm]);
 
   const onboardingBioSeededUserIdRef = useRef<string | null>(null);
   useEffect(() => {
@@ -675,7 +697,7 @@ export default function OnboardingWizard() {
     onboardingForm.reset({
       ...onboardingForm.getValues(),
       serviceName: existingService.name,
-      serviceDescription: existingService.description,
+      serviceDescription: normalizeServiceDescriptionHtml(existingService.description),
       serviceAddress: existingService.address ?? "",
       serviceAddressFromPlaces: true,
       durationMinutes: existingService.durationMinutes,
@@ -833,6 +855,16 @@ export default function OnboardingWizard() {
     [isOutsideOpeningHours, paintOnboardingServiceCalendarSlot],
   );
 
+  const dismissServiceImageCrop = useCallback(() => {
+    setServiceImageCropOpen(false);
+    setServiceImageCropSrc((prev) => {
+      if (prev) {
+        URL.revokeObjectURL(prev);
+      }
+      return null;
+    });
+  }, []);
+
   const handleOnboardingServiceImageUpload = (file: File | null) => {
     if (!file) {
       return;
@@ -845,19 +877,13 @@ export default function OnboardingWizard() {
       onboardingForm.setError("imageDataUrl", { message: t("services.validation.imageTooLarge") });
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = typeof reader.result === "string" ? reader.result : "";
-      if (result.length > 0) {
-        onboardingForm.clearErrors("imageDataUrl");
-        onboardingForm.setValue("imageDataUrl", result, {
-          shouldDirty: true,
-          shouldTouch: true,
-          shouldValidate: true,
-        });
+    setServiceImageCropSrc((prev) => {
+      if (prev) {
+        URL.revokeObjectURL(prev);
       }
-    };
-    reader.readAsDataURL(file);
+      return URL.createObjectURL(file);
+    });
+    setServiceImageCropOpen(true);
   };
 
   const handleNameNext = async () => {
@@ -1823,25 +1849,13 @@ export default function OnboardingWizard() {
                 name="serviceDescription"
                 render={({ field }) => (
                   <FormItem className="md:col-span-2">
-                    <div className="flex items-end justify-between gap-2">
-                      <FormLabel>{t("services.description")}</FormLabel>
-                      <span className="text-xs text-slate-500 tabular-nums">
-                        {t("services.validation.descriptionCharCount", {
-                          current: field.value.length,
-                          max: SERVICE_DESCRIPTION_MAX_CHARS,
-                        })}
-                      </span>
-                    </div>
+                    <FormLabel>{t("services.description")}</FormLabel>
                     <FormControl>
-                      <Textarea
-                        {...field}
-                        maxLength={SERVICE_DESCRIPTION_MAX_CHARS}
+                      <ServiceDescriptionEditor
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
                         placeholder={t("services.form.placeholders.description")}
-                        rows={3}
-                        className="min-h-[96px] rounded-xl"
-                        onChange={(e) => {
-                          field.onChange(e.target.value.slice(0, SERVICE_DESCRIPTION_MAX_CHARS));
-                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -2004,40 +2018,113 @@ export default function OnboardingWizard() {
               <FormField
                 control={onboardingForm.control}
                 name="imageDataUrl"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <div className="flex items-center gap-2">
-                      <FormLabel>{t("services.imageUrl")}</FormLabel>
-                      <Upload className="size-4 text-slate-500" aria-hidden />
-                    </div>
-                    <div className="space-y-2">
-                      <Input
-                        ref={serviceImageInputRef}
-                        type="file"
-                        accept="image/*"
-                        className="h-11 rounded-xl file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1"
-                        onChange={(e) => {
-                          handleOnboardingServiceImageUpload(e.target.files?.[0] ?? null);
-                          e.target.value = "";
-                        }}
-                      />
+                render={({ field }) => {
+                  const hasImage = Boolean(field.value?.trim().length);
+                  const openImagePicker = () => serviceImageInputRef.current?.click();
+
+                  const hiddenFileInput = (
+                    <input
+                      ref={serviceImageInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      tabIndex={-1}
+                      onChange={(e) => {
+                        handleOnboardingServiceImageUpload(e.target.files?.[0] ?? null);
+                        e.target.value = "";
+                      }}
+                    />
+                  );
+
+                  const hintBlock = (
+                    <>
+                      <p className="text-xs text-slate-500">{t("onboarding.service.optionalImageHint")}</p>
+                      <p className="text-xs text-slate-500">
+                        {t("services.imageInput.recommendedSize", {
+                          width: SERVICE_BOOKING_IMAGE_RECOMMENDED_WIDTH,
+                          height: SERVICE_BOOKING_IMAGE_RECOMMENDED_HEIGHT,
+                        })}
+                      </p>
                       <p className="text-xs text-slate-500">{t("services.imageInput.hint")}</p>
-                      {field.value?.length ? (
-                        <div className="overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
-                          <img
-                            src={field.value}
-                            alt={t("services.imageInput.previewAlt")}
-                            className="h-40 w-full object-cover"
-                          />
-                        </div>
-                      ) : null}
-                      {field.value?.length ? (
-                        <p className="text-xs text-slate-500">{t("services.imageInput.previewReady")}</p>
-                      ) : null}
+                    </>
+                  );
+
+                  const emptyDropZone = (
+                    <button
+                      type="button"
+                      onClick={openImagePicker}
+                      aria-label={t("services.imageInput.ariaUploadZone")}
+                      className="flex aspect-video w-full max-w-3xl cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50/80 px-4 py-8 text-center transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/40"
+                    >
+                      <Upload className="size-10 text-slate-400" aria-hidden />
+                      <span className="text-sm font-medium text-slate-700">{t("services.imageInput.dropPlaceholderTitle")}</span>
+                      <span className="text-xs text-slate-500">{t("services.imageInput.dropPlaceholderSubtitle")}</span>
+                    </button>
+                  );
+
+                  const clearServiceImage = () => {
+                    field.onChange("");
+                    onboardingForm.clearErrors("imageDataUrl");
+                    if (serviceImageInputRef.current) {
+                      serviceImageInputRef.current.value = "";
+                    }
+                    dismissServiceImageCrop();
+                  };
+
+                  const previewReplaceButton = (
+                    <button
+                      type="button"
+                      onClick={openImagePicker}
+                      aria-label={t("services.imageInput.ariaReplace")}
+                      className="group/btn absolute inset-0 z-0 flex cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600/40"
+                    >
+                      <img
+                        src={field.value}
+                        alt={t("services.imageInput.previewAlt")}
+                        className="h-full w-full object-cover"
+                      />
+                      <span className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-900/55 opacity-0 transition-opacity group-hover/btn:opacity-100">
+                        <ImageUp className="size-10 text-white drop-shadow" aria-hidden />
+                        <span className="text-sm font-medium text-white">{t("services.imageInput.hoverReplace")}</span>
+                      </span>
+                    </button>
+                  );
+
+                  const previewRemoveButton = (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="icon"
+                      className="absolute right-2 top-2 z-10 size-9 rounded-full border-0 bg-black/55 text-white shadow-md hover:bg-black/75 focus-visible:ring-white/80"
+                      aria-label={t("services.imageInput.ariaRemoveImage")}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        clearServiceImage();
+                      }}
+                    >
+                      <X className="size-4" aria-hidden />
+                    </Button>
+                  );
+
+                  const previewDropZone = (
+                    <div className="relative aspect-video w-full max-w-3xl overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
+                      {previewReplaceButton}
+                      {previewRemoveButton}
                     </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                  );
+
+                  return (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>{t("services.imageUrl")}</FormLabel>
+                      <div className="space-y-2">
+                        {hiddenFileInput}
+                        {hintBlock}
+                        {hasImage ? previewDropZone : emptyDropZone}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
             </div>
             {onboardingServiceAvailabilityBlock}
@@ -2208,5 +2295,29 @@ export default function OnboardingWizard() {
     </div>
   );
 
-  return <Form {...onboardingForm}>{shell}</Form>;
+  return (
+    <Form {...onboardingForm}>
+      {shell}
+      <ServiceImageCropDialog
+        open={serviceImageCropOpen}
+        onOpenChange={(next) => {
+          if (!next) {
+            dismissServiceImageCrop();
+          }
+        }}
+        imageSrc={serviceImageCropSrc}
+        onApply={(dataUrl) => {
+          onboardingForm.clearErrors("imageDataUrl");
+          onboardingForm.setValue("imageDataUrl", dataUrl, {
+            shouldDirty: true,
+            shouldTouch: true,
+            shouldValidate: true,
+          });
+          if (serviceImageInputRef.current) {
+            serviceImageInputRef.current.value = "";
+          }
+        }}
+      />
+    </Form>
+  );
 }

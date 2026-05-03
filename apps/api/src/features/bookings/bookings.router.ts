@@ -7,6 +7,7 @@ import { AuthGuard } from "@api/src/infrastructure/decorators/auth/auth-guard.de
 
 import {
   bookingOutputSchema,
+  bookingDetailOutputSchema,
   bookingCancelRefundPreviewOutputSchema,
   cancelBookingWithRefundInputSchema,
   cancelBookingWithRefundOutputSchema,
@@ -60,7 +61,7 @@ export class BookingsRouter {
 
   @Query({
     input: z.object({ id: z.string() }),
-    output: bookingOutputSchema,
+    output: bookingDetailOutputSchema,
   })
   getById(@Ctx() ctx: BaseUserSession, @Input("id") id: string) {
     const ownerId = requireUserId(ctx);

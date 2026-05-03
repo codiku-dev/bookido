@@ -290,6 +290,7 @@
       "clientDetailsTitle": "Your details",
       "recapTitle": "Summary",
       "recapSubtitle": "Review your information before confirming payment.",
+      "serviceDescriptionTitle": "About this service",
       "recapContactTitle": "Client details",
       "recapFullNameLabel": "Full name",
       "recapEmailLabel": "Email",
@@ -455,7 +456,7 @@
           "f1": "Public booking page",
           "f2": "Services & calendar",
           "f3": "Email confirmations",
-          "f4": "1.5% fee on sales",
+          "f4": "Only 1.5% fee on sales",
           "f5": "Revenue tracking dashboard"
         },
         "pro": {
@@ -742,6 +743,7 @@
       },
       "edit": "Edit",
       "notes": "Notes",
+      "serviceDescription": "Service description",
       "payment": {
         "info": "Payment",
         "method": "Payment method",
@@ -1535,6 +1537,19 @@
     },
     "devFill": "Dev fill",
     "description": "Description",
+    "descriptionEditor": {
+      "charCount": "{current} / {max}",
+      "toolbar": {
+        "bold": "Bold",
+        "italic": "Italic",
+        "heading2": "Heading 2",
+        "heading3": "Heading 3",
+        "bulletList": "Bullet list",
+        "orderedList": "Numbered list",
+        "undo": "Undo",
+        "redo": "Redo"
+      }
+    },
     "address": {
       "label": "Service address",
       "placeholder": "e.g., 12 rue de la Paix, 75002 Paris",
@@ -1555,11 +1570,38 @@
         "edit": "Edit"
       }
     },
+    "preview": {
+      "open": "Public preview",
+      "dialogTitle": "Public page preview",
+      "badge": "Preview",
+      "hint": "Client view simulation — booking is disabled.",
+      "backToList": "Back to list",
+      "viewDetails": "View details",
+      "pickSlotDisabled": "Preview",
+      "pickSlotHint": "Booking is not available in preview mode.",
+      "slugMissing": "Configure your public booking URL to open the preview.",
+      "untitledService": "Untitled service",
+      "defaultCoachName": "Coach"
+    },
     "imageUrl": "Image URL",
     "imageInput": {
-      "hint": "Upload an image file for this service.",
+      "recommendedSize": "Recommended: {width} × {height} px (16:9), same ratio as on the public booking page. Max 5 MB.",
+      "hint": "Upload an image, then adjust the crop in the dialog.",
       "previewAlt": "Selected service image preview",
-      "previewReady": "Image selected."
+      "previewReady": "Image selected.",
+      "dropPlaceholderTitle": "Upload cover image",
+      "dropPlaceholderSubtitle": "Click to select a file · max 5 MB",
+      "ariaUploadZone": "Choose image file",
+      "ariaReplace": "Replace image",
+      "ariaRemoveImage": "Remove image",
+      "hoverReplace": "Replace image"
+    },
+    "imageCrop": {
+      "title": "Crop service image",
+      "description": "Drag to reposition. Use the slider to zoom. The frame is 16:9 to match booking pages.",
+      "zoomLabel": "Zoom",
+      "cancel": "Cancel",
+      "apply": "Apply"
     },
     "minutes": "Minutes",
     "mock": {
@@ -1665,8 +1707,7 @@
       "summaryTitle": "Please fix the following fields:",
       "nameRequired": "Name is required.",
       "descriptionRequired": "Description is required.",
-      "descriptionMax": "Description cannot exceed 300 characters.",
-      "descriptionCharCount": "{current} / {max}",
+      "descriptionMax": "Description cannot exceed {max} characters.",
       "durationNumber": "Duration must be a valid number.",
       "durationMin30": "Duration must be at least 30 minutes.",
       "durationMultipleOf30": "Duration must be a multiple of 30 minutes (30, 60, 90…).",

@@ -25,7 +25,8 @@ export type BookingProNewReservationProps = {
   serviceName: string;
   serviceDurationMinutes: number;
   statusLabel: string;
-  adminBookingsUrl: string;
+  /** Deep link to this booking in the admin (e.g. `/admin/bookings/{id}`). */
+  adminBookingUrl: string;
   sessions: { whenLabel: string }[];
   isFree: boolean;
   isPaid: boolean;
@@ -161,13 +162,13 @@ export default function BookingProNewReservation(p: BookingProNewReservationProp
     <Section className="m-0 p-0">
       <Section className="mb-4">
         <Button
-          href={p.adminBookingsUrl}
+          href={p.adminBookingUrl}
           className="rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white no-underline"
         >
           {t({ locale: p.locale, key: "booking.proNew.cta" })}
         </Button>
       </Section>
-      <Text className="m-0 break-all text-xs leading-5 text-slate-500">{p.adminBookingsUrl}</Text>
+      <Text className="m-0 break-all text-xs leading-5 text-slate-500">{p.adminBookingUrl}</Text>
     </Section>
   );
 

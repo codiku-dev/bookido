@@ -8,13 +8,19 @@ type BackButtonProps = {
   fallbackHref: string;
   className?: string;
   icon?: ReactNode;
+  /** When set, skips router history and runs this (e.g. in-app preview modal). */
+  onNavigate?: () => void;
 };
 
 export function BackButton(p: BackButtonProps) {
   const router = useRouter();
 
   const handleBack = () => {
-    if (window.history.length > 1) {
+    if (p.onNavigate) {
+      p.onNavigate();
+      return;
+    }
+    if (typeof window !== "undefined" && window.history.length > 1) {
       router.back();
       return;
     }

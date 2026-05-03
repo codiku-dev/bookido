@@ -10,6 +10,7 @@ import {
 
 import { RESERVED_PUBLIC_BOOKING_SLUGS } from "@api/src/common/reserved-public-booking-slugs";
 import { PrismaService } from "@api/src/infrastructure/prisma/prisma.service";
+import { plainTextFromHtml } from "@api/src/utils/rich-text-plain";
 import { BookingsService } from "@api/src/features/bookings/bookings.service";
 import { ProfileService, resolveUserDisplayImage } from "@api/src/features/profile/profile.service";
 import { ServicesService } from "@api/src/features/services/services.service";
@@ -324,6 +325,7 @@ export class PublicBookingService {
     paidAmountEur?: number;
     listPriceEur?: number;
     paymentMethodLabel?: string;
+    bookingId: string;
   }) {
     const frontendUrlRaw = process.env["FRONTEND_URL"]?.trim();
     if (!frontendUrlRaw) {
@@ -331,7 +333,7 @@ export class PublicBookingService {
       return;
     }
     const frontendUrl = frontendUrlRaw.replace(/\/+$/g, "");
-    const adminBookingsUrl = `${frontendUrl}/admin/bookings`;
+    const adminBookingUrl = `${frontendUrl}/admin/bookings/${encodeURIComponent(p.bookingId)}`;
     const dateLocale = p.locale === "fr" ? "fr-FR" : "en-US";
     const statusLabel =
       p.locale === "fr"
@@ -375,7 +377,7 @@ export class PublicBookingService {
         serviceName: p.serviceName,
         serviceDurationMinutes: p.serviceDurationMinutes,
         statusLabel,
-        adminBookingsUrl,
+        adminBookingUrl,
         sessions,
         isFree: p.isFree,
         isPaid: p.isPaid,
@@ -537,7 +539,7 @@ export class PublicBookingService {
         ? options!.stripeCheckoutSessionId!.trim()
         : null;
 
-    const lastRow = await this.db.$transaction(async (tx) => {
+    const { lastRow, proEmailBookingId } = await this.db.$transaction(async (tx) => {
       const client = await tx.client.upsert({
         where: {
           ownerId_email: {
@@ -559,6 +561,7 @@ export class PublicBookingService {
       });
 
       let row: Awaited<ReturnType<BookingsService["create"]>> | null = null;
+      let firstCreatedBookingId: string | null = null;
       for (let idx = 0; idx < sorted.length; idx += 1) {
         const startsAt = sorted[idx]!;
         // For multi-session packs, persist the full pack price on the first session
@@ -583,8 +586,11 @@ export class PublicBookingService {
           },
           { tx, bookingPackGroupId, stripeCheckoutSessionId: stripeSessionForRows },
         );
+        if (idx === 0) {
+          firstCreatedBookingId = row.id;
+        }
       }
-      return row!;
+      return { lastRow: row!, proEmailBookingId: firstCreatedBookingId ?? row!.id };
     });
 
     const notifyLocale = input.locale ?? "fr";
@@ -610,6 +616,7 @@ export class PublicBookingService {
             paidAmountEur: markAsPaid && !service.isFree ? totalPackCents / 100 : undefined,
             listPriceEur: !service.isFree ? service.price : undefined,
             paymentMethodLabel: markAsPaid ? paymentMethodLabel : undefined,
+            bookingId: proEmailBookingId,
           });
         } catch (e) {
           const message = e instanceof Error ? e.message : String(e);
@@ -812,10 +819,11 @@ export class PublicBookingService {
       );
     }
     const servicePackSize = Math.max(1, service.packSize);
+    const descPlain = plainTextFromHtml(service.description ?? "").trim();
     const serviceDescriptionParts = [
       `${service.durationMinutes} min`,
       `${servicePackSize} séance${servicePackSize > 1 ? "s" : ""}`,
-      service.description?.trim() ?? "",
+      descPlain.length > 0 ? descPlain.slice(0, 450) : "",
     ].filter((part) => part.length > 0);
     const stripeProductDescription = serviceDescriptionParts.join(" • ");
     const stripeProductImages =
