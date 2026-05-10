@@ -1,6 +1,13 @@
 import { initTRPC } from "@trpc/server";
 import { z } from "zod";
 
+import {
+  plainTextFromHtml,
+  PROFILE_AVATAR_DATA_URL_MAX_LEN,
+  publicBookingSlugSchema,
+  SERVICE_DESCRIPTION_MAX_CHARS,
+} from "./router-codegen-helpers";
+
 const t = initTRPC.create();
 const publicProcedure = t.procedure;
 
@@ -350,7 +357,7 @@ const appRouter = t.router({
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     delete: publicProcedure.input(z.object({ id: z.string() })).output(z.object({ id: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   }),
-  profile: t.router({ ,
+  profile: t.router({
     getAdminOnboardingStatus: publicProcedure.output(z.object({
       needsOnboarding: z.boolean(),
       bio: z.string().nullable(),
@@ -502,8 +509,7 @@ const appRouter = t.router({
       password: z.string().optional(),
     })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   }),
-  services: t.router({ ,
-,
+  services: t.router({
     list: publicProcedure.output(z.array(z.object({
       id: z.string(),
       userId: z.string(),
@@ -660,7 +666,8 @@ const appRouter = t.router({
       createdAt: z.coerce.date(),
       updatedAt: z.coerce.date(),
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    delete: publicProcedure.input(z.object({ id: z.string() })).output(z.object({ id: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any) }),
+    delete: publicProcedure.input(z.object({ id: z.string() })).output(z.object({ id: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+  }),
   bookings: t.router({
     list: publicProcedure.input(z.object({
       rangeFrom: z.string().datetime().optional(),
@@ -867,239 +874,240 @@ const appRouter = t.router({
     markBookingViewed: publicProcedure.input(z.object({ id: z.string() })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     markBookingsListViewed: publicProcedure.input(z.object({})).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   }),
-    dashboard: t.router({
-      overview: publicProcedure.input(z.object({
-        chartPeriod: z.enum(["weekly", "monthly", "yearly", "custom"]),
-        customFrom: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/)
-          .optional(),
-        customTo: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/)
-          .optional(),
-      })).output(z.object({
-        kpis: z.object({
-          totalRevenue: z.number(),
-          revenueThisMonth: z.number(),
-          revenueTrendPercent: z.number().nullable(),
-          clientsTotal: z.number().int(),
-          clientsNewThisMonth: z.number().int(),
-          clientsTrendPercent: z.number().nullable(),
-          bookingsThisMonth: z.number().int(),
-          bookingsTrendPercent: z.number().nullable(),
+  dashboard: t.router({
+    overview: publicProcedure.input(z.object({
+      chartPeriod: z.enum(["weekly", "monthly", "yearly", "custom"]),
+      customFrom: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/)
+        .optional(),
+      customTo: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/)
+        .optional(),
+    })).output(z.object({
+      kpis: z.object({
+        totalRevenue: z.number(),
+        revenueThisMonth: z.number(),
+        revenueTrendPercent: z.number().nullable(),
+        clientsTotal: z.number().int(),
+        clientsNewThisMonth: z.number().int(),
+        clientsTrendPercent: z.number().nullable(),
+        bookingsThisMonth: z.number().int(),
+        bookingsTrendPercent: z.number().nullable(),
+      }),
+      revenueSeries: z.array(
+        z.object({
+          periodKey: z.string(),
+          revenue: z.number(),
         }),
-        revenueSeries: z.array(
-          z.object({
-            periodKey: z.string(),
-            revenue: z.number(),
-          }),
-        ),
-        salesSeries: z.array(
-          z.object({
-            periodKey: z.string(),
-            sales: z.number(),
-          }),
-        ),
-        recentBookings: z.array(z.object({
-          id: z.string(),
-          clientName: z.string(),
-          serviceName: z.string(),
-          amount: z.number(),
-          createdAt: z.coerce.date(),
-        })),
-      })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-      revenueMonths: publicProcedure.input(z.object({
-        limitMonths: z.number().int().min(1).max(36).default(24),
-      })).output(z.array(z.object({
-        year: z.number().int(),
-        month: z.number().int().min(1).max(12),
-        revenue: z.number(),
-        bookingsCount: z.number().int(),
-        growthPercent: z.number().nullable(),
-      }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-      revenueMonthBookings: publicProcedure.input(z.object({
-        year: z.number().int(),
-        month: z.number().int().min(1).max(12),
-      })).output(z.array(z.object({
+      ),
+      salesSeries: z.array(
+        z.object({
+          periodKey: z.string(),
+          sales: z.number(),
+        }),
+      ),
+      recentBookings: z.array(z.object({
         id: z.string(),
         clientName: z.string(),
         serviceName: z.string(),
-        startsAt: z.coerce.date(),
-        price: z.number(),
-        paidAmount: z.number(),
         amount: z.number(),
-        status: z.enum(["confirmed", "pending", "cancelled"]),
-      }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
-    }),
-      publicBooking: t.router({
-        getStorefront: publicProcedure.input(z.object({
-          coachSlug: z
-            .string()
-            .min(2)
-            .max(96)
-            .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "INVALID_SLUG_FORMAT"),
-          rangeFrom: z.string().datetime(),
-          rangeTo: z.string().datetime(),
-        })).output(z.object({
-          coach: z.object({
-            name: z.string(),
-            bio: z.string().nullable(),
-            imageUrl: z.string().nullable(),
-          }),
-          weekHours: z.object({
-            Monday: z.object({
-              enabled: z.boolean(),
-              startTime: z.string(),
-              endTime: z.string(),
-            }),
-            Tuesday: z.object({
-              enabled: z.boolean(),
-              startTime: z.string(),
-              endTime: z.string(),
-            }),
-            Wednesday: z.object({
-              enabled: z.boolean(),
-              startTime: z.string(),
-              endTime: z.string(),
-            }),
-            Thursday: z.object({
-              enabled: z.boolean(),
-              startTime: z.string(),
-              endTime: z.string(),
-            }),
-            Friday: z.object({
-              enabled: z.boolean(),
-              startTime: z.string(),
-              endTime: z.string(),
-            }),
-            Saturday: z.object({
-              enabled: z.boolean(),
-              startTime: z.string(),
-              endTime: z.string(),
-            }),
-            Sunday: z.object({
-              enabled: z.boolean(),
-              startTime: z.string(),
-              endTime: z.string(),
-            }),
-          }),
-          closedSlotKeys: z.array(z.string()),
-          minBookingNoticeHours: z.number().int().min(0).max(168),
-          cancellationRefundPolicy: z.enum(["ALWAYS", "HOURS_24", "HOURS_48"]),
-          services: z.array(z.object({
-            id: z.string(),
-            name: z.string(),
-            description: z.string(),
-            imageUrl: z.string().nullable(),
-            address: z.string(),
-            durationMinutes: z.number().int(),
-            packSize: z.number().int().min(1),
-            price: z.number(),
-            isFree: z.boolean(),
-            requiresValidation: z.boolean(),
-          })),
-          bookingSegments: z.array(z.object({
-            startsAt: z.string().datetime(),
-            durationMinutes: z.number().int(),
-            status: z.string(),
-          })),
-        })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-        request: publicProcedure.input(z.object({
-          coachSlug: z
-            .string()
-            .min(2)
-            .max(96)
-            .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "INVALID_SLUG_FORMAT"),
-          serviceId: z.string().uuid(),
-          /** One ISO start per session; length must match the service `packSize`. */
-          sessionsStartsAt: z.array(z.string().datetime()).min(1).max(32),
-          clientName: z.string().min(1).max(200),
-          clientEmail: z.string().email().max(320),
-          clientPhone: z.string().max(80).optional(),
-          locale: z.enum(["fr", "en"]).optional(),
-        })).output(z.object({
-          id: z.string(),
-          ownerId: z.string(),
-          clientId: z.string(),
-          serviceId: z.string(),
-          startsAt: z.coerce.date(),
-          durationMinutes: z.number().int(),
-          price: z.number(),
-          paidAmount: z.number(),
-          status: z.enum(["confirmed", "pending", "cancelled"]),
-          notes: z.string().nullable(),
-          location: z.string(),
-          paymentMethod: z.string(),
-          requiresHostValidation: z.boolean(),
-          hostValidationAccepted: z.boolean(),
-          createdByClient: z.boolean(),
-          isUnseenInAdmin: z.boolean(),
-          bookingPackGroupId: z.string().nullable(),
-          stripeCheckoutSessionId: z.string().nullable(),
-          stripeRefundedAt: z.coerce.date().nullable(),
-          createdAt: z.coerce.date(),
-          updatedAt: z.coerce.date(),
-          clientName: z.string(),
-          clientEmail: z.string(),
-          clientPhone: z.string(),
-          serviceName: z.string(),
-          allowsDirectPayment: z.boolean(),
-        })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-        createCheckoutSession: publicProcedure.input(z.object({
-          coachSlug: z
-            .string()
-            .min(2)
-            .max(96)
-            .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "INVALID_SLUG_FORMAT"),
-          serviceId: z.string().uuid(),
-          /** One ISO start per session; length must match the service `packSize`. */
-          sessionsStartsAt: z.array(z.string().datetime()).min(1).max(32),
-          clientName: z.string().min(1).max(200),
-          clientEmail: z.string().email().max(320),
-          clientPhone: z.string().max(80).optional(),
-          locale: z.enum(["fr", "en"]).optional(),
-        })).output(z.object({
-          url: z.string().url(),
-        })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-        confirmCheckout: publicProcedure.input(z.object({
-          coachSlug: z
-            .string()
-            .min(2)
-            .max(96)
-            .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "INVALID_SLUG_FORMAT"),
-          sessionId: z.string().min(1),
-        })).output(z.object({
-          ok: z.literal(true),
-        })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-        getCancelBookingPreview: publicProcedure.input(z.object({
-          coachSlug: z
-            .string()
-            .min(2)
-            .max(96)
-            .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "INVALID_SLUG_FORMAT"),
-          token: z.string().trim().min(32).max(128),
-        })).output(z.object({
-          alreadyCancelled: z.boolean(),
-          clientCancellationRefundPolicy: z.enum(["ALWAYS", "HOURS_24", "HOURS_48"]),
-          firstSessionStartsAt: z.string(),
-          refundTotalPaid: z.number().nonnegative(),
-          refundPolicyCutoffAt: z.string().nullable(),
-          hasOnlinePaidAmount: z.boolean(),
-          onlineRefundWillApply: z.boolean(),
-        })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-        cancelByToken: publicProcedure.input(z.object({
-          coachSlug: z
-            .string()
-            .min(2)
-            .max(96)
-            .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "INVALID_SLUG_FORMAT"),
-          token: z.string().trim().min(32).max(128),
-        })).output(z.object({
-          ok: z.literal(true),
-          stripeRefunded: z.boolean(),
-          alreadyCancelled: z.boolean(),
-        })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
-      })});
+        createdAt: z.coerce.date(),
+      })),
+    })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    revenueMonths: publicProcedure.input(z.object({
+      limitMonths: z.number().int().min(1).max(36).default(24),
+    })).output(z.array(z.object({
+      year: z.number().int(),
+      month: z.number().int().min(1).max(12),
+      revenue: z.number(),
+      bookingsCount: z.number().int(),
+      growthPercent: z.number().nullable(),
+    }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    revenueMonthBookings: publicProcedure.input(z.object({
+      year: z.number().int(),
+      month: z.number().int().min(1).max(12),
+    })).output(z.array(z.object({
+      id: z.string(),
+      clientName: z.string(),
+      serviceName: z.string(),
+      startsAt: z.coerce.date(),
+      price: z.number(),
+      paidAmount: z.number(),
+      amount: z.number(),
+      status: z.enum(["confirmed", "pending", "cancelled"]),
+    }))).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+  }),
+  publicBooking: t.router({
+    getStorefront: publicProcedure.input(z.object({
+      coachSlug: z
+        .string()
+        .min(2)
+        .max(96)
+        .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "INVALID_SLUG_FORMAT"),
+      rangeFrom: z.string().datetime(),
+      rangeTo: z.string().datetime(),
+    })).output(z.object({
+      coach: z.object({
+        name: z.string(),
+        bio: z.string().nullable(),
+        imageUrl: z.string().nullable(),
+      }),
+      weekHours: z.object({
+        Monday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+        Tuesday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+        Wednesday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+        Thursday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+        Friday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+        Saturday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+        Sunday: z.object({
+          enabled: z.boolean(),
+          startTime: z.string(),
+          endTime: z.string(),
+        }),
+      }),
+      closedSlotKeys: z.array(z.string()),
+      minBookingNoticeHours: z.number().int().min(0).max(168),
+      cancellationRefundPolicy: z.enum(["ALWAYS", "HOURS_24", "HOURS_48"]),
+      services: z.array(z.object({
+        id: z.string(),
+        name: z.string(),
+        description: z.string(),
+        imageUrl: z.string().nullable(),
+        address: z.string(),
+        durationMinutes: z.number().int(),
+        packSize: z.number().int().min(1),
+        price: z.number(),
+        isFree: z.boolean(),
+        requiresValidation: z.boolean(),
+      })),
+      bookingSegments: z.array(z.object({
+        startsAt: z.string().datetime(),
+        durationMinutes: z.number().int(),
+        status: z.string(),
+      })),
+    })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    request: publicProcedure.input(z.object({
+      coachSlug: z
+        .string()
+        .min(2)
+        .max(96)
+        .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "INVALID_SLUG_FORMAT"),
+      serviceId: z.string().uuid(),
+      /** One ISO start per session; length must match the service `packSize`. */
+      sessionsStartsAt: z.array(z.string().datetime()).min(1).max(32),
+      clientName: z.string().min(1).max(200),
+      clientEmail: z.string().email().max(320),
+      clientPhone: z.string().max(80).optional(),
+      locale: z.enum(["fr", "en"]).optional(),
+    })).output(z.object({
+      id: z.string(),
+      ownerId: z.string(),
+      clientId: z.string(),
+      serviceId: z.string(),
+      startsAt: z.coerce.date(),
+      durationMinutes: z.number().int(),
+      price: z.number(),
+      paidAmount: z.number(),
+      status: z.enum(["confirmed", "pending", "cancelled"]),
+      notes: z.string().nullable(),
+      location: z.string(),
+      paymentMethod: z.string(),
+      requiresHostValidation: z.boolean(),
+      hostValidationAccepted: z.boolean(),
+      createdByClient: z.boolean(),
+      isUnseenInAdmin: z.boolean(),
+      bookingPackGroupId: z.string().nullable(),
+      stripeCheckoutSessionId: z.string().nullable(),
+      stripeRefundedAt: z.coerce.date().nullable(),
+      createdAt: z.coerce.date(),
+      updatedAt: z.coerce.date(),
+      clientName: z.string(),
+      clientEmail: z.string(),
+      clientPhone: z.string(),
+      serviceName: z.string(),
+      allowsDirectPayment: z.boolean(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    createCheckoutSession: publicProcedure.input(z.object({
+      coachSlug: z
+        .string()
+        .min(2)
+        .max(96)
+        .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "INVALID_SLUG_FORMAT"),
+      serviceId: z.string().uuid(),
+      /** One ISO start per session; length must match the service `packSize`. */
+      sessionsStartsAt: z.array(z.string().datetime()).min(1).max(32),
+      clientName: z.string().min(1).max(200),
+      clientEmail: z.string().email().max(320),
+      clientPhone: z.string().max(80).optional(),
+      locale: z.enum(["fr", "en"]).optional(),
+    })).output(z.object({
+      url: z.string().url(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    confirmCheckout: publicProcedure.input(z.object({
+      coachSlug: z
+        .string()
+        .min(2)
+        .max(96)
+        .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "INVALID_SLUG_FORMAT"),
+      sessionId: z.string().min(1),
+    })).output(z.object({
+      ok: z.literal(true),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    getCancelBookingPreview: publicProcedure.input(z.object({
+      coachSlug: z
+        .string()
+        .min(2)
+        .max(96)
+        .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "INVALID_SLUG_FORMAT"),
+      token: z.string().trim().min(32).max(128),
+    })).output(z.object({
+      alreadyCancelled: z.boolean(),
+      clientCancellationRefundPolicy: z.enum(["ALWAYS", "HOURS_24", "HOURS_48"]),
+      firstSessionStartsAt: z.string(),
+      refundTotalPaid: z.number().nonnegative(),
+      refundPolicyCutoffAt: z.string().nullable(),
+      hasOnlinePaidAmount: z.boolean(),
+      onlineRefundWillApply: z.boolean(),
+    })).query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+    cancelByToken: publicProcedure.input(z.object({
+      coachSlug: z
+        .string()
+        .min(2)
+        .max(96)
+        .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "INVALID_SLUG_FORMAT"),
+      token: z.string().trim().min(32).max(128),
+    })).output(z.object({
+      ok: z.literal(true),
+      stripeRefunded: z.boolean(),
+      alreadyCancelled: z.boolean(),
+    })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
+  })
+});
 export type AppRouter = typeof appRouter;
 
