@@ -47,8 +47,8 @@
     "#---------------------------ENV---------------------------------#": "",
     "check-env": "bun run scripts/check-env-all-apps.ts",
     "check-env:watch": "bun run scripts/check-env-all-apps.ts -- --watch",
-    "encrypt-env": "npx dotenvx encrypt -f ./apps/*/.env.production ./apps/*/.env.local.development",
-    "decrypt-env": "npx dotenvx decrypt -f ./apps/*/.env.production ./apps/*/.env.local.development"
+    "encrypt-env": "npx dotenvx encrypt -f ./apps/*/.env.production ./apps/*/.env.local.development ./apps/*/.env.staging",
+    "decrypt-env": "npx dotenvx decrypt -f ./apps/*/.env.production ./apps/*/.env.local.development ./apps/*/.env.staging"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",
@@ -71,7 +71,7 @@
     "@dotenvx/dotenvx": "^1.52.0",
     "build": "^0.1.4",
     "bunx": "^0.1.0",
-    "nestjs-trpc": "1.6.1",
+    "nestjs-trpc": "2.9.1",
     "run": "^1.5.0"
   },
   "engines": {

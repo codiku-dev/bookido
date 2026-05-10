@@ -25,6 +25,13 @@
         "DOTENV_PRIVATE_KEY_PRODUCTION"
       ]
     },
+    "prod:staging:web": {
+      "cache": false,
+      "persistent": true,
+      "env": [
+        "DOTENV_PRIVATE_KEY_STAGING"
+      ]
+    },
     "check-env:watch": {
       "cache": false,
       "persistent": true,
