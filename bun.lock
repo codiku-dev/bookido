@@ -7,7 +7,6 @@
         "@dotenvx/dotenvx": "^1.52.0",
         "build": "^0.1.4",
         "bunx": "^0.1.0",
-        "nestjs-trpc": "2.9.1",
         "run": "^1.5.0",
       },
       "devDependencies": {
@@ -2557,7 +2556,7 @@
 
     "locate-path": ["locate-path@6.0.0", "", { "dependencies": { "p-locate": "^5.0.0" } }, "sha512-iPZK6eYjbxRu3uB4/WZ3EsEIMJFMqAoopl3R+zuq0UjcAm/MO6KCweDgPfP3elTztoKP3KtnVHxTn2NHBSDVUw=="],
 
-    "lodash": ["lodash@4.18.1", "", {}, "sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q=="],
+    "lodash": ["lodash@4.17.11", "", {}, "sha512-cQKh8igo5QUhZ7lg38DYWAxMvjSAKG0A8wGSVimP07SIUEK2UO+arSRKbRZWtelMtN5V0Hkwh5ryOto/SshYIg=="],
 
     "lodash.includes": ["lodash.includes@4.3.0", "", {}, "sha512-W3Bx6mdkRTGtlJISOvVD/lbqjTlPPUDTMnlXZFnVwi9NKJ6tiAk6LVdlhZMm17VZisqhKcgzpO5Wz91PCt5b0w=="],
 
@@ -2749,7 +2748,7 @@
 
     "nestjs-i18n": ["nestjs-i18n@10.7.0", "", { "dependencies": { "accept-language-parser": "^1.5.0", "chokidar": "^3.6.0", "cookie": "^0.7.0", "iterare": "^1.2.1", "js-yaml": "^4.1.0", "string-format": "^2.0.0" }, "peerDependencies": { "@nestjs/common": "*", "@nestjs/core": "*", "class-validator": "*", "rxjs": "*" }, "optionalPeers": ["class-validator"], "bin": { "nestjs-i18n-types": "dist/cli/generate-types.js" } }, "sha512-1xF6cN4JqZqdjYmsdOOkOcHFbhhWmq5TwM0Gun5eI4WWt205ppXTn3pRGcw386JcwQ50+5+lyc5v+y6dQTpOZw=="],
 
-    "nestjs-trpc": ["nestjs-trpc@2.9.1", "", { "dependencies": { "lodash": "^4.17.21", "tslib": "^2.5.0" }, "peerDependencies": { "@nestjs/common": "^9.3.8 || ^10.0.0", "@nestjs/core": "^9.3.8 || ^10.0.0", "@trpc/server": "^11.0.0", "reflect-metadata": "^0.1.13 || ^0.2.0", "rxjs": "7.8.1", "zod": "^3.14.0 || ^4.0.0" }, "bin": { "nestjs-trpc": "bin/nestjs-trpc.js" } }, "sha512-GozIxIi9LLtAlnyro9m5+vKB8MnJ4K9iEuiDHicdS+WtC1c2ueK6MGntkCUTSyjSsQth/FZbtwEcMp8VfN/gzg=="],
+    "nestjs-trpc": ["nestjs-trpc@1.6.1", "", { "dependencies": { "lodash": "^4.17.21", "ts-morph": "22.0.0", "tslib": "^2.5.0" }, "peerDependencies": { "@nestjs/common": "^9.3.8 || ^10.0.0", "@nestjs/core": "^9.3.8 || ^10.0.0", "@trpc/server": "^10.0.0", "reflect-metadata": "^0.1.13 || ^0.2.0", "rxjs": "7.8.1", "zod": "^3.14.0" } }, "sha512-FZ0n1n9czPaZ5HHoDM7hlWsR1g3C79MhZ1Dg1xidehrl9Agk4F3XX71aLh8fgVD5sNR08B3d/xITaLP3PkOUWw=="],
 
     "next": ["next@16.0.10", "", { "dependencies": { "@next/env": "16.0.10", "@swc/helpers": "0.5.15", "caniuse-lite": "^1.0.30001579", "postcss": "8.4.31", "styled-jsx": "5.1.6" }, "optionalDependencies": { "@next/swc-darwin-arm64": "16.0.10", "@next/swc-darwin-x64": "16.0.10", "@next/swc-linux-arm64-gnu": "16.0.10", "@next/swc-linux-arm64-musl": "16.0.10", "@next/swc-linux-x64-gnu": "16.0.10", "@next/swc-linux-x64-musl": "16.0.10", "@next/swc-win32-arm64-msvc": "16.0.10", "@next/swc-win32-x64-msvc": "16.0.10", "sharp": "^0.34.4" }, "peerDependencies": { "@opentelemetry/api": "^1.1.0", "@playwright/test": "^1.51.1", "babel-plugin-react-compiler": "*", "react": "^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0", "react-dom": "^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0", "sass": "^1.3.0" }, "optionalPeers": ["@opentelemetry/api", "@playwright/test", "babel-plugin-react-compiler", "sass"], "bin": { "next": "dist/bin/next" } }, "sha512-RtWh5PUgI+vxlV3HdR+IfWA1UUHu0+Ram/JBO4vWB54cVPentCD0e+lxyAYEsDTqGGMg7qpjhKh6dc6aW7W/sA=="],
 
@@ -3839,8 +3838,6 @@
 
     "api/@types/node": ["@types/node@25.0.9", "", { "dependencies": { "undici-types": "~7.16.0" } }, "sha512-/rpCXHlCWeqClNBwUhDcusJxXYDjZTyE8v5oTO7WbL8eij2nKhUeU89/6xgjU7N4/Vh3He0BtyhJdQbDyhiXAw=="],
 
-    "api/nestjs-trpc": ["nestjs-trpc@1.6.1", "", { "dependencies": { "lodash": "^4.17.21", "ts-morph": "22.0.0", "tslib": "^2.5.0" }, "peerDependencies": { "@nestjs/common": "^9.3.8 || ^10.0.0", "@nestjs/core": "^9.3.8 || ^10.0.0", "@trpc/server": "^10.0.0", "reflect-metadata": "^0.1.13 || ^0.2.0", "rxjs": "7.8.1", "zod": "^3.14.0" } }, "sha512-FZ0n1n9czPaZ5HHoDM7hlWsR1g3C79MhZ1Dg1xidehrl9Agk4F3XX71aLh8fgVD5sNR08B3d/xITaLP3PkOUWw=="],
-
     "api/zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
 
     "babel-plugin-istanbul/istanbul-lib-instrument": ["istanbul-lib-instrument@5.2.1", "", { "dependencies": { "@babel/core": "^7.12.3", "@babel/parser": "^7.14.7", "@istanbuljs/schema": "^0.1.2", "istanbul-lib-coverage": "^3.2.0", "semver": "^6.3.0" } }, "sha512-pzqtp31nLv/XFOzXGuvhCb8qhjmTVo5vjVk19XE4CRlSWz0KoeJ3bw9XsA7nOp9YBf4qHjwBxkDzKcME/J29Yg=="],
@@ -3922,8 +3919,6 @@
     "flaschenpost/@babel/runtime": ["@babel/runtime@7.2.0", "", { "dependencies": { "regenerator-runtime": "^0.12.0" } }, "sha512-oouEibCbHMVdZSDlJBO6bZmID/zA/G/Qx3H1d3rSNPTD+L8UNKvCat7aKWSJ74zYbm5zWGh0GQN0hKj8zYFTCg=="],
 
     "flaschenpost/chalk": ["chalk@2.4.1", "", { "dependencies": { "ansi-styles": "^3.2.1", "escape-string-regexp": "^1.0.5", "supports-color": "^5.3.0" } }, "sha512-ObN6h1v2fTJSmUXoS3nMQ92LbDK9be4TV+6G+omQlGJFdcUX5heKi1LZ1YnRMIgwTLEj3E24bT6tYni50rlCfQ=="],
-
-    "flaschenpost/lodash": ["lodash@4.17.11", "", {}, "sha512-cQKh8igo5QUhZ7lg38DYWAxMvjSAKG0A8wGSVimP07SIUEK2UO+arSRKbRZWtelMtN5V0Hkwh5ryOto/SshYIg=="],
 
     "flaschenpost/stringify-object": ["stringify-object@3.3.0", "", { "dependencies": { "get-own-enumerable-property-symbols": "^3.0.0", "is-obj": "^1.0.1", "is-regexp": "^1.0.0" } }, "sha512-rHqiFh1elqCQ9WPLIC8I0Q/g/wj5J1eMkyoiD6eoQApWHP0FtlK7rqnhmabL5VUY9JQCcqwwvlOaSuutekgyrw=="],
 
@@ -4021,9 +4016,15 @@
 
     "nestjs-i18n/chokidar": ["chokidar@3.6.0", "", { "dependencies": { "anymatch": "~3.1.2", "braces": "~3.0.2", "glob-parent": "~5.1.2", "is-binary-path": "~2.1.0", "is-glob": "~4.0.1", "normalize-path": "~3.0.0", "readdirp": "~3.6.0" }, "optionalDependencies": { "fsevents": "~2.3.2" } }, "sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw=="],
 
+    "nestjs-trpc/lodash": ["lodash@4.18.1", "", {}, "sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q=="],
+
     "nestjs-trpc/rxjs": ["rxjs@7.8.1", "", { "dependencies": { "tslib": "^2.1.0" } }, "sha512-AA3TVj+0A2iuIoQkWEK/tqFjBq2j+6PO6Y0zJcvzLAFhEFIO3HL0vls9hWLncZbAAbK0mar7oZ4V079I/qPMxg=="],
 
+    "nestjs-trpc/zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
+
     "next/postcss": ["postcss@8.4.31", "", { "dependencies": { "nanoid": "^3.3.6", "picocolors": "^1.0.0", "source-map-js": "^1.0.2" } }, "sha512-PS08Iboia9mts/2ygV3eLpY5ghnUcfLV/EXTOW1E2qYxJKGGBUtNjN76FYHnMs36RmARn41bC0AZmn+rR0OVpQ=="],
+
+    "node-emoji/lodash": ["lodash@4.18.1", "", {}, "sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q=="],
 
     "nypm/tinyexec": ["tinyexec@1.1.1", "", {}, "sha512-VKS/ZaQhhkKFMANmAOhhXVoIfBXblQxGX1myCQ2faQrfmobMftXeJPcZGp0gS07ocvGJWDLZGyOZDadDBqYIJg=="],
 
@@ -4132,8 +4133,6 @@
     "superagent/qs": ["qs@6.15.1", "", { "dependencies": { "side-channel": "^1.1.0" } }, "sha512-6YHEFRL9mfgcAvql/XhwTvf5jKcOiiupt2FiJxHkiX1z4j7WL8J/jRHYLluORvc1XxB5rV20KoeK00gVJamspg=="],
 
     "tailwind/ajv": ["ajv@6.10.0", "", { "dependencies": { "fast-deep-equal": "^2.0.1", "fast-json-stable-stringify": "^2.0.0", "json-schema-traverse": "^0.4.1", "uri-js": "^4.2.2" } }, "sha512-nffhOpkymDECQyR0mnsUtoCE8RlX38G0rYP+wgLWFyZuUyuuojSSvi/+euOiQBIn63whYwYVIIH1TvE3tu4OEg=="],
-
-    "tailwind/lodash": ["lodash@4.17.11", "", {}, "sha512-cQKh8igo5QUhZ7lg38DYWAxMvjSAKG0A8wGSVimP07SIUEK2UO+arSRKbRZWtelMtN5V0Hkwh5ryOto/SshYIg=="],
 
     "tailwind/ws": ["ws@6.2.0", "", { "dependencies": { "async-limiter": "~1.0.0" } }, "sha512-deZYUNlt2O4buFCa3t5bKLf8A7FPP/TVjwOeVNpw818Ma5nk4MLXls2eoEGS39o8119QIYxTrTDoPQ5B/gTD6w=="],
 
@@ -4374,8 +4373,6 @@
     "amqplib/readable-stream/string_decoder": ["string_decoder@0.10.31", "", {}, "sha512-ev2QzSzWPYmy9GuqfIVildA4OdcGLeFZQrq5ys6RtiuF+RQQiZWr8TZNyAcuVXyQRYfEO+MsoB/1BuQVhOJuoQ=="],
 
     "api/@types/node/undici-types": ["undici-types@7.16.0", "", {}, "sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw=="],
-
-    "api/nestjs-trpc/rxjs": ["rxjs@7.8.1", "", { "dependencies": { "tslib": "^2.1.0" } }, "sha512-AA3TVj+0A2iuIoQkWEK/tqFjBq2j+6PO6Y0zJcvzLAFhEFIO3HL0vls9hWLncZbAAbK0mar7oZ4V079I/qPMxg=="],
 
     "body-parser/debug/ms": ["ms@2.0.0", "", {}, "sha512-Tpp60P6IUJDTuOq/5Z8cdskzJujfwqfOTkrwIwj7IRISpnkJnT6SyJ4PCPnGMoFjC9ddhal5KVIYtAt97ix05A=="],
 
