@@ -54,7 +54,10 @@ export function loadDevelopmentEnvFromFiles(cwd: string = process.cwd()): void {
 
 declare global {
   namespace NodeJS {
-    interface ProcessEnv extends Env { }
+    interface ProcessEnv extends Env {
+      /** Présent au runtime (Nest/Node), pas listé dans le schéma `.env` parsé. */
+      NODE_ENV?: string;
+    }
   }
 }
 

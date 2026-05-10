@@ -1,4 +1,4 @@
-import { betterAuth } from "better-auth";
+import { betterAuth, type Auth } from "better-auth";
 import { loadDevelopmentEnvFromFiles } from "@api/env-type";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { PrismaClient } from "@api/generated/prisma/client";
@@ -54,6 +54,7 @@ function buildBetterAuthTrustedOrigins(): string[] {
 }
 
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
+/** Évite TS2742 à l’emit `.d.ts` (CI Bun isole zod v4 sous better-auth). */
 export const auth = betterAuth({
     baseURL: process.env.BETTER_AUTH_URL,
     session: {
@@ -188,4 +189,4 @@ export const auth = betterAuth({
     },
     trustedOrigins: buildBetterAuthTrustedOrigins(),
 
-});
+}) as unknown as Auth;
