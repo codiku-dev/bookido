@@ -31,7 +31,7 @@
     "#---------------------------API---------------------------------#": "",
     "start:api": "bunx turbo run start:prod --filter=api...",
     "build:api": "bun install && bunx turbo run build --filter=api...",
-    "build:api:staging": "bun install && bunx turbo run build:staging --filter=api...",
+    "build:api:staging": "bun install && bunx turbo run build:staging --filter=api... && echo 'build:api:staging completed'",
     "db:start": "turbo run db:start --filter=api",
     "db:update": "cd apps/api && bun run db:update",
     "db:studio": "turbo run db:studio --filter=api",
