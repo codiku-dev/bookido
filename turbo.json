@@ -59,6 +59,13 @@
         "DOTENV_PRIVATE_KEY_PRODUCTION"
       ]
     },
+    "start:staging": {
+      "cache": false,
+      "persistent": true,
+      "env": [
+        "DOTENV_PRIVATE_KEY_STAGING"
+      ]
+    },
     "start": {
       "cache": false
     },

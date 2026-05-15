@@ -30,6 +30,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "#---------------------------API---------------------------------#": "",
     "start:api": "bunx turbo run start:prod --filter=api...",
+    "start:api:staging": "bunx turbo run start:staging --filter=api...",
     "build:api": "bun install && bunx turbo run build --filter=api...",
     "build:api:staging": "bun install && bunx turbo run build:staging --filter=api... && echo 'build:api:staging completed'",
     "db:start": "turbo run db:start --filter=api",
