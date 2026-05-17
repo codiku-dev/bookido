@@ -17,6 +17,7 @@ import { Input } from "#/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "#/components/ui/alert";
 import { setAdminAuthBridgeCookie } from "@web/libs/admin-auth-bridge-cookie";
 import { signIn, useSession } from "@web/libs/auth-client";
+import { getAuthCallbackURL } from "@web/utils/auth-callback-url";
 import { translateSigninAuthError } from "@web/utils/translate-signin-auth-error";
 
 type SignInFormValues = {
@@ -29,17 +30,6 @@ const ADMIN_GOOGLE_AUTH_UI_ENABLED = false;
 
 const DEV_ADMIN_SIGNIN_EMAIL = "robin.lebhar@gmail.com";
 const DEV_ADMIN_SIGNIN_PASSWORD = "Password123!";
-
-function getOAuthCallbackURL() {
-  const fromEnv = process.env["NEXT_PUBLIC_GOOGLE_AUTH_CALLBACK_URL"];
-  if (fromEnv && fromEnv.length > 0) {
-    return fromEnv;
-  }
-  if (typeof window !== "undefined") {
-    return `${window.location.origin}/admin/signin`;
-  }
-  return "";
-}
 
 export default function SignInAdmin() {
   const router = useRouter();
@@ -117,7 +107,7 @@ export default function SignInAdmin() {
 
   const handleGoogleSignIn = () => {
     form.clearErrors("root");
-    const callbackURL = getOAuthCallbackURL();
+    const callbackURL = getAuthCallbackURL("/admin");
     void signIn.social({
       provider: "google",
       callbackURL: callbackURL || undefined,

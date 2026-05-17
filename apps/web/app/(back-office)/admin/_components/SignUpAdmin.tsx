@@ -15,6 +15,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from "#/components/
 import { Input } from "#/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "#/components/ui/alert";
 import { authClient, signIn, signUp } from "@web/libs/auth-client";
+import { getAuthCallbackURL } from "@web/utils/auth-callback-url";
 import { isSignupUserAlreadyExistsError, translateSignupAuthError } from "@web/utils/translate-signup-auth-error";
 
 type SignUpFormValues = {
@@ -30,17 +31,6 @@ function provisionalDisplayNameFromEmail(email: string): string {
 
 /** Remettre à `true` pour réafficher le séparateur + le bouton Google. */
 const ADMIN_GOOGLE_AUTH_UI_ENABLED = false;
-
-function getEmailCallbackURL() {
-  const fromEnv = process.env["NEXT_PUBLIC_GOOGLE_AUTH_CALLBACK_URL"];
-  if (fromEnv && fromEnv.length > 0) {
-    return fromEnv;
-  }
-  if (typeof window !== "undefined") {
-    return `${window.location.origin}/admin/signin`;
-  }
-  return "";
-}
 
 export default function SignUpAdmin() {
   const t = useTranslations();
@@ -65,7 +55,7 @@ export default function SignUpAdmin() {
     form.clearErrors("root");
     setEmailSent(false);
 
-    const callbackURL = getEmailCallbackURL();
+    const callbackURL = getAuthCallbackURL("/admin/signin");
     const res = await signUp.email({
       name: provisionalDisplayNameFromEmail(values.email),
       email: values.email,
@@ -98,7 +88,7 @@ export default function SignUpAdmin() {
   const handleGoogleSignUp = () => {
     form.clearErrors("root");
     setEmailSent(false);
-    const callbackURL = getEmailCallbackURL();
+    const callbackURL = getAuthCallbackURL("/admin/signin");
     void signIn.social({
       provider: "google",
       callbackURL: callbackURL || undefined,
