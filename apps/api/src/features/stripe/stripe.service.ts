@@ -114,54 +114,20 @@ export class StripeService {
     };
   }
 
-  /** Stripe requires `identity.country` before `configuration.merchant` (cannot set both on one create with account_token). */
-  private async ensureConnectAccountIdentityAndMerchant(accountId: string): Promise<void> {
+  /**
+   * `identity.country` on `accounts.create` is ignored when `account_token` is set — country must be
+   * persisted via a dedicated update before any `configuration.merchant` change.
+   */
+  private async setConnectIdentityCountry(accountId: string): Promise<void> {
     const identityCountry = resolveStripeConnectIdentityCountry();
-    const account = await this.stripeClient.v2.core.accounts.retrieve(accountId, {
-      include: ["configuration.merchant"],
+    await this.stripeClient.v2.core.accounts.update(accountId, {
+      identity: { country: identityCountry },
     });
-
-    const country = account.identity?.country?.trim();
-    const hasMerchant = Boolean(account.configuration?.merchant);
-
-    if (!country) {
-      await this.stripeClient.v2.core.accounts.update(accountId, {
-        identity: { country: identityCountry },
-      });
-    }
-
-    if (!hasMerchant) {
-      await this.stripeClient.v2.core.accounts.update(accountId, {
-        configuration: {
-          merchant: {
-            capabilities: {
-              card_payments: { requested: true },
-            },
-          },
-        },
-      });
-    }
   }
 
-  private async createConnectedAccountV2(p: { displayName: string; contactEmail: string }) {
-    const identityCountry = resolveStripeConnectIdentityCountry();
-
-    const accountToken = await this.stripeClient.v2.core.accountTokens.create({
-      display_name: p.displayName,
-      contact_email: p.contactEmail,
-    });
-
-    const account = await this.stripeClient.v2.core.accounts.create({
-      account_token: accountToken.id,
-      identity: {
-        country: identityCountry,
-      },
-      configuration: {
-        customer: {},
-      },
-    });
-
-    return this.stripeClient.v2.core.accounts.update(account.id, {
+  private async enableConnectMerchantConfiguration(accountId: string): Promise<void> {
+    await this.setConnectIdentityCountry(accountId);
+    await this.stripeClient.v2.core.accounts.update(accountId, {
       dashboard: "full",
       defaults: {
         responsibilities: {
@@ -180,6 +146,39 @@ export class StripeService {
         },
       },
     });
+  }
+
+  private async ensureConnectAccountIdentityAndMerchant(accountId: string): Promise<void> {
+    const account = await this.stripeClient.v2.core.accounts.retrieve(accountId, {
+      include: ["configuration.merchant", "identity"],
+    });
+    const country = account.identity?.country?.trim();
+    const hasMerchant = Boolean(account.configuration?.merchant);
+    if (country && hasMerchant) {
+      return;
+    }
+    if (!hasMerchant) {
+      await this.enableConnectMerchantConfiguration(accountId);
+      return;
+    }
+    await this.setConnectIdentityCountry(accountId);
+  }
+
+  private async createConnectedAccountV2(p: { displayName: string; contactEmail: string }) {
+    const accountToken = await this.stripeClient.v2.core.accountTokens.create({
+      display_name: p.displayName,
+      contact_email: p.contactEmail,
+    });
+
+    const account = await this.stripeClient.v2.core.accounts.create({
+      account_token: accountToken.id,
+      configuration: {
+        customer: {},
+      },
+    });
+
+    await this.enableConnectMerchantConfiguration(account.id);
+    return this.stripeClient.v2.core.accounts.retrieve(account.id);
   }
 
   async createOrRefreshOnboardingLink(p: {
