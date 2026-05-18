@@ -1,5 +1,11 @@
 import { initTRPC } from "@trpc/server";
 import { z } from "zod";
+import {
+  plainTextFromHtml,
+  PROFILE_AVATAR_DATA_URL_MAX_LEN,
+  publicBookingSlugSchema,
+  SERVICE_DESCRIPTION_MAX_CHARS,
+} from "./router-codegen-helpers";
 
 const t = initTRPC.create();
 const publicProcedure = t.procedure;
@@ -350,7 +356,7 @@ const appRouter = t.router({
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
     delete: publicProcedure.input(z.object({ id: z.string() })).output(z.object({ id: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   }),
-  profile: t.router({ ,
+  profile: t.router({
     getAdminOnboardingStatus: publicProcedure.output(z.object({
       needsOnboarding: z.boolean(),
       bio: z.string().nullable(),
@@ -502,8 +508,7 @@ const appRouter = t.router({
       password: z.string().optional(),
     })).output(z.object({ ok: z.literal(true) })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any)
   }),
-  services: t.router({ ,
-,
+  services: t.router({
     list: publicProcedure.output(z.array(z.object({
       id: z.string(),
       userId: z.string(),
@@ -660,7 +665,8 @@ const appRouter = t.router({
       createdAt: z.coerce.date(),
       updatedAt: z.coerce.date(),
     })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
-    delete: publicProcedure.input(z.object({ id: z.string() })).output(z.object({ id: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any) }),
+    delete: publicProcedure.input(z.object({ id: z.string() })).output(z.object({ id: z.string() })).mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as any),
+  }),
   bookings: t.router({
     list: publicProcedure.input(z.object({
       rangeFrom: z.string().datetime().optional(),
