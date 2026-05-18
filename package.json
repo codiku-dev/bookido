@@ -36,6 +36,7 @@
     "db:start": "turbo run db:start --filter=api",
     "db:update": "cd apps/api && bun run db:update",
     "db:studio": "turbo run db:studio --filter=api",
+    "db:studio:staging": "turbo run db:studio:staging --filter=api",
     "#---------------------------WEB---------------------------------#": "",
     "start:web": "bunx turbo run start:prod --filter=web...",
     "start:web:staging": "bunx turbo run start:staging --filter=web...",
