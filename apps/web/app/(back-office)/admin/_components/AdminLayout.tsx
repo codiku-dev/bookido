@@ -3,16 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  LayoutDashboard,
-  Calendar,
-  NotebookText,
-  Users,
-  Package,
-  UserCircle,
-  LogOut,
-  Euro,
-} from "lucide-react";
+import { LayoutDashboard, Calendar, NotebookText, Users, Package, UserCircle, LogOut, Euro } from "lucide-react";
 import { useTranslations } from "next-intl";
 import BookidoLogo from "#/components/BookidoLogo";
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/ui/avatar";
@@ -145,7 +136,7 @@ export default function AdminLayout(p: { children: ReactNode }) {
 
   const onboardingGateOverlay = onboardingGateBlocking ? (
     <div
-      className="fixed inset-0 z-[150] flex flex-col items-center justify-center gap-3 bg-slate-50"
+      className="fixed inset-0 z-150 flex flex-col items-center justify-center gap-3 bg-slate-50"
       aria-busy
       aria-live="polite"
     >
@@ -156,7 +147,7 @@ export default function AdminLayout(p: { children: ReactNode }) {
 
   const logoutBlockingOverlay = isLoggingOut ? (
     <div
-      className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-3 bg-background/85 backdrop-blur-sm"
+      className="fixed inset-0 z-200 flex flex-col items-center justify-center gap-3 bg-background/85 backdrop-blur-sm"
       aria-busy
       aria-live="polite"
     >
@@ -182,7 +173,9 @@ export default function AdminLayout(p: { children: ReactNode }) {
           <AvatarFallback className="bg-slate-100 text-slate-700">{avatarFallback}</AvatarFallback>
         </Avatar>
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-slate-900">{userFullName.length > 0 ? userFullName : "Admin"}</p>
+          <p className="truncate text-sm font-semibold text-slate-900">
+            {userFullName.length > 0 ? userFullName : "Admin"}
+          </p>
           <p className="truncate text-xs text-slate-500">{userEmail}</p>
         </div>
       </div>
@@ -195,11 +188,7 @@ export default function AdminLayout(p: { children: ReactNode }) {
       ? t("nav.publicSite.published")
       : t("nav.publicSite.unpublished");
 
-  const sitePublishBadgeVariant = sitePublishedBadgeLoading
-    ? "outline"
-    : sitePublished
-      ? "success"
-      : "secondary";
+  const sitePublishBadgeVariant = sitePublishedBadgeLoading ? "outline" : sitePublished ? "success" : "secondary";
 
   const sitePublishBadge = sessionReady ? (
     <Badge
@@ -229,7 +218,7 @@ export default function AdminLayout(p: { children: ReactNode }) {
   return (
     <div className="relative flex h-screen min-h-0 overflow-hidden bg-slate-50">
       {/* Sidebar */}
-      <aside className="flex min-h-0 w-64 flex-shrink-0 flex-col border-r border-slate-200 bg-white">
+      <aside className="flex min-h-0 w-64 shrink-0 flex-col border-r border-slate-200 bg-white">
         {sidebarBrandHeader}
         {accountIdentity}
 
@@ -244,9 +233,7 @@ export default function AdminLayout(p: { children: ReactNode }) {
                   key={item.path}
                   href={item.path}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                    isActive
-                      ? "bg-blue-50 text-blue-700 font-medium"
-                      : "text-slate-600 hover:bg-slate-50"
+                    isActive ? "bg-blue-50 text-blue-700 font-medium" : "text-slate-600 hover:bg-slate-50"
                   }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -276,9 +263,7 @@ export default function AdminLayout(p: { children: ReactNode }) {
       </aside>
 
       {/* Main Content */}
-      <main className="min-h-0 min-w-0 flex-1 overflow-y-auto bg-slate-50">
-        {p.children}
-      </main>
+      <main className="min-h-0 min-w-0 flex-1 overflow-y-auto bg-slate-50">{p.children}</main>
       {logoutBlockingOverlay}
     </div>
   );

@@ -311,10 +311,9 @@ export default function OnboardingWizard() {
           allowsDirectPayment: z.boolean(),
           imageDataUrl: z
             .string()
-            .refine(
-              (value) => value.trim().length === 0 || value.trim().startsWith("data:image/"),
-              { message: t("services.validation.imageInvalidType") },
-            ),
+            .refine((value) => value.trim().length === 0 || value.trim().startsWith("data:image/"), {
+              message: t("services.validation.imageInvalidType"),
+            }),
           availableSlotKeys: z.array(z.string()),
         })
         .superRefine((data, ctx) => {
@@ -534,14 +533,12 @@ export default function OnboardingWizard() {
       return;
     }
     const serverStep = Math.min(8, Math.max(0, onboardingStatusQuery.data.currentStep));
-    const seedKey =
-      serverStep >= 1 ? `${user.id}:${serverStep}:${user.name ?? ""}` : `${user.id}:0`;
+    const seedKey = serverStep >= 1 ? `${user.id}:${serverStep}:${user.name ?? ""}` : `${user.id}:0`;
     if (profileNameSeedKeyRef.current === seedKey) {
       return;
     }
     profileNameSeedKeyRef.current = seedKey;
-    const splitName =
-      serverStep >= 1 ? splitFullNameParts(user.name ?? "") : { firstName: "", lastName: "" };
+    const splitName = serverStep >= 1 ? splitFullNameParts(user.name ?? "") : { firstName: "", lastName: "" };
     onboardingForm.reset({
       ...onboardingForm.getValues(),
       firstName: splitName.firstName,
@@ -577,10 +574,8 @@ export default function OnboardingWizard() {
     presenceSeedRef.current = nextPresenceSeed;
     const addr = presenceDefaultAddress.trim();
     const prev = onboardingForm.getValues();
-    const nextServiceAddress =
-      addr.length > 0 && !prev.serviceAddress.trim() ? addr : prev.serviceAddress;
-    const nextServiceFromPlaces =
-      addr.length > 0 && !prev.serviceAddress.trim() ? true : prev.serviceAddressFromPlaces;
+    const nextServiceAddress = addr.length > 0 && !prev.serviceAddress.trim() ? addr : prev.serviceAddress;
+    const nextServiceFromPlaces = addr.length > 0 && !prev.serviceAddress.trim() ? true : prev.serviceAddressFromPlaces;
     onboardingForm.reset({
       ...prev,
       defaultAddress: presenceDefaultAddress,
@@ -973,16 +968,10 @@ export default function OnboardingWizard() {
         name: nm,
         defaultAddress: addr.length > 0 ? addr : null,
       });
-      onboardingForm.setValue(
-        "serviceAddress",
-        addr.length > 0 ? addr : t("onboarding.service.fallbackAddress"),
-        { shouldDirty: false },
-      );
-      onboardingForm.setValue(
-        "serviceAddressFromPlaces",
-        addr.length > 0 ? fromPlaces : false,
-        { shouldDirty: false },
-      );
+      onboardingForm.setValue("serviceAddress", addr.length > 0 ? addr : t("onboarding.service.fallbackAddress"), {
+        shouldDirty: false,
+      });
+      onboardingForm.setValue("serviceAddressFromPlaces", addr.length > 0 ? fromPlaces : false, { shouldDirty: false });
       goNext();
     } catch {
       toast.error(t("profile.errors.profileUpdate"));
@@ -1006,11 +995,7 @@ export default function OnboardingWizard() {
     }
     const values = parsed.data;
     const serviceFromPlaces = onboardingForm.getValues("serviceAddressFromPlaces");
-    if (
-      hasGooglePlacesAutocomplete &&
-      values.serviceAddress.trim().length > 0 &&
-      !serviceFromPlaces
-    ) {
+    if (hasGooglePlacesAutocomplete && values.serviceAddress.trim().length > 0 && !serviceFromPlaces) {
       toast.error(t("onboarding.address.mustPickFromMap"));
       return;
     }
@@ -1426,9 +1411,7 @@ export default function OnboardingWizard() {
     if (!container) {
       return;
     }
-    const target = container.querySelector<HTMLElement>(
-      `[data-onboarding-step="${onboardingStepperCurrentIndex}"]`,
-    );
+    const target = container.querySelector<HTMLElement>(`[data-onboarding-step="${onboardingStepperCurrentIndex}"]`);
     if (!target) {
       return;
     }
@@ -1508,7 +1491,7 @@ export default function OnboardingWizard() {
 
   const publicProfileIntro = (
     <div className="w-full px-4 pt-6 md:px-8">
-      <div className="rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 px-5 py-4 md:px-6">
+      <div className="rounded-2xl border border-blue-100 bg-linear-to-r from-blue-50 to-indigo-50 px-5 py-4 md:px-6">
         <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
           {t("onboarding.publicProfileIntro.badge")}
         </p>
@@ -1588,12 +1571,7 @@ export default function OnboardingWizard() {
                 <FormItem>
                   <FormLabel>{t("onboarding.name.firstNameLabel")}</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      value={field.value ?? ""}
-                      autoComplete="given-name"
-                      className="h-11 rounded-xl"
-                    />
+                    <Input {...field} value={field.value ?? ""} autoComplete="given-name" className="h-11 rounded-xl" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -1974,7 +1952,10 @@ export default function OnboardingWizard() {
                     <FormItem>
                       <div className="flex items-start gap-3 rounded-xl border border-slate-200 p-4 hover:bg-slate-50">
                         <FormControl>
-                          <Checkbox checked={field.value === true} onCheckedChange={(v) => field.onChange(v === true)} />
+                          <Checkbox
+                            checked={field.value === true}
+                            onCheckedChange={(v) => field.onChange(v === true)}
+                          />
                         </FormControl>
                         <div className="space-y-1">
                           <FormLabel className="cursor-pointer font-medium text-slate-900">
@@ -2002,13 +1983,11 @@ export default function OnboardingWizard() {
                         value={field.value}
                         onChange={(e) => {
                           const normalized = e.target.value.replace(",", ".");
-                          const next = normalized
-                            .replace(/[^\d.]/g, "")
-                            .replace(/(\..*)\./g, "$1");
+                          const next = normalized.replace(/[^\d.]/g, "").replace(/(\..*)\./g, "$1");
                           field.onChange(next);
                         }}
                         placeholder="50"
-                        className="h-11 w-full max-w-[11rem] rounded-xl"
+                        className="h-11 w-full max-w-44 rounded-xl"
                       />
                     </FormControl>
                     <FormMessage />
@@ -2057,7 +2036,9 @@ export default function OnboardingWizard() {
                       className="flex aspect-video w-full max-w-3xl cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50/80 px-4 py-8 text-center transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/40"
                     >
                       <Upload className="size-10 text-slate-400" aria-hidden />
-                      <span className="text-sm font-medium text-slate-700">{t("services.imageInput.dropPlaceholderTitle")}</span>
+                      <span className="text-sm font-medium text-slate-700">
+                        {t("services.imageInput.dropPlaceholderTitle")}
+                      </span>
                       <span className="text-xs text-slate-500">{t("services.imageInput.dropPlaceholderSubtitle")}</span>
                     </button>
                   );
