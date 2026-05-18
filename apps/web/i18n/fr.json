@@ -1515,6 +1515,8 @@
       "title": "Quelle sera l’URL de ton Bookido ?",
       "subtitle": "Choisis la fin de ton lien public. Lettres minuscules, chiffres et tirets uniquement.",
       "fieldLabel": "Identifiant dans l’URL",
+      "linkPreview": "Ton lien public",
+      "linkPreviewPlaceholder": "ton-identifiant",
       "invalidFormat": "2 à 96 caractères : lettres minuscules, chiffres et un tiret entre les mots."
     },
     "stripe": {
@@ -1553,7 +1555,8 @@
     "address": {
       "label": "Adresse de la prestation",
       "placeholder": "ex. 12 rue de la Paix, 75002 Paris",
-      "hint": "Obligatoire. Préremplie avec votre adresse profil par défaut, modifiable pour chaque prestation."
+      "hint": "Obligatoire. Préremplie avec votre adresse profil par défaut, modifiable pour chaque prestation.",
+      "pickFromSuggestionsWarning": "Pour un repérage précis, choisis une adresse dans la liste de suggestions Google."
     },
     "duration": "Durée",
     "durationPlaceholder": "60",

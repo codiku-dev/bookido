@@ -3,12 +3,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, useWatch, type Resolver } from "react-hook-form";
 import { z } from "zod";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { TRPCClientError } from "@trpc/client";
-import { Calendar, Check, ImageUp, Loader2, Upload, X } from "lucide-react";
+import { Calendar, Check, Loader2 } from "lucide-react";
 import BookidoLogo from "#/components/BookidoLogo";
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/ui/avatar";
 import { Button } from "#/components/ui/button";
@@ -29,16 +30,17 @@ import {
   type WeekHours,
   isOutsideBusinessHours,
 } from "#/utils/calendar-availability";
-import { ServiceDescriptionEditor } from "#/components/tiptap/service-description-editor";
-import { SERVICE_DESCRIPTION_MAX_CHARS } from "#/utils/service-description-limit";
-import { normalizeServiceDescriptionHtml } from "#/utils/service-description-html";
-import { plainTextFromHtml } from "#/utils/rich-text-plain";
+import { OnboardingServiceStep } from "#/components/service-form/onboarding-service-step";
+import type { PublicStorefrontCoachCard } from "#/components/public-storefront/public-storefront-service.types";
 import { GooglePlacesAddressField } from "#/components/GooglePlacesAddressField";
-import { ServiceImageCropDialog } from "#/components/service-image-crop-dialog";
 import {
-  SERVICE_BOOKING_IMAGE_RECOMMENDED_HEIGHT,
-  SERVICE_BOOKING_IMAGE_RECOMMENDED_WIDTH,
-} from "#/utils/service-image-crop";
+  buildServiceFormSchema,
+  buildServiceFormSchemaMessages,
+  getServiceFormDefaults,
+  mapExistingServiceToFormValues,
+  type ServiceFormValues,
+} from "#/utils/service-form-schema";
+import { buildServiceApiPayload } from "#/utils/service-form-payload";
 
 const ONBOARDING_FLOW_STEPS = 9;
 const PROFESSIONAL_BIO_MAX_CHARS = 320;
@@ -169,14 +171,6 @@ export default function OnboardingWizard() {
     mode: null,
     keys: new Set(),
   });
-  const serviceImageInputRef = useRef<HTMLInputElement | null>(null);
-  const [serviceImageCropOpen, setServiceImageCropOpen] = useState(false);
-  const [serviceImageCropSrc, setServiceImageCropSrc] = useState<string | null>(null);
-  const serviceAvailabilityDragRef = useRef<{
-    active: boolean;
-    mode: "close" | "open" | null;
-    keys: Set<string>;
-  }>({ active: false, mode: null, keys: new Set() });
   const updateBasicsMutation = trpc.profile.updateProfileBasics.useMutation();
   const updateAvatarMutation = trpc.profile.updateProfileAvatar.useMutation();
   const updateCalendarMutation = trpc.profile.updateCalendarAvailability.useMutation();
@@ -230,20 +224,6 @@ export default function OnboardingWizard() {
     /** True when the value came from Google Places in this session, or was loaded from profile (trusted). */
     defaultAddressFromPlaces: boolean;
     slug: string;
-    serviceName: string;
-    serviceDescription: string;
-    serviceAddress: string;
-    /** True when service address came from Google Places or profile (trusted). */
-    serviceAddressFromPlaces: boolean;
-    durationMinutes: number;
-    packSize: number;
-    priceEuros: string;
-    isPublished: boolean;
-    requiresValidation: boolean;
-    allowsDirectPayment: boolean;
-    imageDataUrl: string;
-    /** Slot keys where this service is closed (same semantics as Services admin form). */
-    availableSlotKeys: string[];
   };
 
   const nameStepSchema = useMemo(
@@ -274,68 +254,7 @@ export default function OnboardingWizard() {
     [t],
   );
 
-  const serviceStepSchema = useMemo(
-    () =>
-      z
-        .object({
-          serviceName: z.string().min(1, { message: t("onboarding.service.validation.name") }),
-          serviceDescription: z.string().superRefine((val, ctx) => {
-            const normalized = normalizeServiceDescriptionHtml(val);
-            const plain = plainTextFromHtml(normalized);
-            if (plain.length < 1) {
-              ctx.addIssue({ code: "custom", message: t("onboarding.service.validation.description") });
-            }
-            if (plain.length > SERVICE_DESCRIPTION_MAX_CHARS) {
-              ctx.addIssue({
-                code: "custom",
-                message: t("services.validation.descriptionMax", { max: SERVICE_DESCRIPTION_MAX_CHARS }),
-              });
-            }
-          }),
-          serviceAddress: z
-            .string()
-            .trim()
-            .min(1, { message: t("onboarding.service.validation.address") }),
-          durationMinutes: z.coerce
-            .number({ errorMap: () => ({ message: t("services.validation.durationNumber") }) })
-            .int()
-            .min(30, { message: t("services.validation.durationMin30") })
-            .refine((n) => n % 30 === 0, { message: t("services.validation.durationMultipleOf30") }),
-          packSize: z.coerce
-            .number({ errorMap: () => ({ message: t("services.validation.packSizeNumber") }) })
-            .int()
-            .min(1, { message: t("services.validation.packSizePositive") }),
-          priceEuros: z.string(),
-          isPublished: z.boolean(),
-          requiresValidation: z.boolean(),
-          allowsDirectPayment: z.boolean(),
-          imageDataUrl: z
-            .string()
-            .refine((value) => value.trim().length === 0 || value.trim().startsWith("data:image/"), {
-              message: t("services.validation.imageInvalidType"),
-            }),
-          availableSlotKeys: z.array(z.string()),
-        })
-        .superRefine((data, ctx) => {
-          const raw = data.priceEuros.trim();
-          if (raw === "") {
-            return;
-          }
-          if (!/^\d+([.,]\d+)?$/.test(raw)) {
-            ctx.addIssue({ code: "custom", message: t("services.validation.priceNumber"), path: ["priceEuros"] });
-            return;
-          }
-          const p = Number.parseFloat(raw.replace(",", "."));
-          if (Number.isNaN(p) || p < 0) {
-            ctx.addIssue({ code: "custom", message: t("services.validation.priceNumber"), path: ["priceEuros"] });
-            return;
-          }
-          if (p === 0) {
-            return;
-          }
-        }),
-    [t],
-  );
+  const serviceFormSchema = useMemo(() => buildServiceFormSchema(buildServiceFormSchemaMessages(t)), [t]);
 
   const onboardingDefaultValues = useMemo(
     (): OnboardingFormValues => ({
@@ -345,24 +264,19 @@ export default function OnboardingWizard() {
       defaultAddress: "",
       defaultAddressFromPlaces: false,
       slug: "",
-      serviceName: "",
-      serviceDescription: "",
-      serviceAddress: "",
-      serviceAddressFromPlaces: false,
-      durationMinutes: 60,
-      packSize: 1,
-      priceEuros: "0",
-      isPublished: false,
-      requiresValidation: false,
-      allowsDirectPayment: false,
-      imageDataUrl: "",
-      availableSlotKeys: [],
     }),
     [],
   );
 
   const onboardingForm = useForm<OnboardingFormValues>({
     defaultValues: onboardingDefaultValues,
+    mode: "onChange",
+    reValidateMode: "onChange",
+  });
+
+  const serviceForm = useForm<ServiceFormValues>({
+    resolver: zodResolver(serviceFormSchema) as Resolver<ServiceFormValues>,
+    defaultValues: getServiceFormDefaults(),
     mode: "onChange",
     reValidateMode: "onChange",
   });
@@ -387,7 +301,7 @@ export default function OnboardingWizard() {
     setStep(resumedStep);
     setFurthestOnboardingStep((f) => Math.max(f, resumedStep));
     if (resumedStep === 6) {
-      onboardingForm.setValue("isPublished", false, { shouldDirty: false, shouldTouch: false });
+      serviceForm.setValue("isPublished", false, { shouldDirty: false, shouldTouch: false });
     }
   }, [user?.id, onboardingStatusQuery.isPending, onboardingStatusQuery.data, onboardingForm]);
 
@@ -398,7 +312,7 @@ export default function OnboardingWizard() {
       return;
     }
     if (prev === 5) {
-      onboardingForm.setValue("isPublished", false, { shouldDirty: false, shouldTouch: false });
+      serviceForm.setValue("isPublished", false, { shouldDirty: false, shouldTouch: false });
     }
   }, [step, servicesListQuery.data?.length, onboardingForm]);
 
@@ -412,46 +326,10 @@ export default function OnboardingWizard() {
     [nameStepSchema, watchedFirstName, watchedLastName],
   );
 
-  const watchedServiceName = useWatch({ control: onboardingForm.control, name: "serviceName", defaultValue: "" });
-  const watchedServiceDescription = useWatch({
-    control: onboardingForm.control,
-    name: "serviceDescription",
-    defaultValue: "",
-  });
-  const watchedServiceAddress = useWatch({ control: onboardingForm.control, name: "serviceAddress", defaultValue: "" });
-  const watchedDurationMinutes = useWatch({
-    control: onboardingForm.control,
-    name: "durationMinutes",
-    defaultValue: 60,
-  });
-  const watchedPackSize = useWatch({ control: onboardingForm.control, name: "packSize", defaultValue: 1 });
-  const watchedPriceEuros = useWatch({ control: onboardingForm.control, name: "priceEuros", defaultValue: "0" });
-  const watchedIsPublished = useWatch({ control: onboardingForm.control, name: "isPublished", defaultValue: false });
-  const watchedRequiresValidation = useWatch({
-    control: onboardingForm.control,
-    name: "requiresValidation",
-    defaultValue: false,
-  });
-  const watchedAllowsDirectPayment = useWatch({
-    control: onboardingForm.control,
-    name: "allowsDirectPayment",
-    defaultValue: false,
-  });
-  const watchedImageDataUrl = useWatch({ control: onboardingForm.control, name: "imageDataUrl", defaultValue: "" });
-  const watchedAvailableSlotKeys = useWatch({
-    control: onboardingForm.control,
-    name: "availableSlotKeys",
-    defaultValue: [] as string[],
-  });
-
-  const onboardingServiceClosedSlotSet = useMemo(
-    () => new Set(watchedAvailableSlotKeys ?? []),
-    [watchedAvailableSlotKeys],
-  );
-
+  const watchedServiceAddress = useWatch({ control: serviceForm.control, name: "address", defaultValue: "" });
   const watchedServiceAddressFromPlaces = useWatch({
-    control: onboardingForm.control,
-    name: "serviceAddressFromPlaces",
+    control: serviceForm.control,
+    name: "addressFromPlaces",
     defaultValue: false,
   });
 
@@ -466,44 +344,30 @@ export default function OnboardingWizard() {
     return Boolean(watchedServiceAddressFromPlaces);
   }, [watchedServiceAddress, watchedServiceAddressFromPlaces, hasGooglePlacesAutocomplete]);
 
-  const isServiceStepValid = useMemo(
-    () =>
-      serviceStepSchema.safeParse({
-        serviceName: watchedServiceName,
-        serviceDescription: watchedServiceDescription,
-        serviceAddress: watchedServiceAddress,
-        durationMinutes: watchedDurationMinutes,
-        packSize: watchedPackSize,
-        priceEuros: watchedPriceEuros,
-        isPublished: watchedIsPublished,
-        requiresValidation: watchedRequiresValidation,
-        allowsDirectPayment: watchedAllowsDirectPayment,
-        imageDataUrl: watchedImageDataUrl,
-        availableSlotKeys: watchedAvailableSlotKeys ?? [],
-      }).success,
-    [
-      serviceStepSchema,
-      watchedServiceName,
-      watchedServiceDescription,
-      watchedServiceAddress,
-      watchedDurationMinutes,
-      watchedPackSize,
-      watchedPriceEuros,
-      watchedIsPublished,
-      watchedRequiresValidation,
-      watchedAllowsDirectPayment,
-      watchedImageDataUrl,
-      watchedAvailableSlotKeys,
-    ],
-  );
-
-  const isServiceStepFullyValid = isServiceStepValid && isServiceAddressPlacesOk;
+  const isServiceStepFullyValid = serviceForm.formState.isValid && isServiceAddressPlacesOk;
 
   const watchedSlug = useWatch({ control: onboardingForm.control, name: "slug", defaultValue: "" });
   const isSlugStepValid = useMemo(
     () => slugStepSchema.safeParse({ slug: watchedSlug }).success,
     [slugStepSchema, watchedSlug],
   );
+
+  const coachSlugForPublicPreview = (watchedSlug.trim() || presenceQuery.data?.publicBookingSlug || "").trim();
+
+  const coachCardForPublicPreview = useMemo((): PublicStorefrontCoachCard | null => {
+    const presence = presenceQuery.data;
+    if (!presence) {
+      return null;
+    }
+    const name = composeFullName(watchedFirstName, watchedLastName);
+    const displayName = name.length > 0 ? name : (user?.name?.trim() ?? "");
+    return {
+      name: displayName.length > 0 ? displayName : t("services.preview.defaultCoachName"),
+      bio: null,
+      imageUrl: presence.image ?? null,
+    };
+  }, [presenceQuery.data, watchedFirstName, watchedLastName, user?.name, t]);
+
 
   const watchedDefaultAddress = useWatch({
     control: onboardingForm.control,
@@ -574,17 +438,21 @@ export default function OnboardingWizard() {
     presenceSeedRef.current = nextPresenceSeed;
     const addr = presenceDefaultAddress.trim();
     const prev = onboardingForm.getValues();
-    const nextServiceAddress = addr.length > 0 && !prev.serviceAddress.trim() ? addr : prev.serviceAddress;
-    const nextServiceFromPlaces = addr.length > 0 && !prev.serviceAddress.trim() ? true : prev.serviceAddressFromPlaces;
+    const prevService = serviceForm.getValues();
+    const nextServiceAddress = addr.length > 0 && !prevService.address.trim() ? addr : prevService.address;
+    const nextServiceFromPlaces = addr.length > 0 && !prevService.address.trim() ? true : prevService.addressFromPlaces;
     onboardingForm.reset({
       ...prev,
       defaultAddress: presenceDefaultAddress,
       defaultAddressFromPlaces: addr.length > 0,
       slug: presencePublicSlug,
-      serviceAddress: nextServiceAddress,
-      serviceAddressFromPlaces: nextServiceFromPlaces,
     });
-  }, [presenceReady, presenceDefaultAddress, presencePublicSlug, onboardingForm]);
+    serviceForm.reset({
+      ...prevService,
+      address: nextServiceAddress,
+      addressFromPlaces: nextServiceFromPlaces,
+    });
+  }, [presenceReady, presenceDefaultAddress, presencePublicSlug, onboardingForm, serviceForm]);
 
   const goNext = useCallback(() => {
     setStep((currentStep) => {
@@ -647,14 +515,10 @@ export default function OnboardingWizard() {
     onboardingSlotDragRef.current = { active: false, mode: null, keys: new Set() };
   }, []);
 
-  const resetServiceAvailabilityDrag = useCallback(() => {
-    serviceAvailabilityDragRef.current = { active: false, mode: null, keys: new Set() };
-  }, []);
 
   useEffect(() => {
     const onGlobalPointerUp = () => {
       resetOnboardingSlotDrag();
-      resetServiceAvailabilityDrag();
     };
     window.addEventListener("pointerup", onGlobalPointerUp);
     window.addEventListener("pointercancel", onGlobalPointerUp);
@@ -662,7 +526,7 @@ export default function OnboardingWizard() {
       window.removeEventListener("pointerup", onGlobalPointerUp);
       window.removeEventListener("pointercancel", onGlobalPointerUp);
     };
-  }, [resetOnboardingSlotDrag, resetServiceAvailabilityDrag]);
+  }, [resetOnboardingSlotDrag]);
 
   useEffect(() => {
     if (step !== 5) {
@@ -672,9 +536,8 @@ export default function OnboardingWizard() {
 
   useEffect(() => {
     if (step !== 6) {
-      resetServiceAvailabilityDrag();
     }
-  }, [step, resetServiceAvailabilityDrag]);
+  }, [step]);
 
   useEffect(() => {
     if (step !== 6) {
@@ -689,22 +552,8 @@ export default function OnboardingWizard() {
       return;
     }
     onboardingServiceSeededIdRef.current = existingService.id;
-    onboardingForm.reset({
-      ...onboardingForm.getValues(),
-      serviceName: existingService.name,
-      serviceDescription: normalizeServiceDescriptionHtml(existingService.description),
-      serviceAddress: existingService.address ?? "",
-      serviceAddressFromPlaces: true,
-      durationMinutes: existingService.durationMinutes,
-      packSize: existingService.packSize,
-      priceEuros: String(existingService.price),
-      isPublished: existingService.isPublished,
-      requiresValidation: existingService.requiresValidation,
-      allowsDirectPayment: existingService.allowsDirectPayment,
-      imageDataUrl: existingService.imageUrl ?? "",
-      availableSlotKeys: Array.isArray(existingService.availableSlotKeys) ? [...existingService.availableSlotKeys] : [],
-    });
-  }, [step, servicesListQuery.data, onboardingForm]);
+    serviceForm.reset(mapExistingServiceToFormValues(existingService));
+  }, [step, servicesListQuery.data, serviceForm]);
 
   const paintOnboardingSlot = useCallback(
     (dayKey: string, time: string, shouldClose: boolean) => {
@@ -765,121 +614,6 @@ export default function OnboardingWizard() {
     },
     [isOutsideOpeningHours, paintOnboardingSlot],
   );
-
-  const toggleOnboardingServiceCalendarSlot = useCallback(
-    (dayKey: string, time: string) => {
-      if (isOutsideOpeningHours(dayKey, time)) {
-        return;
-      }
-      const slotKey = getSlotKey(dayKey, time);
-      const next = new Set(onboardingForm.getValues("availableSlotKeys") ?? []);
-      if (next.has(slotKey)) {
-        next.delete(slotKey);
-      } else {
-        next.add(slotKey);
-      }
-      onboardingForm.setValue("availableSlotKeys", [...next], {
-        shouldDirty: true,
-        shouldTouch: true,
-        shouldValidate: true,
-      });
-    },
-    [isOutsideOpeningHours, onboardingForm],
-  );
-
-  const paintOnboardingServiceCalendarSlot = useCallback(
-    (dayKey: string, time: string, shouldClose: boolean) => {
-      if (isOutsideOpeningHours(dayKey, time)) {
-        return;
-      }
-      const slotKey = getSlotKey(dayKey, time);
-      const next = new Set(onboardingForm.getValues("availableSlotKeys") ?? []);
-      if (shouldClose) {
-        next.add(slotKey);
-      } else {
-        next.delete(slotKey);
-      }
-      onboardingForm.setValue("availableSlotKeys", [...next], {
-        shouldDirty: true,
-        shouldTouch: true,
-        shouldValidate: true,
-      });
-    },
-    [isOutsideOpeningHours, onboardingForm],
-  );
-
-  const handleOnboardingServicePaintPointerDown = useCallback(
-    (dayKey: string, time: string, event: PointerEvent<HTMLDivElement>) => {
-      if (event.button !== 0) {
-        return;
-      }
-      if (isOutsideOpeningHours(dayKey, time)) {
-        return;
-      }
-      event.preventDefault();
-      const slotKey = getSlotKey(dayKey, time);
-      const manualKeys = new Set(onboardingForm.getValues("availableSlotKeys") ?? []);
-      const currentlyManuallyClosed = manualKeys.has(slotKey);
-      const mode: "close" | "open" = currentlyManuallyClosed ? "open" : "close";
-      serviceAvailabilityDragRef.current = {
-        active: true,
-        mode,
-        keys: new Set([slotKey]),
-      };
-      paintOnboardingServiceCalendarSlot(dayKey, time, mode === "close");
-    },
-    [isOutsideOpeningHours, onboardingForm, paintOnboardingServiceCalendarSlot],
-  );
-
-  const handleOnboardingServicePaintPointerEnter = useCallback(
-    (dayKey: string, time: string) => {
-      const drag = serviceAvailabilityDragRef.current;
-      if (!drag.active || !drag.mode) {
-        return;
-      }
-      if (isOutsideOpeningHours(dayKey, time)) {
-        return;
-      }
-      const slotKey = getSlotKey(dayKey, time);
-      if (drag.keys.has(slotKey)) {
-        return;
-      }
-      drag.keys.add(slotKey);
-      paintOnboardingServiceCalendarSlot(dayKey, time, drag.mode === "close");
-    },
-    [isOutsideOpeningHours, paintOnboardingServiceCalendarSlot],
-  );
-
-  const dismissServiceImageCrop = useCallback(() => {
-    setServiceImageCropOpen(false);
-    setServiceImageCropSrc((prev) => {
-      if (prev) {
-        URL.revokeObjectURL(prev);
-      }
-      return null;
-    });
-  }, []);
-
-  const handleOnboardingServiceImageUpload = (file: File | null) => {
-    if (!file) {
-      return;
-    }
-    if (!file.type.startsWith("image/")) {
-      onboardingForm.setError("imageDataUrl", { message: t("services.validation.imageInvalidType") });
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      onboardingForm.setError("imageDataUrl", { message: t("services.validation.imageTooLarge") });
-      return;
-    }
-    setServiceImageCropSrc((prev) => {
-      if (prev) {
-        URL.revokeObjectURL(prev);
-      }
-      return URL.createObjectURL(file);
-    });
-    setServiceImageCropOpen(true);
-  };
 
   const handleNameNext = async () => {
     const parsed = nameStepSchema.safeParse({
@@ -968,10 +702,10 @@ export default function OnboardingWizard() {
         name: nm,
         defaultAddress: addr.length > 0 ? addr : null,
       });
-      onboardingForm.setValue("serviceAddress", addr.length > 0 ? addr : t("onboarding.service.fallbackAddress"), {
+      serviceForm.setValue("address", addr.length > 0 ? addr : t("onboarding.service.fallbackAddress"), {
         shouldDirty: false,
       });
-      onboardingForm.setValue("serviceAddressFromPlaces", addr.length > 0 ? fromPlaces : false, { shouldDirty: false });
+      serviceForm.setValue("addressFromPlaces", addr.length > 0 ? fromPlaces : false, { shouldDirty: false });
       goNext();
     } catch {
       toast.error(t("profile.errors.profileUpdate"));
@@ -989,39 +723,25 @@ export default function OnboardingWizard() {
   };
 
   const handleServiceNext = async () => {
-    const parsed = serviceStepSchema.safeParse(onboardingForm.getValues());
-    if (!parsed.success) {
+    const valid = await serviceForm.trigger();
+    if (!valid || !isServiceAddressPlacesOk) {
+      if (!isServiceAddressPlacesOk) {
+        toast.error(t("onboarding.address.mustPickFromMap"));
+      }
       return;
     }
-    const values = parsed.data;
-    const serviceFromPlaces = onboardingForm.getValues("serviceAddressFromPlaces");
-    if (hasGooglePlacesAutocomplete && values.serviceAddress.trim().length > 0 && !serviceFromPlaces) {
+    const values = serviceForm.getValues();
+    if (hasGooglePlacesAutocomplete && values.address.trim().length > 0 && !values.addressFromPlaces) {
       toast.error(t("onboarding.address.mustPickFromMap"));
       return;
     }
     try {
       const existingService = servicesListQuery.data?.[0];
       const addr =
-        values.serviceAddress.trim().length > 0
-          ? values.serviceAddress.trim()
-          : t("onboarding.service.fallbackAddress");
-      const rawPrice = values.priceEuros.trim();
-      const parsedPrice = rawPrice === "" ? 0 : Number.parseFloat(rawPrice.replace(",", "."));
-      const price = Number.isFinite(parsedPrice) ? Math.max(0, parsedPrice) : 0;
-      const trimmedImage = values.imageDataUrl.trim();
+        values.address.trim().length > 0 ? values.address.trim() : t("onboarding.service.fallbackAddress");
       const servicePayload = {
-        name: values.serviceName.trim(),
-        description: values.serviceDescription.trim(),
-        durationMinutes: values.durationMinutes,
-        price,
-        isFree: price === 0,
-        packSize: values.packSize,
-        imageUrl: trimmedImage.length > 0 ? trimmedImage : null,
-        address: addr,
-        availableSlotKeys: [...values.availableSlotKeys],
-        isPublished: values.isPublished,
-        requiresValidation: values.requiresValidation,
-        allowsDirectPayment: values.allowsDirectPayment,
+        ...buildServiceApiPayload({ ...values, address: addr }),
+        allowsDirectPayment: false,
       };
       if (existingService?.id) {
         await updateServiceMutation.mutateAsync({ id: existingService.id, data: servicePayload });
@@ -1272,106 +992,6 @@ export default function OnboardingWizard() {
               );
             }
             if (manuallyClosed && !outsideOnly) {
-              return (
-                <CalendarSlotHoverHint label={t("onboarding.clickClosedSlotToOpen")}>{slotCell}</CalendarSlotHoverHint>
-              );
-            }
-            return slotCell;
-          }}
-        />
-      </div>
-    </div>
-  );
-
-  const onboardingServiceAvailabilityLegendRow = (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-600 md:gap-x-6">
-      <div className="flex items-center gap-2">
-        <div className="size-4 shrink-0 rounded-sm bg-blue-600 shadow-sm" aria-hidden />
-        <span>{t("onboarding.service.availabilityLegend.open")}</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <div className="size-4 shrink-0 rounded-sm border border-slate-200 bg-slate-100 shadow-sm" aria-hidden />
-        <span>{t("onboarding.service.availabilityLegend.closed")}</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <div className="size-4 shrink-0 rounded-sm bg-slate-400 shadow-sm" aria-hidden />
-        <span>{t("onboarding.service.availabilityLegend.readOnly")}</span>
-      </div>
-    </div>
-  );
-
-  const onboardingServiceAvailabilityBlock = (
-    <div className="mt-8 border-t border-slate-200 pt-8">
-      <div className="mb-4 flex items-center gap-2">
-        <Calendar className="size-5 text-slate-700" aria-hidden />
-        <h3 className="text-lg font-bold text-slate-900">{t("services.availabilityTitle")}</h3>
-      </div>
-      <p className="mb-3 text-sm text-slate-600">{t("onboarding.service.availabilityInstructions")}</p>
-      {onboardingServiceAvailabilityLegendRow}
-      <div className="mt-3 rounded-xl bg-slate-50 p-4">
-        <WeeklyTimeGrid
-          horizontalScroll={false}
-          days={daysOfWeek.map((day) => ({ key: day.key, label: day.short }))}
-          timeSlots={timeSlots.filter((time) => daysOfWeek.some((day) => !isOutsideOpeningHours(day.key, time)))}
-          renderCell={({ day, time }) => {
-            const slotKey = getSlotKey(day.key, time);
-            const outsideOnly = isOutsideOpeningHours(day.key, time);
-            const planningClosed = closedSet.has(slotKey);
-            const manualClosed = onboardingServiceClosedSlotSet.has(slotKey);
-            const isOutsideClosedCell = outsideOnly;
-            const isPlanningClosedCell = !outsideOnly && planningClosed;
-            const isManualServiceClosed = !outsideOnly && !planningClosed && manualClosed;
-            const isServiceOpenForBooking = !outsideOnly && !planningClosed && !manualClosed;
-            const isReadOnly = isOutsideClosedCell || isPlanningClosedCell;
-            const outsideClass =
-              "group relative box-border h-8 w-full cursor-not-allowed bg-slate-400 p-1 text-left transition-all hover:bg-slate-400 md:h-8";
-            const planningClass =
-              "group relative box-border h-8 w-full cursor-not-allowed bg-slate-200 p-1 text-left transition-all hover:bg-slate-200 md:h-8";
-            const manualClosedClass =
-              "group relative box-border h-8 w-full cursor-pointer border border-slate-200 bg-slate-100 p-1 text-left transition-all hover:bg-slate-200 md:h-8";
-            const openClass =
-              "group relative box-border flex h-8 w-full cursor-pointer items-center justify-center bg-blue-600 p-1 text-left transition-all hover:bg-blue-700 md:h-8";
-            const readOnlyCell = (
-              <div
-                className={`${isOutsideClosedCell ? outsideClass : planningClass} select-none touch-none`}
-                style={{ userSelect: "none" }}
-              />
-            );
-            const interactiveCell = (
-              <div
-                role="button"
-                tabIndex={0}
-                className={`${isManualServiceClosed ? manualClosedClass : openClass} select-none touch-none outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1`}
-                onPointerDown={(event) => handleOnboardingServicePaintPointerDown(day.key, time, event)}
-                onPointerEnter={() => handleOnboardingServicePaintPointerEnter(day.key, time)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    toggleOnboardingServiceCalendarSlot(day.key, time);
-                  }
-                }}
-                style={{ userSelect: "none" }}
-              >
-                {isServiceOpenForBooking ? (
-                  <Check className="size-3.5 text-white" strokeWidth={2.5} aria-hidden />
-                ) : null}
-              </div>
-            );
-            const slotCell = isReadOnly ? readOnlyCell : interactiveCell;
-
-            if (isOutsideClosedCell) {
-              return (
-                <CalendarSlotHoverHint label={t("calendar.hours.outsideSlotHint")}>{slotCell}</CalendarSlotHoverHint>
-              );
-            }
-            if (isPlanningClosedCell) {
-              return (
-                <CalendarSlotHoverHint label={t("calendar.availability.manualClosedSlotHint")}>
-                  {slotCell}
-                </CalendarSlotHoverHint>
-              );
-            }
-            if (isManualServiceClosed) {
               return (
                 <CalendarSlotHoverHint label={t("onboarding.clickClosedSlotToOpen")}>{slotCell}</CalendarSlotHoverHint>
               );
@@ -1761,356 +1381,17 @@ export default function OnboardingWizard() {
     }
 
     if (step === 6) {
-      const servicePlacesActive = step === 6;
-
-      const serviceVisibilityBanner = (
-        <div className="mb-6 rounded-2xl border-2 border-amber-300 bg-amber-50 px-5 py-4 shadow-sm">
-          <FormField
-            control={onboardingForm.control}
-            name="isPublished"
-            render={({ field }) => (
-              <FormItem className="space-y-0 border-0 p-0 shadow-none">
-                <div className="flex items-start gap-3">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value === true}
-                      onCheckedChange={(value) => {
-                        field.onChange(value === true);
-                      }}
-                      aria-label={t("services.visibility.title")}
-                    />
-                  </FormControl>
-                  <div className="space-y-1">
-                    <p className="text-base font-bold text-amber-950">{t("services.visibility.title")}</p>
-                    <p className="text-sm text-amber-900/90">
-                      {field.value === true
-                        ? t("services.visibility.publishedHint")
-                        : t("services.visibility.draftHint")}
-                    </p>
-                  </div>
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-      );
-
       return (
-        <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-10 md:px-8">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">{t("onboarding.service.title")}</h1>
-            <p className="mt-2 text-slate-600">{t("onboarding.service.subtitle")}</p>
-          </div>
-          <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 shadow-sm md:p-6">
-            {serviceVisibilityBanner}
-            <div className="grid gap-6 md:grid-cols-2">
-              <FormField
-                control={onboardingForm.control}
-                name="serviceName"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>{t("services.name")}</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder={t("services.form.placeholders.name")}
-                        className="h-11 rounded-xl"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={onboardingForm.control}
-                name="serviceDescription"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>{t("services.description")}</FormLabel>
-                    <FormControl>
-                      <ServiceDescriptionEditor
-                        value={field.value}
-                        onChange={field.onChange}
-                        onBlur={field.onBlur}
-                        placeholder={t("services.form.placeholders.description")}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={onboardingForm.control}
-                name="serviceAddress"
-                render={({ field }) => (
-                  <GooglePlacesAddressField
-                    apiKey={googleMapsPlacesApiKey}
-                    placesActive={servicePlacesActive}
-                    addressField={{
-                      value: field.value,
-                      onChange: field.onChange,
-                      onBlur: field.onBlur,
-                      name: field.name,
-                      ref: field.ref,
-                    }}
-                    fromPlaces={watchedServiceAddressFromPlaces}
-                    setFromPlaces={(value, options) =>
-                      onboardingForm.setValue("serviceAddressFromPlaces", value, options)
-                    }
-                    label={t("services.address.label")}
-                    hint={t("services.address.hint")}
-                    placeholder={t("services.address.placeholder")}
-                    inputClassName="h-11"
-                  />
-                )}
-              />
-              <FormField
-                control={onboardingForm.control}
-                name="durationMinutes"
-                render={({ field }) => (
-                  <FormItem className="flex h-full min-h-0 flex-col gap-2">
-                    <FormLabel>
-                      {t("services.duration")} ({t("services.minutes")})
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        inputMode="numeric"
-                        value={String(field.value)}
-                        onChange={(e) => {
-                          const next = e.target.value.replace(/[^\d]/g, "");
-                          if (next === "") {
-                            field.onChange(0);
-                            return;
-                          }
-                          field.onChange(Number.parseInt(next, 10));
-                        }}
-                        placeholder={t("services.durationPlaceholder")}
-                        className="h-11 rounded-xl"
-                      />
-                    </FormControl>
-                    <div className="min-h-0 flex-1 basis-0" aria-hidden />
-                    <p className="text-xs leading-snug text-slate-500">{t("services.durationHint")}</p>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={onboardingForm.control}
-                name="packSize"
-                render={({ field }) => (
-                  <FormItem className="flex h-full min-h-0 flex-col gap-2">
-                    <FormLabel>{t("services.packSize")}</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        inputMode="numeric"
-                        value={String(field.value)}
-                        onChange={(e) => {
-                          const next = e.target.value.replace(/[^\d]/g, "");
-                          if (next === "") {
-                            field.onChange(0);
-                            return;
-                          }
-                          field.onChange(Number.parseInt(next, 10));
-                        }}
-                        placeholder="1"
-                        className="h-11 rounded-xl"
-                      />
-                    </FormControl>
-                    <div className="min-h-0 flex-1 basis-0" aria-hidden />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={onboardingForm.control}
-                name="requiresValidation"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <div className="flex items-start gap-3 rounded-xl border border-slate-200 p-4 hover:bg-slate-50">
-                      <FormControl>
-                        <Checkbox checked={field.value} onCheckedChange={(v) => field.onChange(v === true)} />
-                      </FormControl>
-                      <div className="space-y-1">
-                        <FormLabel className="cursor-pointer font-medium text-slate-900">
-                          {t("services.requires.validationTitle")}
-                        </FormLabel>
-                        <p className="text-sm text-slate-600">{t("services.requires.validation.desc")}</p>
-                      </div>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              {false ? (
-                <FormField
-                  control={onboardingForm.control}
-                  name="allowsDirectPayment"
-                  render={({ field }) => (
-                    <FormItem>
-                      <div className="flex items-start gap-3 rounded-xl border border-slate-200 p-4 hover:bg-slate-50">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value === true}
-                            onCheckedChange={(v) => field.onChange(v === true)}
-                          />
-                        </FormControl>
-                        <div className="space-y-1">
-                          <FormLabel className="cursor-pointer font-medium text-slate-900">
-                            {t("services.directPayment.title")}
-                          </FormLabel>
-                          <p className="text-sm text-slate-600">{t("services.directPayment.desc")}</p>
-                        </div>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              ) : null}
-              {/* Paid mode: set the ternary above to `true` to restore direct / on-site payment. */}
-              <FormField
-                control={onboardingForm.control}
-                name="priceEuros"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>{t("onboarding.service.packTotalPriceLabel")} (€)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        inputMode="decimal"
-                        value={field.value}
-                        onChange={(e) => {
-                          const normalized = e.target.value.replace(",", ".");
-                          const next = normalized.replace(/[^\d.]/g, "").replace(/(\..*)\./g, "$1");
-                          field.onChange(next);
-                        }}
-                        placeholder="50"
-                        className="h-11 w-full max-w-44 rounded-xl"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={onboardingForm.control}
-                name="imageDataUrl"
-                render={({ field }) => {
-                  const hasImage = Boolean(field.value?.trim().length);
-                  const openImagePicker = () => serviceImageInputRef.current?.click();
-
-                  const hiddenFileInput = (
-                    <input
-                      ref={serviceImageInputRef}
-                      type="file"
-                      accept="image/*"
-                      className="sr-only"
-                      tabIndex={-1}
-                      onChange={(e) => {
-                        handleOnboardingServiceImageUpload(e.target.files?.[0] ?? null);
-                        e.target.value = "";
-                      }}
-                    />
-                  );
-
-                  const hintBlock = (
-                    <>
-                      <p className="text-xs text-slate-500">{t("onboarding.service.optionalImageHint")}</p>
-                      <p className="text-xs text-slate-500">
-                        {t("services.imageInput.recommendedSize", {
-                          width: SERVICE_BOOKING_IMAGE_RECOMMENDED_WIDTH,
-                          height: SERVICE_BOOKING_IMAGE_RECOMMENDED_HEIGHT,
-                        })}
-                      </p>
-                      <p className="text-xs text-slate-500">{t("services.imageInput.hint")}</p>
-                    </>
-                  );
-
-                  const emptyDropZone = (
-                    <button
-                      type="button"
-                      onClick={openImagePicker}
-                      aria-label={t("services.imageInput.ariaUploadZone")}
-                      className="flex aspect-video w-full max-w-3xl cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50/80 px-4 py-8 text-center transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/40"
-                    >
-                      <Upload className="size-10 text-slate-400" aria-hidden />
-                      <span className="text-sm font-medium text-slate-700">
-                        {t("services.imageInput.dropPlaceholderTitle")}
-                      </span>
-                      <span className="text-xs text-slate-500">{t("services.imageInput.dropPlaceholderSubtitle")}</span>
-                    </button>
-                  );
-
-                  const clearServiceImage = () => {
-                    field.onChange("");
-                    onboardingForm.clearErrors("imageDataUrl");
-                    if (serviceImageInputRef.current) {
-                      serviceImageInputRef.current.value = "";
-                    }
-                    dismissServiceImageCrop();
-                  };
-
-                  const previewReplaceButton = (
-                    <button
-                      type="button"
-                      onClick={openImagePicker}
-                      aria-label={t("services.imageInput.ariaReplace")}
-                      className="group/btn absolute inset-0 z-0 flex cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600/40"
-                    >
-                      <img
-                        src={field.value}
-                        alt={t("services.imageInput.previewAlt")}
-                        className="h-full w-full object-cover"
-                      />
-                      <span className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-900/55 opacity-0 transition-opacity group-hover/btn:opacity-100">
-                        <ImageUp className="size-10 text-white drop-shadow" aria-hidden />
-                        <span className="text-sm font-medium text-white">{t("services.imageInput.hoverReplace")}</span>
-                      </span>
-                    </button>
-                  );
-
-                  const previewRemoveButton = (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="icon"
-                      className="absolute right-2 top-2 z-10 size-9 rounded-full border-0 bg-black/55 text-white shadow-md hover:bg-black/75 focus-visible:ring-white/80"
-                      aria-label={t("services.imageInput.ariaRemoveImage")}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        clearServiceImage();
-                      }}
-                    >
-                      <X className="size-4" aria-hidden />
-                    </Button>
-                  );
-
-                  const previewDropZone = (
-                    <div className="relative aspect-video w-full max-w-3xl overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
-                      {previewReplaceButton}
-                      {previewRemoveButton}
-                    </div>
-                  );
-
-                  return (
-                    <FormItem className="md:col-span-2">
-                      <FormLabel>{t("services.imageUrl")}</FormLabel>
-                      <div className="space-y-2">
-                        {hiddenFileInput}
-                        {hintBlock}
-                        {hasImage ? previewDropZone : emptyDropZone}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
-            </div>
-            {onboardingServiceAvailabilityBlock}
-          </div>
-        </div>
+        <OnboardingServiceStep
+          form={serviceForm}
+          googleMapsPlacesApiKey={googleMapsPlacesApiKey}
+          isOutsideOpeningHours={isOutsideOpeningHours}
+          planningClosedSlotKeys={closedSet}
+          coachSlugForPublicPreview={coachSlugForPublicPreview}
+          coachCardForPublicPreview={coachCardForPublicPreview}
+          editingServiceId={servicesListQuery.data?.[0]?.id ?? null}
+          stripeReadyForPaidPublish={isPaymentsLive}
+        />
       );
     }
 
@@ -2279,26 +1560,6 @@ export default function OnboardingWizard() {
   return (
     <Form {...onboardingForm}>
       {shell}
-      <ServiceImageCropDialog
-        open={serviceImageCropOpen}
-        onOpenChange={(next) => {
-          if (!next) {
-            dismissServiceImageCrop();
-          }
-        }}
-        imageSrc={serviceImageCropSrc}
-        onApply={(dataUrl) => {
-          onboardingForm.clearErrors("imageDataUrl");
-          onboardingForm.setValue("imageDataUrl", dataUrl, {
-            shouldDirty: true,
-            shouldTouch: true,
-            shouldValidate: true,
-          });
-          if (serviceImageInputRef.current) {
-            serviceImageInputRef.current.value = "";
-          }
-        }}
-      />
     </Form>
   );
 }

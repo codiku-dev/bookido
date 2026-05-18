@@ -114,6 +114,35 @@ export class StripeService {
     };
   }
 
+  /** Stripe requires `identity.country` before `configuration.merchant` (cannot set both on one create with account_token). */
+  private async ensureConnectAccountIdentityAndMerchant(accountId: string): Promise<void> {
+    const identityCountry = resolveStripeConnectIdentityCountry();
+    const account = await this.stripeClient.v2.core.accounts.retrieve(accountId, {
+      include: ["configuration.merchant"],
+    });
+
+    const country = account.identity?.country?.trim();
+    const hasMerchant = Boolean(account.configuration?.merchant);
+
+    if (!country) {
+      await this.stripeClient.v2.core.accounts.update(accountId, {
+        identity: { country: identityCountry },
+      });
+    }
+
+    if (!hasMerchant) {
+      await this.stripeClient.v2.core.accounts.update(accountId, {
+        configuration: {
+          merchant: {
+            capabilities: {
+              card_payments: { requested: true },
+            },
+          },
+        },
+      });
+    }
+  }
+
   private async createConnectedAccountV2(p: { displayName: string; contactEmail: string }) {
     const identityCountry = resolveStripeConnectIdentityCountry();
 
@@ -122,12 +151,17 @@ export class StripeService {
       contact_email: p.contactEmail,
     });
 
-    /** One `accounts.create` instead of create + duplicate identity update + second update (saves ~2 Stripe RTTs). */
-    return this.stripeClient.v2.core.accounts.create({
+    const account = await this.stripeClient.v2.core.accounts.create({
       account_token: accountToken.id,
       identity: {
         country: identityCountry,
       },
+      configuration: {
+        customer: {},
+      },
+    });
+
+    return this.stripeClient.v2.core.accounts.update(account.id, {
       dashboard: "full",
       defaults: {
         responsibilities: {
@@ -177,6 +211,8 @@ export class StripeService {
         data: { stripeAccountId: accountId },
       });
     }
+
+    await this.ensureConnectAccountIdentityAndMerchant(accountId);
 
     const baseUrl = process.env["FRONTEND_URL"]?.trim();
     if (!baseUrl) {

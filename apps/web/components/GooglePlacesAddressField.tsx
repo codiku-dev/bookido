@@ -33,6 +33,7 @@ export function GooglePlacesAddressField(p: {
   setFromPlaces: (value: boolean, options?: SetFromPlacesOptions) => void;
   label: React.ReactNode;
   hint?: React.ReactNode;
+  unvalidatedWarning?: string;
   placeholder: string;
   autoComplete?: string;
   inputId?: string;
@@ -50,6 +51,8 @@ export function GooglePlacesAddressField(p: {
   const trimmed = (p.addressField.value ?? "").trim();
   const hasGoogle = p.apiKey.trim().length > 0;
   const showValidatedCheckmark = trimmed.length > 0 && (!hasGoogle || p.fromPlaces);
+  const showUnvalidatedWarning =
+    hasGoogle && trimmed.length > 0 && !p.fromPlaces && (p.unvalidatedWarning?.trim().length ?? 0) > 0;
 
   const validatedIcon = showValidatedCheckmark ? (
     <Check
@@ -161,10 +164,17 @@ export function GooglePlacesAddressField(p: {
 
   const hintBlock = p.hint != null ? <p className="text-xs text-slate-500">{p.hint}</p> : null;
 
+  const unvalidatedWarningBlock = showUnvalidatedWarning ? (
+    <p className="text-xs text-amber-700" role="status">
+      {p.unvalidatedWarning}
+    </p>
+  ) : null;
+
   return (
     <FormItem className="md:col-span-2">
       <FormLabel>{p.label}</FormLabel>
       {inputRow}
+      {unvalidatedWarningBlock}
       {hintBlock}
       <FormMessage />
     </FormItem>

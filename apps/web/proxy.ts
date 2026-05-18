@@ -21,8 +21,7 @@ export function proxy(request: NextRequest) {
     pathname === "/admin/signin" ||
     pathname === "/admin/signup" ||
     pathname === "/admin/forgot-password" ||
-    pathname === "/admin/reset-password" ||
-    pathname === "/admin/onboarding";
+    pathname === "/admin/reset-password";
 
   /** Sign-in funnel only: still allow `/admin/reset-password` when a session cookie exists (email link + token). */
   const isAdminAuthGatePath =

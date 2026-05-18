@@ -1515,6 +1515,8 @@
       "title": "What will your Bookido URL be?",
       "subtitle": "Choose the last part of your public link. Lowercase letters, numbers, and hyphens only.",
       "fieldLabel": "Your page slug",
+      "linkPreview": "Your public link",
+      "linkPreviewPlaceholder": "your-slug",
       "invalidFormat": "Use 2–96 characters: lowercase letters, numbers, and single hyphens between words."
     },
     "stripe": {
@@ -1553,7 +1555,8 @@
     "address": {
       "label": "Service address",
       "placeholder": "e.g., 12 rue de la Paix, 75002 Paris",
-      "hint": "Required. Pre-filled from your default profile address, editable per service."
+      "hint": "Required. Pre-filled from your default profile address, editable per service.",
+      "pickFromSuggestionsWarning": "For accurate directions, pick an address from the Google suggestions list."
     },
     "duration": "Duration",
     "durationPlaceholder": "60",

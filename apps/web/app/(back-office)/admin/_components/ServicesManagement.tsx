@@ -1,19 +1,16 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TRPCClientError } from "@trpc/client";
-import { useForm, useWatch, type Resolver } from "react-hook-form";
-import { z } from "zod";
+import { useForm, type Resolver } from "react-hook-form";
 import {
-  Calendar,
   Clock,
   CreditCard,
   Copy,
   Euro,
-  Eye,
   FileText,
   FilterX,
   Globe,
@@ -23,8 +20,6 @@ import {
   Package,
   Plus,
   Search,
-  ImageUp,
-  Upload,
   Wallet,
   X,
 } from "lucide-react";
@@ -32,14 +27,6 @@ import { Button } from "#/components/ui/button";
 import { Label } from "#/components/ui/label";
 import { Input } from "#/components/ui/input";
 import { Checkbox } from "#/components/ui/checkbox";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "#/components/ui/form";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -56,141 +43,27 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
-import { CalendarSlotHoverHint, WeeklyTimeGrid } from "#/components/calendar/WeeklyTimeGrid";
 import type { inferRouterOutputs } from "@trpc/server";
 import type { AppRouter } from "@repo/trpc/router";
 import { useSession } from "@web/libs/auth-client";
 import { trpc } from "@web/libs/trpc-client";
 import { isDevToolsEnabled } from "@web/utils/is-dev-tools-enabled";
-import { ServicePublicPreviewDialog } from "#/components/service-public-preview-dialog";
-import { ServiceDescriptionEditor } from "#/components/tiptap/service-description-editor";
-import type {
-  PublicStorefrontCoachCard,
-  PublicStorefrontServiceCard,
-} from "#/components/public-storefront/public-storefront-service.types";
-import { SERVICE_DESCRIPTION_MAX_CHARS } from "#/utils/service-description-limit";
+import { ServiceFormEditor } from "#/components/service-form/service-form-editor";
+import type { PublicStorefrontCoachCard } from "#/components/public-storefront/public-storefront-service.types";
 import { normalizeServiceDescriptionHtml } from "#/utils/service-description-html";
 import { plainTextFromHtml } from "#/utils/rich-text-plain";
-import { GooglePlacesAddressField } from "#/components/GooglePlacesAddressField";
-import { ServiceImageCropDialog } from "#/components/service-image-crop-dialog";
 import {
-  SERVICE_BOOKING_IMAGE_RECOMMENDED_HEIGHT,
-  SERVICE_BOOKING_IMAGE_RECOMMENDED_WIDTH,
-} from "#/utils/service-image-crop";
+  buildServiceFormSchema,
+  buildServiceFormSchemaMessages,
+  getServiceFormDefaults,
+  mapExistingServiceToFormValues,
+  serviceFormDayKeyToWeekdayName,
+  serviceFormTimeToMinutes,
+  type ServiceFormValues,
+} from "#/utils/service-form-schema";
+import { buildServiceApiPayload } from "#/utils/service-form-payload";
 
 type ServiceRow = inferRouterOutputs<AppRouter>["services"]["list"][number];
-
-const timeSlots = [
-  "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
-  "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30",
-  "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30",
-];
-
-const buildServiceFormSchema = (p: {
-  nameRequired: string;
-  descriptionRequired: string;
-  descriptionMax: string;
-  addressRequired: string;
-  durationNumber: string;
-  durationMin30: string;
-  durationMultipleOf30: string;
-  packSizeNumber: string;
-  packSizePositive: string;
-  priceNumber: string;
-  priceNonNegative: string;
-  imageInvalidType: string;
-}) => {
-  const normalizedNumeric = z.union([z.string(), z.number()]).transform((value) => String(value).trim());
-
-  return z.object({
-    name: z.string().min(1, p.nameRequired),
-    description: z.string().superRefine((val, ctx) => {
-      const normalized = normalizeServiceDescriptionHtml(val);
-      const plain = plainTextFromHtml(normalized);
-      if (plain.length < 1) {
-        ctx.addIssue({ code: "custom", message: p.descriptionRequired });
-      }
-      if (plain.length > SERVICE_DESCRIPTION_MAX_CHARS) {
-        ctx.addIssue({ code: "custom", message: p.descriptionMax });
-      }
-    }),
-    duration: normalizedNumeric
-      .refine((value) => value.length > 0, p.durationNumber)
-      .refine((value) => /^\d+$/.test(value), p.durationNumber)
-      .refine((value) => {
-        const n = Number.parseInt(value, 10);
-        return !Number.isNaN(n) && n >= 30;
-      }, p.durationMin30)
-      .refine((value) => {
-        const n = Number.parseInt(value, 10);
-        return !Number.isNaN(n) && n % 30 === 0;
-      }, p.durationMultipleOf30),
-    packSize: normalizedNumeric
-      .refine((value) => value.length > 0, p.packSizeNumber)
-      .refine((value) => /^\d+$/.test(value), p.packSizeNumber)
-      .refine((value) => Number.parseInt(value, 10) >= 1, p.packSizePositive),
-    price: normalizedNumeric
-      .refine((value) => value.length > 0, p.priceNumber)
-      .refine((value) => /^\d+(?:[.,]\d+)?$/.test(value), p.priceNumber)
-      .refine((value) => Number.parseFloat(value.replace(",", ".")) >= 0, p.priceNonNegative),
-    isFree: z.boolean(),
-    imageUrl: z.string().refine(
-      (value) => {
-        const trimmed = value.trim();
-        if (trimmed.length === 0) return true;
-        if (trimmed.startsWith("data:image/")) return true;
-        return trimmed.startsWith("https://") || trimmed.startsWith("http://");
-      },
-      { message: p.imageInvalidType },
-    ),
-    address: z.string().trim().min(1, p.addressRequired).max(500),
-    addressFromPlaces: z.boolean(),
-    requiresValidation: z.boolean(),
-    allowsDirectPayment: z.boolean(),
-    isPublished: z.boolean(),
-    availableSlotKeys: z.array(z.string()),
-  });
-};
-
-type ServiceFormValues = z.infer<ReturnType<typeof buildServiceFormSchema>>;
-
-/** Fresh defaults on each reset so `availableSlotKeys` is never a shared mutable array reference. */
-function getServiceFormDefaults(): ServiceFormValues {
-  return {
-    name: "",
-    description: "",
-    duration: "60",
-    packSize: "1",
-    price: "0",
-    isFree: false,
-    imageUrl: "",
-    address: "",
-    addressFromPlaces: false,
-    requiresValidation: false,
-    allowsDirectPayment: false,
-    isPublished: true,
-    availableSlotKeys: [],
-  };
-}
-
-function getSlotKey(dayKey: string, time: string) {
-  return `${dayKey}-${time}`;
-}
-
-const dayKeyToWeekdayName = {
-  mon: "Monday",
-  tue: "Tuesday",
-  wed: "Wednesday",
-  thu: "Thursday",
-  fri: "Friday",
-  sat: "Saturday",
-  sun: "Sunday",
-} as const;
-
-function timeToMinutes(timeValue: string) {
-  const [hours, minutes] = timeValue.split(":").map(Number);
-  return (hours ?? 0) * 60 + (minutes ?? 0);
-}
 
 function escapeForRegex(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -213,10 +86,6 @@ function getDuplicatedServiceName(p: { originalName: string; existingNames: stri
   return `${baseName} (copie ${maxCopyIndex + 1})`;
 }
 
-function publicBookingSlugLooksValid(slug: string) {
-  return slug.length >= 2 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(slug);
-}
-
 export default function ServicesManagement() {
   const t = useTranslations();
   const { data: sessionPayload } = useSession();
@@ -233,39 +102,9 @@ export default function ServicesManagement() {
   const [durationFilter, setDurationFilter] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<25 | 50 | 100>(25);
-  const [servicePreviewOpen, setServicePreviewOpen] = useState(false);
   const showDevFill = isDevToolsEnabled();
-  const imageUploadInputRef = useRef<HTMLInputElement | null>(null);
-  const [serviceImageCropOpen, setServiceImageCropOpen] = useState(false);
-  const [serviceImageCropSrc, setServiceImageCropSrc] = useState<string | null>(null);
-  const availabilityDragRef = useRef<{
-    active: boolean;
-    mode: "close" | "open" | null;
-    keys: Set<string>;
-  }>({
-    active: false,
-    mode: null,
-    keys: new Set(),
-  });
 
-  const serviceFormSchema = useMemo(
-    () =>
-      buildServiceFormSchema({
-        nameRequired: t("services.validation.nameRequired"),
-        descriptionRequired: t("services.validation.descriptionRequired"),
-        descriptionMax: t("services.validation.descriptionMax", { max: SERVICE_DESCRIPTION_MAX_CHARS }),
-        addressRequired: t("services.validation.addressRequired"),
-        durationNumber: t("services.validation.durationNumber"),
-        durationMin30: t("services.validation.durationMin30"),
-        durationMultipleOf30: t("services.validation.durationMultipleOf30"),
-        packSizeNumber: t("services.validation.packSizeNumber"),
-        packSizePositive: t("services.validation.packSizePositive"),
-        priceNumber: t("services.validation.priceNumber"),
-        priceNonNegative: t("services.validation.priceNonNegative"),
-        imageInvalidType: t("services.validation.imageInvalidType"),
-      }),
-    [t],
-  );
+  const serviceFormSchema = useMemo(() => buildServiceFormSchema(buildServiceFormSchemaMessages(t)), [t]);
 
   const listQuery = trpc.services.listPaginated.useQuery(
     {
@@ -331,8 +170,6 @@ export default function ServicesManagement() {
     defaultValues: getServiceFormDefaults(),
   });
 
-  const watchedForm = useWatch({ control: form.control });
-
   const coachSlugForPublicPreview = (profilePresenceQuery.data?.publicBookingSlug ?? "").trim();
 
   const coachCardForPublicPreview = useMemo((): PublicStorefrontCoachCard | null => {
@@ -348,50 +185,11 @@ export default function ServicesManagement() {
     };
   }, [profilePresenceQuery.data, sessionPayload?.user?.name, t]);
 
-  const draftPublicPreviewService = useMemo((): PublicStorefrontServiceCard | null => {
-    if (!isAdding && !editingId) {
-      return null;
-    }
-    const w = watchedForm as ServiceFormValues | undefined;
-    if (!w) {
-      return null;
-    }
-    const duration = Number.parseInt(String(w.duration ?? "60"), 10);
-    const packSize = Number.parseInt(String(w.packSize ?? "1"), 10);
-    const priceNum = Number.parseFloat(String(w.price ?? "0").replace(",", "."));
-    const safeDuration = Number.isFinite(duration) && duration >= 30 ? duration : 60;
-    const safePack = Number.isFinite(packSize) && packSize >= 1 ? packSize : 1;
-    const safePrice = Number.isFinite(priceNum) && priceNum >= 0 ? priceNum : 0;
-    const isFree = w.isFree === true || safePrice === 0;
-    const nameTrim = (w.name ?? "").trim();
-    const imageTrim = (w.imageUrl ?? "").trim();
-    return {
-      id: editingId ?? "__bookido_local_preview__",
-      name: nameTrim.length > 0 ? nameTrim : t("services.preview.untitledService"),
-      description: normalizeServiceDescriptionHtml(w.description ?? ""),
-      imageUrl: imageTrim.length > 0 ? imageTrim : null,
-      address: (w.address ?? "").trim(),
-      durationMinutes: safeDuration,
-      packSize: safePack,
-      price: safePrice,
-      isFree,
-    };
-  }, [watchedForm, isAdding, editingId, t]);
-
-  const watchedPrice = useWatch({ control: form.control, name: "price", defaultValue: "0" });
   const stripeReadyForPaidPublish = Boolean(
     stripeConnectQuery.data?.stripeAccountId && stripeConnectQuery.data?.stripeChargesEnabled,
   );
-  const parsedWatchedPrice = Number.parseFloat(String(watchedPrice ?? "").replace(",", "."));
-  const formPaidServiceBlocksPublish =
-    Number.isFinite(parsedWatchedPrice) && parsedWatchedPrice > 0 && !stripeReadyForPaidPublish;
 
   const googleMapsPlacesApiKey = process.env["NEXT_PUBLIC_GOOGLE_MAPS_API_KEY"]?.trim() ?? "";
-  const watchedAddressFromPlaces = useWatch<ServiceFormValues, "addressFromPlaces">({
-    control: form.control,
-    name: "addressFromPlaces",
-    defaultValue: false,
-  });
 
   const getNewServiceFormDefaults = useCallback((): ServiceFormValues => {
     const def = profilePresenceQuery.data?.defaultAddress ?? "";
@@ -436,21 +234,7 @@ export default function ServicesManagement() {
   const openEdit = (service: ServiceRow) => {
     setIsAdding(false);
     setEditingId(service.id);
-    form.reset({
-      name: service.name,
-      description: normalizeServiceDescriptionHtml(service.description),
-      duration: String(service.durationMinutes),
-      packSize: String(service.packSize),
-      price: String(service.price),
-      isFree: service.isFree,
-      imageUrl: service.imageUrl ?? "",
-      address: service.address ?? "",
-      addressFromPlaces: true,
-      requiresValidation: service.requiresValidation,
-      allowsDirectPayment: service.allowsDirectPayment,
-      isPublished: service.isPublished,
-      availableSlotKeys: Array.isArray(service.availableSlotKeys) ? [...service.availableSlotKeys] : [],
-    });
+    form.reset(mapExistingServiceToFormValues(service));
   };
 
   const duplicateService = (service: ServiceRow) => {
@@ -475,23 +259,13 @@ export default function ServicesManagement() {
     });
   };
 
-  const daysOfWeek = [
-    { key: "mon", short: t("public.time.days.mon.short") },
-    { key: "tue", short: t("public.time.days.tue.short") },
-    { key: "wed", short: t("public.time.days.wed.short") },
-    { key: "thu", short: t("public.time.days.thu.short") },
-    { key: "fri", short: t("public.time.days.fri.short") },
-    { key: "sat", short: t("public.time.days.sat.short") },
-    { key: "sun", short: t("public.time.days.sun.short") },
-  ];
-
   const planningClosedSlotKeys = useMemo(
     () => new Set(availabilityQuery.data?.closedSlotKeys ?? []),
     [availabilityQuery.data?.closedSlotKeys],
   );
 
   const isOutsideOpeningHours = useCallback((dayKey: string, time: string) => {
-    const weekdayName = dayKeyToWeekdayName[dayKey as keyof typeof dayKeyToWeekdayName];
+    const weekdayName = serviceFormDayKeyToWeekdayName[dayKey as keyof typeof serviceFormDayKeyToWeekdayName];
     if (!weekdayName) {
       return true;
     }
@@ -502,108 +276,11 @@ export default function ServicesManagement() {
     if (!dayHours.enabled) {
       return true;
     }
-    const slotMinutes = timeToMinutes(time);
-    const startMinutes = timeToMinutes(dayHours.startTime);
-    const endMinutes = timeToMinutes(dayHours.endTime);
+    const slotMinutes = serviceFormTimeToMinutes(time);
+    const startMinutes = serviceFormTimeToMinutes(dayHours.startTime);
+    const endMinutes = serviceFormTimeToMinutes(dayHours.endTime);
     return slotMinutes < startMinutes || slotMinutes >= endMinutes;
   }, [availabilityQuery.data?.weekHours]);
-
-  const isSlotClosed = useCallback((dayKey: string, time: string) => {
-    const slotKey = getSlotKey(dayKey, time);
-    return isOutsideOpeningHours(dayKey, time) || planningClosedSlotKeys.has(slotKey);
-  }, [isOutsideOpeningHours, planningClosedSlotKeys]);
-
-  const selectedServiceSlotKeys = form.watch("availableSlotKeys");
-  const selectedServiceClosedSet = useMemo(
-    () => new Set(selectedServiceSlotKeys ?? []),
-    [selectedServiceSlotKeys],
-  );
-
-  const isServiceSlotManuallyClosed = useCallback(
-    (dayKey: string, time: string) => selectedServiceClosedSet.has(getSlotKey(dayKey, time)),
-    [selectedServiceClosedSet],
-  );
-
-  const toggleServiceSlotAvailability = useCallback((dayKey: string, time: string) => {
-    if (isOutsideOpeningHours(dayKey, time)) {
-      return;
-    }
-    const slotKey = getSlotKey(dayKey, time);
-    const next = new Set(form.getValues("availableSlotKeys") ?? []);
-    if (next.has(slotKey)) {
-      next.delete(slotKey);
-    } else {
-      next.add(slotKey);
-    }
-    form.setValue("availableSlotKeys", [...next], {
-      shouldDirty: true,
-      shouldTouch: true,
-      shouldValidate: true,
-    });
-  }, [form, isOutsideOpeningHours]);
-
-  const paintServiceSlotAvailability = useCallback((dayKey: string, time: string, shouldClose: boolean) => {
-    if (isOutsideOpeningHours(dayKey, time)) {
-      return;
-    }
-    const slotKey = getSlotKey(dayKey, time);
-    const next = new Set(form.getValues("availableSlotKeys") ?? []);
-    if (shouldClose) {
-      next.add(slotKey);
-    } else {
-      next.delete(slotKey);
-    }
-    form.setValue("availableSlotKeys", [...next], {
-      shouldDirty: true,
-      shouldTouch: true,
-      shouldValidate: true,
-    });
-  }, [form, isOutsideOpeningHours]);
-
-  const resetAvailabilityDrag = useCallback(() => {
-    availabilityDragRef.current = { active: false, mode: null, keys: new Set() };
-  }, []);
-
-  useEffect(() => {
-    const onGlobalPointerUp = () => {
-      resetAvailabilityDrag();
-    };
-    window.addEventListener("pointerup", onGlobalPointerUp);
-    window.addEventListener("pointercancel", onGlobalPointerUp);
-    return () => {
-      window.removeEventListener("pointerup", onGlobalPointerUp);
-      window.removeEventListener("pointercancel", onGlobalPointerUp);
-    };
-  }, [resetAvailabilityDrag]);
-
-  const dismissServiceImageCrop = useCallback(() => {
-    setServiceImageCropOpen(false);
-    setServiceImageCropSrc((prev) => {
-      if (prev) {
-        URL.revokeObjectURL(prev);
-      }
-      return null;
-    });
-  }, []);
-
-  const handleImageUploadChange = (file: File | null) => {
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      form.setError("imageUrl", { message: t("services.validation.imageInvalidType") });
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      form.setError("imageUrl", { message: t("services.validation.imageTooLarge") });
-      return;
-    }
-    setServiceImageCropSrc((prev) => {
-      if (prev) {
-        URL.revokeObjectURL(prev);
-      }
-      return URL.createObjectURL(file);
-    });
-    setServiceImageCropOpen(true);
-  };
 
   const onSubmit = (values: ServiceFormValues) => {
     setMutationError(null);
@@ -622,28 +299,11 @@ export default function ServicesManagement() {
       form.setError("imageUrl", { message: t("services.validation.imageRequired") });
       return;
     }
-    const parsedDuration = Number.parseInt(values.duration, 10);
-    const parsedPackSize = Number.parseInt(values.packSize, 10);
-    const parsedPrice = Number.parseFloat(values.price.replace(",", "."));
-    const payloadIsFree = parsedPrice === 0;
-    if (values.isPublished && parsedPrice > 0 && !stripeReadyForPaidPublish) {
+    const payload = buildServiceApiPayload(values);
+    if (values.isPublished && payload.price > 0 && !stripeReadyForPaidPublish) {
       toast.error(t("services.visibility.stripeRequiredAlert"));
       return;
     }
-    const payload = {
-      name: values.name.trim(),
-      description: values.description.trim(),
-      durationMinutes: parsedDuration,
-      packSize: parsedPackSize,
-      price: parsedPrice,
-      isFree: payloadIsFree,
-      imageUrl: trimmedImage.length > 0 ? trimmedImage : null,
-      address: values.address.trim(),
-      availableSlotKeys: values.availableSlotKeys,
-      requiresValidation: values.requiresValidation,
-      allowsDirectPayment: values.allowsDirectPayment,
-      isPublished: values.isPublished,
-    };
     if (editingId) {
       updateMutation.mutate({ id: editingId, data: payload });
     } else {
@@ -986,517 +646,43 @@ export default function ServicesManagement() {
   const renderForm = () => {
     if (!isAdding && !editingId) return null;
 
-    const publicPreviewButton = (
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="shrink-0 gap-2"
-        disabled={!publicBookingSlugLooksValid(coachSlugForPublicPreview)}
-        title={!publicBookingSlugLooksValid(coachSlugForPublicPreview) ? t("services.preview.slugMissing") : undefined}
-        onClick={() => setServicePreviewOpen(true)}
-      >
-        <Eye className="size-4" aria-hidden />
-        {t("services.preview.open")}
-      </Button>
+    const formTitle = (
+      <h2 className="text-xl font-bold text-slate-900">
+        {isAdding ? t("services.form.title.create") : t("services.form.title.edit")}
+      </h2>
     );
 
-    const formTitleRow = (
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-xl font-bold text-slate-900">
-          {isAdding ? t("services.form.title.create") : t("services.form.title.edit")}
-        </h2>
-        {publicPreviewButton}
+    const formActions = (
+      <div className="mt-6 flex gap-3">
+        <Button type="submit" className="h-11 rounded-xl px-6" disabled={isSaving}>
+          {isAdding ? t("services.save") : t("common.save")}
+        </Button>
+        <Button type="button" variant="outline" onClick={resetFormUi} className="h-11 rounded-xl px-6">
+          {t("common.cancel")}
+        </Button>
       </div>
     );
 
     return (
-      <>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="rounded-xl border border-slate-200 bg-slate-50/50 p-6 shadow-sm"
-          >
-            {formTitleRow}
-          {form.formState.submitCount > 0 && formErrorMessages.length > 0 ? (
-            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              <p className="font-semibold">{t("services.validation.summaryTitle")}</p>
-              <ul className="mt-2 list-disc space-y-1 pl-5">
-                {formErrorMessages.map((message) => (
-                  <li key={message}>{message}</li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-          {mutationError ? <p className="text-sm text-red-600 mb-4">{mutationError}</p> : null}
-          <div className="grid gap-6 md:grid-cols-2">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <FormLabel>{t("services.name")}</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder={t("services.form.placeholders.name")}
-                      className="rounded-xl h-11"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <FormLabel>{t("services.description")}</FormLabel>
-                  <FormControl>
-                    <ServiceDescriptionEditor
-                      value={field.value}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
-                      placeholder={t("services.form.placeholders.description")}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <GooglePlacesAddressField
-                  apiKey={googleMapsPlacesApiKey}
-                  placesActive={isAdding || editingId !== null}
-                  addressField={{
-                    value: field.value,
-                    onChange: field.onChange,
-                    onBlur: field.onBlur,
-                    name: field.name,
-                    ref: field.ref,
-                  }}
-                  fromPlaces={watchedAddressFromPlaces}
-                  setFromPlaces={(value, options) => form.setValue("addressFromPlaces", value, options)}
-                  label={t("services.address.label")}
-                  hint={t("services.address.hint")}
-                  placeholder={t("services.address.placeholder")}
-                  inputClassName="h-11"
-                />
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="duration"
-              render={({ field }) => (
-                <FormItem className="flex h-full min-h-0 flex-col gap-2">
-                  <FormLabel>
-                    {t("services.duration")} ({t("services.minutes")})
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      value={field.value}
-                      onChange={(e) => {
-                        const next = e.target.value.replace(/[^\d]/g, "");
-                        field.onChange(next);
-                      }}
-                      placeholder={t("services.durationPlaceholder")}
-                      className="h-11 rounded-xl"
-                    />
-                  </FormControl>
-                  <div className="min-h-0 flex-1 basis-0" aria-hidden />
-                  <p className="text-xs leading-snug text-slate-500">{t("services.durationHint")}</p>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="packSize"
-              render={({ field }) => (
-                <FormItem className="flex h-full min-h-0 flex-col gap-2">
-                  <FormLabel>{t("services.packSize")}</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      value={field.value}
-                      onChange={(e) => {
-                        const next = e.target.value.replace(/[^\d]/g, "");
-                        field.onChange(next);
-                      }}
-                      placeholder="1"
-                      className="h-11 rounded-xl"
-                    />
-                  </FormControl>
-                  <div className="min-h-0 flex-1 basis-0" aria-hidden />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="requiresValidation"
-              render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <div className="flex items-start gap-3 rounded-xl border border-slate-200 p-4 hover:bg-slate-50">
-                    <FormControl>
-                      <Checkbox checked={field.value} onCheckedChange={(v) => field.onChange(v === true)} />
-                    </FormControl>
-                    <div className="space-y-1">
-                      <FormLabel className="font-medium text-slate-900 cursor-pointer">
-                        {t("services.requires.validationTitle")}
-                      </FormLabel>
-                      <p className="text-sm text-slate-600">{t("services.requires.validation.desc")}</p>
-                    </div>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="allowsDirectPayment"
-              defaultValue={false}
-              render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <div className="flex items-start gap-3 rounded-xl border border-slate-200 p-4 hover:bg-slate-50">
-                    <FormControl>
-                      <Checkbox checked={field.value === true} onCheckedChange={(v) => field.onChange(v === true)} />
-                    </FormControl>
-                    <div className="space-y-1">
-                      <FormLabel className="font-medium text-slate-900 cursor-pointer">
-                        {t("services.directPayment.title")}
-                      </FormLabel>
-                      <p className="text-sm text-slate-600">{t("services.directPayment.desc")}</p>
-                    </div>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="flex flex-col gap-4">
-              <FormField
-                control={form.control}
-                name="price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("services.price")} (€)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        inputMode="decimal"
-                        value={field.value}
-                        onChange={(e) => {
-                          const normalized = e.target.value.replace(",", ".");
-                          const next = normalized
-                            .replace(/[^\d.]/g, "")
-                            .replace(/(\..*)\./g, "$1");
-                          field.onChange(next);
-                        }}
-                        placeholder="50"
-                        className="h-11 w-full max-w-[11rem] rounded-xl"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="imageUrl"
-              render={({ field }) => {
-                const hasImage = Boolean(field.value?.trim().length);
-                const openImagePicker = () => imageUploadInputRef.current?.click();
-
-                const hiddenFileInput = (
-                  <input
-                    ref={imageUploadInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="sr-only"
-                    tabIndex={-1}
-                    onChange={(e) => {
-                      handleImageUploadChange(e.target.files?.[0] ?? null);
-                      e.target.value = "";
-                    }}
-                  />
-                );
-
-                const hintBlock = (
-                  <>
-                    <p className="text-xs text-slate-500">
-                      {t("services.imageInput.recommendedSize", {
-                        width: SERVICE_BOOKING_IMAGE_RECOMMENDED_WIDTH,
-                        height: SERVICE_BOOKING_IMAGE_RECOMMENDED_HEIGHT,
-                      })}
-                    </p>
-                    <p className="text-xs text-slate-500">{t("services.imageInput.hint")}</p>
-                  </>
-                );
-
-                const emptyDropZone = (
-                  <button
-                    type="button"
-                    onClick={openImagePicker}
-                    aria-label={t("services.imageInput.ariaUploadZone")}
-                    className="flex aspect-video w-full max-w-3xl cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50/80 px-4 py-8 text-center transition-colors hover:border-slate-400 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/40"
-                  >
-                    <Upload className="size-10 text-slate-400" aria-hidden />
-                    <span className="text-sm font-medium text-slate-700">{t("services.imageInput.dropPlaceholderTitle")}</span>
-                    <span className="text-xs text-slate-500">{t("services.imageInput.dropPlaceholderSubtitle")}</span>
-                  </button>
-                );
-
-                const clearServiceImage = () => {
-                  form.setValue("imageUrl", "", {
-                    shouldDirty: true,
-                    shouldTouch: true,
-                    shouldValidate: true,
-                  });
-                  form.clearErrors("imageUrl");
-                  if (imageUploadInputRef.current) {
-                    imageUploadInputRef.current.value = "";
-                  }
-                  dismissServiceImageCrop();
-                };
-
-                const previewReplaceButton = (
-                  <button
-                    type="button"
-                    onClick={openImagePicker}
-                    aria-label={t("services.imageInput.ariaReplace")}
-                    className="group/btn absolute inset-0 z-0 flex cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600/40"
-                  >
-                    <img
-                      src={field.value}
-                      alt={t("services.imageInput.previewAlt")}
-                      className="h-full w-full object-cover"
-                    />
-                    <span className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-900/55 opacity-0 transition-opacity group-hover/btn:opacity-100">
-                      <ImageUp className="size-10 text-white drop-shadow" aria-hidden />
-                      <span className="text-sm font-medium text-white">{t("services.imageInput.hoverReplace")}</span>
-                    </span>
-                  </button>
-                );
-
-                const previewRemoveButton = (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="icon"
-                    className="absolute right-2 top-2 z-10 size-9 rounded-full border-0 bg-black/55 text-white shadow-md hover:bg-black/75 focus-visible:ring-white/80"
-                    aria-label={t("services.imageInput.ariaRemoveImage")}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      clearServiceImage();
-                    }}
-                  >
-                    <X className="size-4" aria-hidden />
-                  </Button>
-                );
-
-                const previewDropZone = (
-                  <div className="relative aspect-video w-full max-w-3xl overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
-                    {previewReplaceButton}
-                    {previewRemoveButton}
-                  </div>
-                );
-
-                return (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>{t("services.imageUrl")}</FormLabel>
-                    <div className="space-y-2">
-                      {hiddenFileInput}
-                      {hintBlock}
-                      {hasImage ? previewDropZone : emptyDropZone}
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            />
-          </div>
-
-          <div className="mt-8 pt-8 border-t border-slate-200">
-            <div className="flex items-center gap-2 mb-4">
-              <Calendar className="w-5 h-5 text-slate-700" />
-              <h3 className="text-lg font-bold text-slate-900">{t("services.availabilityTitle")}</h3>
-            </div>
-            <p className="text-sm text-slate-600 mb-4">{t("services.availability.instructions")}</p>
-
-            <div className="bg-slate-50 rounded-xl p-4">
-              <WeeklyTimeGrid
-                days={daysOfWeek.map((day) => ({ key: day.key, label: day.short }))}
-                timeSlots={timeSlots.filter((time) => daysOfWeek.some((day) => !isOutsideOpeningHours(day.key, time)))}
-                renderCell={({ day, time }) => {
-                  const slotKey = getSlotKey(day.key, time);
-                  const outsideOnly = isOutsideOpeningHours(day.key, time);
-                  const planningClosed = planningClosedSlotKeys.has(slotKey);
-                  const manualClosed = isServiceSlotManuallyClosed(day.key, time);
-                  const closed = outsideOnly || planningClosed || manualClosed;
-                  const isOutsideClosedCell = closed && outsideOnly;
-                  const isPlanningClosedCell = closed && !outsideOnly && planningClosed;
-                  const isManualClosedCell = closed && !outsideOnly && !planningClosed && manualClosed;
-                  const isReadOnlyClosedCell = isOutsideClosedCell || isPlanningClosedCell;
-                  const slotCellClassName = `group w-full p-1 h-8 md:h-8 box-border transition-all text-left relative ${
-                    closed
-                      ? isOutsideClosedCell
-                        ? "bg-slate-400 cursor-not-allowed hover:bg-slate-400"
-                        : isPlanningClosedCell
-                          ? "bg-slate-200 cursor-not-allowed hover:bg-slate-200"
-                          : "bg-slate-100 cursor-pointer hover:bg-slate-200"
-                      : "bg-white hover:bg-slate-50 cursor-pointer"
-                  }`;
-                  const slotCell = isReadOnlyClosedCell ? (
-                    <div className={slotCellClassName} style={{ userSelect: "none" }} />
-                  ) : (
-                    <div
-                      role="button"
-                      tabIndex={0}
-                      className={slotCellClassName}
-                      onPointerDown={(event) => {
-                        if (event.button !== 0) return;
-                        event.preventDefault();
-                        const slotKey = getSlotKey(day.key, time);
-                        const currentlyClosed = selectedServiceClosedSet.has(slotKey);
-                        const mode: "close" | "open" = currentlyClosed ? "open" : "close";
-                        availabilityDragRef.current = {
-                          active: true,
-                          mode,
-                          keys: new Set([slotKey]),
-                        };
-                        paintServiceSlotAvailability(day.key, time, mode === "close");
-                      }}
-                      onMouseEnter={() => {
-                        const drag = availabilityDragRef.current;
-                        if (!drag.active || !drag.mode) return;
-                        const slotKey = getSlotKey(day.key, time);
-                        if (drag.keys.has(slotKey)) return;
-                        drag.keys.add(slotKey);
-                        paintServiceSlotAvailability(day.key, time, drag.mode === "close");
-                      }}
-                      onClick={() => toggleServiceSlotAvailability(day.key, time)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          toggleServiceSlotAvailability(day.key, time);
-                        }
-                      }}
-                      style={{ userSelect: "none" }}
-                    >
-                      {isManualClosedCell ? (
-                        <div
-                          className="absolute inset-0"
-                          style={{
-                            backgroundImage: `repeating-linear-gradient(
-                              45deg,
-                              transparent,
-                              transparent 10px,
-                              #cbd5e1 10px,
-                              #cbd5e1 11px
-                            )`,
-                            backgroundColor: "#f1f5f9",
-                          }}
-                        />
-                      ) : null}
-                    </div>
-                  );
-
-                  if (isOutsideClosedCell) {
-                    return (
-                      <CalendarSlotHoverHint label={t("calendar.hours.outsideSlotHint")}>
-                        {slotCell}
-                      </CalendarSlotHoverHint>
-                    );
-                  }
-                  if (isPlanningClosedCell) {
-                    return (
-                      <CalendarSlotHoverHint label={t("calendar.availability.manualClosedSlotHint")}>
-                        <div className="relative">
-                          {slotCell}
-                          <div
-                            className="pointer-events-none absolute inset-0"
-                            style={{
-                              backgroundImage: `repeating-linear-gradient(
-                                45deg,
-                                transparent,
-                                transparent 10px,
-                                #94a3b8 10px,
-                                #94a3b8 11px
-                              )`,
-                              backgroundColor: "#e2e8f0",
-                            }}
-                          />
-                        </div>
-                      </CalendarSlotHoverHint>
-                    );
-                  }
-                  if (isManualClosedCell) {
-                    return (
-                      <CalendarSlotHoverHint label={t("calendar.availability.manualClosedSlotHint")}>
-                        {slotCell}
-                      </CalendarSlotHoverHint>
-                    );
-                  }
-                  return slotCell;
-                }}
-              />
-            </div>
-
-            <div className="mt-4 flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-white border border-slate-300 rounded" />
-                <span className="text-slate-600">{t("public.time.available")}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-4 h-4 border border-slate-300 rounded"
-                  style={{
-                    backgroundImage:
-                      "repeating-linear-gradient(45deg, transparent, transparent 3px, #cbd5e1 3px, #cbd5e1 4px)",
-                    backgroundColor: "#f1f5f9",
-                  }}
-                />
-                <span className="text-slate-600">{t("calendar.hours.closed")}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex gap-3 mt-6">
-            <Button type="submit" className="h-11 px-6 rounded-xl" disabled={isSaving}>
-              {isAdding ? t("services.save") : t("common.save")}
-            </Button>
-            <Button type="button" variant="outline" onClick={resetFormUi} className="h-11 px-6 rounded-xl">
-              {t("common.cancel")}
-            </Button>
-          </div>
-        </form>
-      </Form>
-        {draftPublicPreviewService ? (
-          <ServicePublicPreviewDialog
-            open={servicePreviewOpen}
-            onOpenChange={setServicePreviewOpen}
-            coachSlug={coachSlugForPublicPreview}
-            coach={coachCardForPublicPreview}
-            draftServices={[draftPublicPreviewService]}
-          />
-        ) : null}
-      </>
+      <ServiceFormEditor
+        form={form}
+        onSubmit={onSubmit}
+        googleMapsPlacesApiKey={googleMapsPlacesApiKey}
+        placesActive={isAdding || editingId !== null}
+        isOutsideOpeningHours={isOutsideOpeningHours}
+        planningClosedSlotKeys={planningClosedSlotKeys}
+        coachSlugForPublicPreview={coachSlugForPublicPreview}
+        coachCardForPublicPreview={coachCardForPublicPreview}
+        editingServiceId={editingId}
+        stripeReadyForPaidPublish={stripeReadyForPaidPublish}
+        showValidationSummary
+        formErrorMessages={formErrorMessages}
+        mutationError={mutationError}
+        visibilityBannerVariant="blue"
+        headerSlot={formTitle}
+        footerSlot={formActions}
+        className="rounded-xl border border-slate-200 bg-slate-50/50 p-6 shadow-sm"
+      />
     );
   };
 
@@ -1544,33 +730,6 @@ export default function ServicesManagement() {
       </Button>
     </div>
   );
-
-  const isPublished = form.watch("isPublished");
-
-  const visibilityTopBanner = isFormMode ? (
-    <div className="mb-5 rounded-2xl border-2 border-blue-300 bg-blue-100 px-5 py-4 shadow-sm">
-      <div className="flex items-start gap-3">
-        <Checkbox
-          checked={isPublished === true}
-          onCheckedChange={(value) => {
-            const next = value === true;
-            if (next && formPaidServiceBlocksPublish) {
-              toast.error(t("services.visibility.stripeRequiredAlert"));
-              return;
-            }
-            form.setValue("isPublished", next, { shouldDirty: true });
-          }}
-          aria-label={t("services.visibility.title")}
-        />
-        <div className="space-y-1">
-          <p className="text-base font-bold text-slate-900">{t("services.visibility.title")}</p>
-          <p className="text-sm text-slate-700">
-            {isPublished ? t("services.visibility.publishedHint") : t("services.visibility.draftHint")}
-          </p>
-        </div>
-      </div>
-    </div>
-  ) : null;
 
   const servicesListBody =
     isFormMode
@@ -1629,25 +788,8 @@ export default function ServicesManagement() {
       {renderHeader()}
       {servicesFiltersPanel}
       {pagination}
-      {visibilityTopBanner}
       {mainWhitePanel}
       {renderDeleteDialog()}
-      <ServiceImageCropDialog
-        open={serviceImageCropOpen}
-        onOpenChange={(next) => {
-          if (!next) {
-            dismissServiceImageCrop();
-          }
-        }}
-        imageSrc={serviceImageCropSrc}
-        onApply={(dataUrl) => {
-          form.clearErrors("imageUrl");
-          form.setValue("imageUrl", dataUrl, { shouldDirty: true, shouldValidate: true });
-          if (imageUploadInputRef.current) {
-            imageUploadInputRef.current.value = "";
-          }
-        }}
-      />
     </div>
   );
 }
