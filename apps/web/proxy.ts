@@ -21,7 +21,8 @@ export function proxy(request: NextRequest) {
     pathname === "/admin/signin" ||
     pathname === "/admin/signup" ||
     pathname === "/admin/forgot-password" ||
-    pathname === "/admin/reset-password";
+    pathname === "/admin/reset-password" ||
+    pathname === "/admin/onboarding";
 
   /** Sign-in funnel only: still allow `/admin/reset-password` when a session cookie exists (email link + token). */
   const isAdminAuthGatePath =
@@ -38,8 +39,9 @@ export function proxy(request: NextRequest) {
   }
 
   if (isAuthenticated && isAdminAuthGatePath) {
-    const adminUrl = new URL("/admin", request.url);
-    return NextResponse.redirect(adminUrl);
+    const redirectParam = request.nextUrl.searchParams.get("redirect");
+    const targetPath = redirectParam?.startsWith("/admin") ? redirectParam : "/admin";
+    return NextResponse.redirect(new URL(targetPath, request.url));
   }
 
   return NextResponse.next();

@@ -18,6 +18,7 @@ import {
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
 import { Textarea } from "#/components/ui/textarea";
+import { isDevToolsEnabled } from "@web/utils/is-dev-tools-enabled";
 
 const buildClientFormSchema = (p: { required: string; emailInvalid: string }) =>
   z.object({
@@ -67,7 +68,7 @@ export default function ClientFormModal(p: ClientFormModalProps) {
 
   const { reset } = form;
 
-  const isDev = process.env.NODE_ENV === "development";
+  const isDev = isDevToolsEnabled();
 
   const handleDevFill = () => {
     const timestamp = Date.now();

@@ -13,6 +13,7 @@ import {
   getDevSimulateStripeReadyFromStorage,
   setDevSimulateStripeReadyInStorage,
 } from "@web/utils/dev-simulate-stripe";
+import { isDevToolsEnabled } from "@web/utils/is-dev-tools-enabled";
 
 export function DevDebuggerFloatingPanel() {
   const t = useTranslations("dev.debugger");
@@ -57,7 +58,7 @@ export function DevDebuggerFloatingPanel() {
 
   const hint = <p className="text-xs text-muted-foreground">{t("hint")}</p>;
 
-  if (process.env.NODE_ENV !== "development") {
+  if (!isDevToolsEnabled()) {
     return null;
   }
 

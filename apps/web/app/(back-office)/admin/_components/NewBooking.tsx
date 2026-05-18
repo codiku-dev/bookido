@@ -15,12 +15,13 @@ import { Input } from "#/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "#/components/ui/select";
 import { Textarea } from "#/components/ui/textarea";
 import { trpc } from "@web/libs/trpc-client";
+import { isDevToolsEnabled } from "@web/utils/is-dev-tools-enabled";
 
 export default function NewBooking() {
   const t = useTranslations();
   const router = useRouter();
   const utils = trpc.useUtils();
-  const showDevFill = process.env.NODE_ENV === "development";
+  const showDevFill = isDevToolsEnabled();
 
   const clientsQuery = trpc.clients.list.useQuery(undefined, { retry: false });
   const servicesQuery = trpc.services.list.useQuery(undefined, { retry: false });

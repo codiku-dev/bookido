@@ -4,6 +4,7 @@ import { PrismaService } from "@api/src/infrastructure/prisma/prisma.service";
 import { z } from "zod";
 import { createServiceSchema, updateServiceSchema } from "./services.schema";
 import { listServicesPaginatedInputSchema } from "./services.schema";
+import { isDevToolsEnabled } from "@api/src/utils/is-dev-tools-enabled";
 
 type CreateServiceInput = z.infer<typeof createServiceSchema>;
 type UpdateServiceInput = z.infer<typeof updateServiceSchema>;
@@ -31,7 +32,7 @@ export class ServicesService {
     price: number,
     devSimulateStripeReady?: boolean,
   ) {
-    if (devSimulateStripeReady && process.env["NODE_ENV"] === "development") {
+    if (devSimulateStripeReady && isDevToolsEnabled()) {
       return;
     }
     if (!isPublished || !this.paidServiceNeedsOnlineCardPayment(isFree, price)) {

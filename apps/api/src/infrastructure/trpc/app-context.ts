@@ -1,8 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { ContextOptions, TRPCContext } from "nestjs-trpc";
+import { isDevToolsEnabled } from "@api/src/utils/is-dev-tools-enabled";
 
 function readDevSimulateStripeReadyHeader(req: ContextOptions["req"]): boolean {
-  if (process.env["NODE_ENV"] !== "development") {
+  if (!isDevToolsEnabled()) {
     return false;
   }
   const raw = req?.headers?.["x-bookido-dev-simulate-stripe-ready"];

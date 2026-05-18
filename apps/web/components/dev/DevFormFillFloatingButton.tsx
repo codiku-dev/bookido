@@ -4,10 +4,11 @@ import { useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { Wand2 } from "lucide-react";
 import { fillDevFormFields } from "@web/utils/dev-fill-form-fields";
+import { isDevToolsEnabled } from "@web/utils/is-dev-tools-enabled";
 
 export function DevFormFillFloatingButton() {
   const pathname = usePathname();
-  if (process.env.NODE_ENV !== "development") {
+  if (!isDevToolsEnabled()) {
     return null;
   }
   if (!pathname?.startsWith("/admin")) {

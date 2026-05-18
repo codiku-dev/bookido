@@ -1,3 +1,6 @@
+/** Where Better Auth sends the user after signup email verification (auto sign-in). */
+export const ADMIN_POST_SIGNUP_VERIFY_CALLBACK_PATH = "/admin/onboarding";
+
 /** Post-auth redirect URL (email verify, OAuth, etc.) — must match an API `trustedOrigins` entry. */
 export function getAuthCallbackURL(fallbackPath = "/admin/signin"): string {
   const fromEnv = process.env["NEXT_PUBLIC_AUTH_CALLBACK_URL"];

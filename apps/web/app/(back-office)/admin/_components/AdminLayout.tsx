@@ -82,10 +82,14 @@ export default function AdminLayout(p: { children: ReactNode }) {
     }
   }, [sessionReady, pathname, onboardingStatusQuery.isPending, onboardingStatusQuery.data?.needsOnboarding, router]);
 
+  const sessionBootstrapping = sessionPending;
+
   const onboardingGateBlocking =
     sessionReady &&
     pathname !== "/admin/onboarding" &&
     (onboardingStatusQuery.isPending || onboardingStatusQuery.data?.needsOnboarding === true);
+
+  const layoutGateBlocking = sessionBootstrapping || onboardingGateBlocking;
 
   const handleLogout = async () => {
     try {
@@ -134,7 +138,7 @@ export default function AdminLayout(p: { children: ReactNode }) {
     </AlertDialog>
   );
 
-  const onboardingGateOverlay = onboardingGateBlocking ? (
+  const onboardingGateOverlay = layoutGateBlocking ? (
     <div
       className="fixed inset-0 z-150 flex flex-col items-center justify-center gap-3 bg-slate-50"
       aria-busy
@@ -156,7 +160,7 @@ export default function AdminLayout(p: { children: ReactNode }) {
     </div>
   ) : null;
 
-  if (onboardingGateBlocking) {
+  if (layoutGateBlocking) {
     return onboardingGateOverlay;
   }
 

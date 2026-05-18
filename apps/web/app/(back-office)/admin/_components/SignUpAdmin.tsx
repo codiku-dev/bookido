@@ -15,7 +15,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from "#/components/
 import { Input } from "#/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "#/components/ui/alert";
 import { authClient, signIn, signUp } from "@web/libs/auth-client";
-import { getAuthCallbackURL } from "@web/utils/auth-callback-url";
+import {
+  ADMIN_POST_SIGNUP_VERIFY_CALLBACK_PATH,
+  getAuthCallbackURL,
+} from "@web/utils/auth-callback-url";
 import { isSignupUserAlreadyExistsError, translateSignupAuthError } from "@web/utils/translate-signup-auth-error";
 
 type SignUpFormValues = {
@@ -55,7 +58,7 @@ export default function SignUpAdmin() {
     form.clearErrors("root");
     setEmailSent(false);
 
-    const callbackURL = getAuthCallbackURL("/admin/signin");
+    const callbackURL = getAuthCallbackURL(ADMIN_POST_SIGNUP_VERIFY_CALLBACK_PATH);
     const res = await signUp.email({
       name: provisionalDisplayNameFromEmail(values.email),
       email: values.email,
@@ -88,7 +91,7 @@ export default function SignUpAdmin() {
   const handleGoogleSignUp = () => {
     form.clearErrors("root");
     setEmailSent(false);
-    const callbackURL = getAuthCallbackURL("/admin/signin");
+    const callbackURL = getAuthCallbackURL(ADMIN_POST_SIGNUP_VERIFY_CALLBACK_PATH);
     void signIn.social({
       provider: "google",
       callbackURL: callbackURL || undefined,

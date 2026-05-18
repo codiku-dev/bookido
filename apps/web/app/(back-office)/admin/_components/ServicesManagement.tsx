@@ -61,6 +61,7 @@ import type { inferRouterOutputs } from "@trpc/server";
 import type { AppRouter } from "@repo/trpc/router";
 import { useSession } from "@web/libs/auth-client";
 import { trpc } from "@web/libs/trpc-client";
+import { isDevToolsEnabled } from "@web/utils/is-dev-tools-enabled";
 import { ServicePublicPreviewDialog } from "#/components/service-public-preview-dialog";
 import { ServiceDescriptionEditor } from "#/components/tiptap/service-description-editor";
 import type {
@@ -233,7 +234,7 @@ export default function ServicesManagement() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<25 | 50 | 100>(25);
   const [servicePreviewOpen, setServicePreviewOpen] = useState(false);
-  const showDevFill = process.env.NODE_ENV === "development";
+  const showDevFill = isDevToolsEnabled();
   const imageUploadInputRef = useRef<HTMLInputElement | null>(null);
   const [serviceImageCropOpen, setServiceImageCropOpen] = useState(false);
   const [serviceImageCropSrc, setServiceImageCropSrc] = useState<string | null>(null);

@@ -19,6 +19,7 @@ import { setAdminAuthBridgeCookie } from "@web/libs/admin-auth-bridge-cookie";
 import { signIn, useSession } from "@web/libs/auth-client";
 import { getAuthCallbackURL } from "@web/utils/auth-callback-url";
 import { translateSigninAuthError } from "@web/utils/translate-signin-auth-error";
+import { isDevToolsEnabled } from "@web/utils/is-dev-tools-enabled";
 
 type SignInFormValues = {
   email: string;
@@ -74,8 +75,7 @@ export default function SignInAdmin() {
   const onSubmit = async (values: SignInFormValues) => {
     form.clearErrors("root");
 
-    if (process.env.NODE_ENV === "development") {
-      // DEBUG only — remove or keep behind a flag before any shared/staging deploy
+    if (isDevToolsEnabled()) {
       console.info("[SignInAdmin] signIn.email payload", {
         email: values.email,
         password: values.password,
@@ -89,7 +89,7 @@ export default function SignInAdmin() {
 
     if (res.error) {
       setIsRedirectingAfterSignIn(false);
-      if (process.env.NODE_ENV === "development") {
+      if (isDevToolsEnabled()) {
         console.error("[SignInAdmin] signIn.email error", {
           email: values.email,
           password: values.password,
@@ -201,7 +201,7 @@ export default function SignInAdmin() {
     </p>
   );
 
-  const showDevFill = process.env.NODE_ENV === "development";
+  const showDevFill = isDevToolsEnabled();
 
   const handleDevFill = () => {
     form.clearErrors();

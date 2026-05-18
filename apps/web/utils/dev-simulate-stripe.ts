@@ -1,3 +1,5 @@
+import { isDevToolsEnabled } from "@web/utils/is-dev-tools-enabled";
+
 export const DEV_SIMULATE_STRIPE_READY_STORAGE_KEY = "bookido_dev_simulate_stripe_ready";
 
 export function getDevSimulateStripeReadyFromStorage(): boolean {
@@ -26,9 +28,9 @@ export function setDevSimulateStripeReadyInStorage(value: boolean): void {
   }
 }
 
-/** Header value for tRPC when simulation is on (development only). */
+/** Header value for tRPC when simulation is on (dev / staging only). */
 export function getDevSimulateStripeReadyHeaderValue(): string | undefined {
-  if (process.env.NODE_ENV !== "development") {
+  if (!isDevToolsEnabled()) {
     return undefined;
   }
   if (typeof window === "undefined") {
