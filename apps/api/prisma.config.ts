@@ -8,8 +8,14 @@ function resolveDatabaseUrl(): string {
   const fromEnv = process.env.DATABASE_URL?.trim();
   if (fromEnv) return fromEnv;
 
-  // `prisma generate`, `validate`, `format`, and `version` load this file but do not connect.
   const argv = process.argv;
+  const urlFlagIndex = argv.indexOf('--url');
+  if (urlFlagIndex !== -1) {
+    const fromFlag = argv[urlFlagIndex + 1]?.trim();
+    if (fromFlag) return fromFlag;
+  }
+
+  // `prisma generate`, `validate`, `format`, and `version` load this file but do not connect.
   const allowsPlaceholder =
     argv.includes('generate') ||
     argv.includes('validate') ||

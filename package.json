@@ -36,6 +36,7 @@
     "db:start": "turbo run db:start --filter=api",
     "db:update": "cd apps/api && bun run db:update",
     "db:studio": "turbo run db:studio --filter=api",
+    "db:studio:staging": "turbo run db:studio:staging --filter=api",
     "#---------------------------WEB---------------------------------#": "",
     "start:web": "bunx turbo run start:prod --filter=web...",
     "start:web:staging": "bunx turbo run start:staging --filter=web...",
@@ -51,8 +52,8 @@
     "#---------------------------ENV---------------------------------#": "",
     "check-env": "bun run scripts/check-env-all-apps.ts",
     "check-env:watch": "bun run scripts/check-env-all-apps.ts -- --watch",
-    "encrypt-env": "npx dotenvx encrypt -f ./apps/*/.env.production ./apps/*/.env.local.development ./apps/*/.env.staging",
-    "decrypt-env": "npx dotenvx decrypt -f ./apps/*/.env.production ./apps/*/.env.local.development ./apps/*/.env.staging"
+    "encrypt-env": "dotenvx encrypt -f ./apps/*/.env.production ./apps/*/.env.local.development ./apps/*/.env.staging",
+    "decrypt-env": "dotenvx decrypt -f ./apps/*/.env.production ./apps/*/.env.local.development ./apps/*/.env.staging"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",
@@ -72,7 +73,8 @@
     "packages/*"
   ],
   "dependencies": {
-    "@dotenvx/dotenvx": "^1.52.0",
+    "@dotenvx/dotenvx": "^1.66.0",
+    "@noble/ciphers": "1.3.0",
     "build": "^0.1.4",
     "bunx": "^0.1.0",
     "run": "^1.5.0"

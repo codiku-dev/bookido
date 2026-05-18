@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { signUp } from '@web/libs/auth-client';
+import { getAuthCallbackURL } from '@web/utils/auth-callback-url';
 import { Badge } from '@repo/ui/components/badge';
 import { Button } from '@repo/ui/components/button/button';
 import { Input } from '@repo/ui/components/input';
@@ -67,7 +68,7 @@ export function SignupForm(p: {
       name: values.name,
       email: values.email,
       password: values.password,
-      callbackURL: process.env['NEXT_PUBLIC_GOOGLE_AUTH_CALLBACK_URL'],
+      callbackURL: getAuthCallbackURL('/examples/authentication') || undefined,
     });
     setResult(res ?? null);
   };

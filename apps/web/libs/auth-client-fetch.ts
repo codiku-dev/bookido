@@ -119,6 +119,9 @@ export function createLocaleAwareFetch(): typeof fetch {
     }
     return maybeShrinkBetterAuthJsonBody(res);
   };
-  Object.assign(impl, { preconnect: fetch.preconnect });
+  const preconnect = Reflect.get(fetch, "preconnect");
+  if (typeof preconnect === "function") {
+    Object.assign(impl, { preconnect });
+  }
   return impl as typeof fetch;
 }

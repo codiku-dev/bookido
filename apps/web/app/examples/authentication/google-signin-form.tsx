@@ -1,5 +1,6 @@
 import { Button } from '@repo/ui/components/button/button';
 import { signIn } from '@web/libs/auth-client';
+import { getAuthCallbackURL } from '@web/utils/auth-callback-url';
 import { LogIn } from 'lucide-react';
 export function GoogleForm() {
   return (
@@ -7,7 +8,7 @@ export function GoogleForm() {
       onClick={() =>
         signIn.social({
           provider: 'google',
-          callbackURL: process.env["NEXT_PUBLIC_GOOGLE_AUTH_CALLBACK_URL"],
+          callbackURL: getAuthCallbackURL('/examples/authentication') || undefined,
         })
       }
     >
