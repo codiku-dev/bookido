@@ -1,0 +1,5 @@
+---
+alwaysApply: true
+---
+
+Always run a  npm build, and npm ci after you fixed or added code to make sure everything is still working
